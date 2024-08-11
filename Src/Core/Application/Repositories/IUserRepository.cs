@@ -1,5 +1,6 @@
 ﻿using Application.Aggregates.UserAggregate.Queries;
 using Application.Common.Interfaces;
+using Application.Common.Models;
 using Domain.Entities;
 
 namespace Application.Repositories;
@@ -8,8 +9,8 @@ public interface IUserRepository : IRepository<User, int>
 {
     Task<IEnumerable<UserDto>> GetUsers(bool IsActive, int UserTypeId);
 
-    Task<UserDto> GetUserById(int Id);
+    Task<CustomResult<UserDto>> GetUserById(int Id);
 
-    Task<UserDto> GetUserByAspId(string AspId);
+    Task<CustomResult<UserDto>> GetUserByAspId(string AspId);
 
 }

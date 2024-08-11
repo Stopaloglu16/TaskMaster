@@ -1,10 +1,13 @@
-﻿namespace Application.Aggregates.UserAggregate.Queries;
+﻿using Domain.Enums;
+
+namespace Application.Aggregates.UserAggregate.Queries;
 
 public record UserDto
 {
-    public required string FullName { get; set; }
+    public int Id { get; set; }
+    public string FullName { get; set; }
 
-    public required string UserEmail { get; set; }
+    public string UserEmail { get; set; }
 
-    public string UserType { get; set; }
+    public UserType UserType { get; set; }
 }
