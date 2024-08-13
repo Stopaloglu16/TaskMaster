@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data;
 
-
 public class WebIdentityContext : IdentityDbContext
 {
     public WebIdentityContext(DbContextOptions<WebIdentityContext> options) : base(options)

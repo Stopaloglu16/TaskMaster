@@ -12,4 +12,6 @@ public record UpdateTaskItemRequest
     [StringLength(250)]
     public string? Description { get; init; }
     public DateOnly CompletedDate { get; init; }
+
+    public int TaskListId { get; set; }
 }

@@ -1,10 +1,7 @@
-﻿using Application.Common.Interfaces;
-using Domain.Entities;
+﻿using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
-using System;
 
 namespace Infrastructure.IntegrationTests.Data;
 

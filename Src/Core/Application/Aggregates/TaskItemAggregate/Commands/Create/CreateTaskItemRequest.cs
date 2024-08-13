@@ -9,4 +9,6 @@ public record CreateTaskItemRequest
 
     [StringLength(250)]
     public string? Description { get; init; }
+
+    public int TaskListId { get; init; }
 }

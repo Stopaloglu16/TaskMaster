@@ -1,12 +1,6 @@
 ﻿using Application.Aggregates.TaskListAggregate.Commands.Create;
-using Application.Aggregates.TaskListAggregate.Queries;
 using SharedUtilityTestMethods;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.IntegrationTests.Aggregates;
 
@@ -52,7 +46,7 @@ public class TaskListDtoTest
         CreateTaskListRequest createTaskListRequest = new() { Title = longMockTitle };
 
         //Act
-        var validateResult =  ValidateClass.Validate(createTaskListRequest, out results);
+        var validateResult = ValidateClass.Validate(createTaskListRequest, out results);
         var resultList = results.ToList();
 
         //Assert

@@ -25,9 +25,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain.UnitTests", "Tests\D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application.IntegrationTests", "Tests\Application.IntegrationTests\Application.IntegrationTests.csproj", "{E3AF0F59-2E72-4660-A161-54D63F72B490}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedUtilityTestMethods", "Tests\SharedUtilityTestMethods\SharedUtilityTestMethods.csproj", "{F4D0C759-EBB7-4689-825C-A79758E908FD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharedUtilityTestMethods", "Tests\SharedUtilityTestMethods\SharedUtilityTestMethods.csproj", "{F4D0C759-EBB7-4689-825C-A79758E908FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.IntegrationTests", "Tests\Infrastructure.IntegrationTests\Infrastructure.IntegrationTests.csproj", "{14672425-BF22-4729-A1AF-E2ABABD28176}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure.IntegrationTests", "Tests\Infrastructure.IntegrationTests\Infrastructure.IntegrationTests.csproj", "{14672425-BF22-4729-A1AF-E2ABABD28176}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceLayer", "Src\Infrastructures\ServiceLayer\ServiceLayer.csproj", "{A57C36E5-C9D4-4EFD-A4DF-5FA290FF6B17}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,6 +69,10 @@ Global
 		{14672425-BF22-4729-A1AF-E2ABABD28176}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{14672425-BF22-4729-A1AF-E2ABABD28176}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{14672425-BF22-4729-A1AF-E2ABABD28176}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A57C36E5-C9D4-4EFD-A4DF-5FA290FF6B17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A57C36E5-C9D4-4EFD-A4DF-5FA290FF6B17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A57C36E5-C9D4-4EFD-A4DF-5FA290FF6B17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A57C36E5-C9D4-4EFD-A4DF-5FA290FF6B17}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -82,6 +88,7 @@ Global
 		{E3AF0F59-2E72-4660-A161-54D63F72B490} = {AC84E431-EC65-415A-B649-736F0A044467}
 		{F4D0C759-EBB7-4689-825C-A79758E908FD} = {AC84E431-EC65-415A-B649-736F0A044467}
 		{14672425-BF22-4729-A1AF-E2ABABD28176} = {AC84E431-EC65-415A-B649-736F0A044467}
+		{A57C36E5-C9D4-4EFD-A4DF-5FA290FF6B17} = {421702C0-07E5-412E-8860-64D1DC181A1E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5B8B3F2C-AE0B-4C1D-824D-9EC8F8E6C8C5}

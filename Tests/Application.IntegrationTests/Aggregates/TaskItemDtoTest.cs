@@ -1,13 +1,6 @@
 ﻿using Application.Aggregates.TaskItemAggregate.Commands.Create;
-using Application.Aggregates.TaskListAggregate.Commands.Create;
-using Application.Aggregates.TaskListAggregate.Queries;
 using SharedUtilityTestMethods;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.IntegrationTests.Aggregates;
 
@@ -23,7 +16,7 @@ public class TaskItemDtoTest
     {
         //Arrange
         CreateTaskItemRequest createTaskItemRequest = new CreateTaskItemRequest() { Title = MockTitle };
-        
+
 
         //Assert
         Assert.NotNull(createTaskItemRequest);
