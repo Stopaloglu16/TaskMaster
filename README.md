@@ -7,13 +7,13 @@ Read only: Access and view tasks for informational purposes only
 
 Task will have Due date and Complete date for performance calculation. Each task will own task items.
 
-# Features
+# Status
 
-| Id | Tasks \ Users   | Company | Branch | Customer | Status |
-| -- | --------------- | - | - | - | - |
-| 1  | Phase 1 | ✅ |  |  | ![90%](https://progress-bar.dev/20)|
-| 2  | Phase 2 | ❌ |  |  | ![90%](https://progress-bar.dev/0)|
-| 3  | Phase 3 | ❌ |  |  | ![90%](https://progress-bar.dev/0)|
+| Id | Phases   | Status |
+| -- | --------------- | - |
+| 1  | Phase 1 | ![10](https://geps.dev/progress/10)|
+| 2  | Phase 2 | ![0](https://geps.dev/progress/0)|
+| 3  | Phase 3 | ![0](https://geps.dev/progress/0)|
 
 
 ## Phase1
