@@ -14,6 +14,7 @@ Task will have Due date and Complete date for performance calculation. Each task
 | 1  | Phase 1 | ![10](https://geps.dev/progress/10)|
 | 2  | Phase 2 | ![0](https://geps.dev/progress/0)|
 | 3  | Phase 3 | ![0](https://geps.dev/progress/0)|
+| 4  | Phase 4 | ![0](https://geps.dev/progress/0)|
 
 
 ## Phase1
@@ -26,6 +27,10 @@ Task will have Due date and Complete date for performance calculation. Each task
 - Create tests by xUnit (Unit, Integration)
 
 ## Phase 3
+- Azure Devops CI
+- Azure Devops CD
+  
+## Phase 4
 - Observatility, monitoring, logging
 - Uplaod to Azure cloud
 
