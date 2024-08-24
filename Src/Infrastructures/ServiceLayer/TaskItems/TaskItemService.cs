@@ -1,12 +1,9 @@
 ﻿using Application.Aggregates.TaskItemAggregate.Commands.Create;
 using Application.Aggregates.TaskItemAggregate.Commands.Update;
 using Application.Aggregates.TaskItemAggregate.Queries;
-using Application.Aggregates.TaskListAggregate.Commands.Create;
-using Application.Aggregates.TaskListAggregate.Commands.Update;
 using Application.Common.Models;
 using Application.Repositories;
 using Domain.Entities;
-using Infrastructure.Repositories;
 using System.Web.Mvc;
 
 namespace ServiceLayer.TaskItems;

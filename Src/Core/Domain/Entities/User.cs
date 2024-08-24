@@ -22,4 +22,8 @@ public class User : BaseAuditableEntity<int>
 
     public virtual ICollection<TaskList>? TaskLists { get; set; } = new List<TaskList>();
 
+
+    [InverseProperty(nameof(RefreshToken.User))]
+    public virtual ICollection<RefreshToken> RefreshTokens { get; set; }
+
 }
