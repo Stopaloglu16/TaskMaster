@@ -1,6 +1,6 @@
 ﻿namespace Application.Aggregates.UserAuthAggregate
 {
-    internal class RegisterRequest
+    internal class RegisterUserResponse
     {
     }
 }

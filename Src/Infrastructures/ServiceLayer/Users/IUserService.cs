@@ -2,6 +2,7 @@
 using Application.Aggregates.UserAggregate.Queries;
 using Application.Aggregates.UserAuthAggregate;
 using Application.Common.Models;
+using Domain.Entities;
 
 namespace ServiceLayer.Users;
 
@@ -15,6 +16,8 @@ public interface IUserService
 
     public Task<CustomResult<LoginResponse>> GetUserByAccessTokenAsync(string accessToken);
 
-    Task<CustomResult> AddUser(CreateUserRequest createUserRequest);
+    Task<CustomResult<Guid>> AddUser(CreateUserRequest createUserRequest);
+
+    Task<bool> SaveRefreshTokenAsync(RefreshToken refreshToken, int UserId);
 
 }

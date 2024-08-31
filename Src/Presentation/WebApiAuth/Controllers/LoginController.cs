@@ -1,6 +1,7 @@
 ﻿using Application.Aggregates.UserAuthAggregate;
 using Asp.Versioning;
 using Domain.Entities;
+using Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -52,47 +53,54 @@ namespace WebApiAuth.Controllers
         [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> Login(LoginRequest loginRequest)
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Post(LoginRequest loginRequest)
         {
-            if (ModelState.IsValid)
-            {
-                //user.Password = UtilityClass.Decrypt(user.Password, true, _appSettings.KeyEncrypted);
-
-                var myResult = await _signInManager.PasswordSignInAsync(loginRequest.Username, loginRequest.Password, true, lockoutOnFailure: true);
-
-                if (myResult.Succeeded)
-                {
-                    RefreshToken refreshToken = GenerateRefreshToken();
-
-                    //var tempUser1 = await _userManager.FindByNameAsync(loginRequest.Username);
-
-                    //var myuser = await _userloginservice.GetUserById(tempUser1.Id);
-
-                    //myuser.myRoles.Add(new Role() { Id = 1, RoleName = "AdminRole" });
-
-                    ////await _userloginservice.SaveRefreshTokenAsync(refreshToken, myuser.Id);
-                    ////_userloginservice.SaveLoginLogAsync
-
-                    //var LoginResponse = new LoginResponse();
-
-
-
-                    //LoginResponse.AccessToken = GenerateAccessToken(myuser.AspId, myuser.UserName, myuser.myRoles);
-
-                    //return Ok(LoginResponse);
-                    return Ok();
-                }
-                else
-                {
-                    return Unauthorized("Failed to login");
-                }
-            }
-            else
-            {
+            if (!ModelState.IsValid)
                 return BadRequest("Not valid");
+
+            //user.Password = UtilityClass.Decrypt(user.Password, true, _appSettings.KeyEncrypted);
+
+            try
+            {
+                var myResult = await _signInManager.PasswordSignInAsync(loginRequest.Username,
+                                                                               loginRequest.Password,
+                                                                               isPersistent: true,
+                                                                               lockoutOnFailure: true);
+
+                if (!myResult.Succeeded)
+
+                    return Unauthorized("Failed to login");
+
+
+                RefreshToken refreshToken = GenerateRefreshToken();
+
+                var aspUser = await _userManager.FindByNameAsync(loginRequest.Username);
+
+                var webUser = await _userloginservice.GetUserByAspId(aspUser.Id);
+
+                if (webUser.IsFailure)
+                    return BadRequest("Not registered user");
+
+                //myuser.myRoles.Add(new Role() { Id = 1, RoleName = "AdminRole" });
+
+                await _userloginservice.SaveRefreshTokenAsync(refreshToken, webUser.Value.Id);
+
+
+                var LoginResponse = new LoginResponse();
+
+                LoginResponse.RefreshToken = refreshToken.Token;
+                LoginResponse.AccessToken = GenerateAccessToken(aspUser.Id,
+                                                                loginRequest.Username,
+                                                                webUser.Value.UserType);
+
+                return Ok(LoginResponse);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
-
 
         private RefreshToken GenerateRefreshToken()
         {
@@ -109,7 +117,7 @@ namespace WebApiAuth.Controllers
             return refreshToken;
         }
 
-        private string GenerateAccessToken(string userId, string userName, ICollection<Role> userroles)
+        private string GenerateAccessToken(string userId, string userName, UserType userType)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_jwtsettings.SecretKey);
@@ -121,10 +129,8 @@ namespace WebApiAuth.Controllers
             mylist.Add(new Claim(ClaimTypes.NameIdentifier, userId));
             mylist.Add(new Claim(ClaimTypes.GivenName, userName));
 
-            foreach (Role item in userroles)
-            {
-                mylist.Add(new Claim(ClaimTypes.Role, item.RoleName));
-            }
+
+            mylist.Add(new Claim(ClaimTypes.Role, userType.ToString()));
 
 
             var tokenDescriptor = new SecurityTokenDescriptor

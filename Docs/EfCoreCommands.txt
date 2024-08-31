@@ -1,0 +1,16 @@
+dir
+cd .\Directory
+dotnet ef migrations add InitialCreate
+dotnet ef database update
+
+Sqllite
+Add-Migration InitialCreate -Context Infrastructure.Data.ApplicationDbContext -project Src\Infrastructures\Infrastructure.SqliteMigrations -Args "--Provider Sqlite"
+Add-Migration InitialWebIdCreate -Context Infrastructure.Data.WebIdentityContext -project Src\Infrastructures\Infrastructure.SqliteMigrations -Args "--Provider Sqlite"
+
+Sql Server
+Add-Migration InitialCreate -Context Infrastructure.Data.ApplicationDbContext -project Src\Infrastructures\Infrastructure.SqlServerMigrations -Args "--Provider SqlServer"
+Add-Migration InitialWebIdCreate -Context Infrastructure.Data.WebIdentityContext -project Src\Infrastructures\Infrastructure.SqlServerMigrations -Args "--Provider SqlServer"
+
+
+Update-Database -context Infrastructure.Data.ApplicationDbContext
+Update-Database -context Infrastructure.Data.WebIdentityContext

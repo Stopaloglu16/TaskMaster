@@ -4,7 +4,6 @@ using Application.Aggregates.TaskListAggregate.Queries;
 using Application.Common.Models;
 using Application.Repositories;
 using Domain.Entities;
-using System.Web.Mvc;
 
 namespace ServiceLayer.TaskLists;
 
@@ -34,7 +33,11 @@ public class TaskListService : ITaskListService
             DueDate = createTaskListRequest.DueDate
         };
 
-        return await _taskListRepository.AddAsync(newTaskList);
+        var newTaskListRepo =  await _taskListRepository.AddAsync(newTaskList);
+
+        if (newTaskListRepo == null) return CustomResult.Failure("Not created");
+
+        return CustomResult.Success();
     }
 
     public async Task<CustomResult> UpdateTaskList(UpdateTaskListRequest updateTaskListRequest)

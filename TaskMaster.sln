@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.10.35013.160
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{99F97F37-B2BB-4D45-899F-190F5CA61CC6}"
+	ProjectSection(SolutionItems) = preProject
+		Docs\EfCoreCommands.txt = Docs\EfCoreCommands.txt
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Src", "Src", "{B7357C94-AA0D-45DC-B51E-3C966FE991D4}"
 EndProject
@@ -36,6 +39,12 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApi", "Src\Presentation\WebApi\WebApi.csproj", "{106C696F-0DC9-4C1F-9326-2BDA13560B0E}"
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "DatabaseLayer", "Src\Infrastructures\DatabaseLayer\DatabaseLayer.sqlproj", "{77166F67-4FE5-415F-B2F9-89B4707C6CD2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApiAuth.FunctionalTests", "Tests\WebApiAuth.FunctionalTests\WebApiAuth.FunctionalTests.csproj", "{F8BFE84A-8142-4E32-BA9A-E787DA3BF3A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.SqlServerMigrations", "Src\Infrastructures\Infrastructure.SqlServerMigrations\Infrastructure.SqlServerMigrations.csproj", "{180C9612-488F-4D13-82D9-58319DB70018}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.SqliteMigrations", "Src\Infrastructures\Infrastructure.SqliteMigrations\Infrastructure.SqliteMigrations.csproj", "{4B09A0D6-77AE-49B0-8D9F-B21A76EFF8A4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -89,6 +98,18 @@ Global
 		{77166F67-4FE5-415F-B2F9-89B4707C6CD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{77166F67-4FE5-415F-B2F9-89B4707C6CD2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{77166F67-4FE5-415F-B2F9-89B4707C6CD2}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{F8BFE84A-8142-4E32-BA9A-E787DA3BF3A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8BFE84A-8142-4E32-BA9A-E787DA3BF3A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8BFE84A-8142-4E32-BA9A-E787DA3BF3A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8BFE84A-8142-4E32-BA9A-E787DA3BF3A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{180C9612-488F-4D13-82D9-58319DB70018}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{180C9612-488F-4D13-82D9-58319DB70018}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{180C9612-488F-4D13-82D9-58319DB70018}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{180C9612-488F-4D13-82D9-58319DB70018}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4B09A0D6-77AE-49B0-8D9F-B21A76EFF8A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B09A0D6-77AE-49B0-8D9F-B21A76EFF8A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B09A0D6-77AE-49B0-8D9F-B21A76EFF8A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B09A0D6-77AE-49B0-8D9F-B21A76EFF8A4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -108,6 +129,9 @@ Global
 		{11120EF8-D194-4C3B-9458-B560DDC89631} = {D1071BB3-2C6B-45C2-B538-707D462B9F5C}
 		{106C696F-0DC9-4C1F-9326-2BDA13560B0E} = {D1071BB3-2C6B-45C2-B538-707D462B9F5C}
 		{77166F67-4FE5-415F-B2F9-89B4707C6CD2} = {421702C0-07E5-412E-8860-64D1DC181A1E}
+		{F8BFE84A-8142-4E32-BA9A-E787DA3BF3A5} = {AC84E431-EC65-415A-B649-736F0A044467}
+		{180C9612-488F-4D13-82D9-58319DB70018} = {421702C0-07E5-412E-8860-64D1DC181A1E}
+		{4B09A0D6-77AE-49B0-8D9F-B21A76EFF8A4} = {421702C0-07E5-412E-8860-64D1DC181A1E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5B8B3F2C-AE0B-4C1D-824D-9EC8F8E6C8C5}

@@ -4,7 +4,6 @@ using Application.Aggregates.TaskItemAggregate.Queries;
 using Application.Common.Models;
 using Application.Repositories;
 using Domain.Entities;
-using System.Web.Mvc;
 
 namespace ServiceLayer.TaskItems;
 
@@ -36,8 +35,12 @@ public class TaskItemService : ITaskItemService
             TaskListId = createTaskItemRequest.TaskListId
         };
 
-        return await _taskItemRepository.AddAsync(newTaskItem);
+        var newTaskItemRepo = await _taskItemRepository.AddAsync(newTaskItem);
 
+        if (newTaskItemRepo == null)
+            return CustomResult.Failure("Not saved");
+
+        return CustomResult.Success();
     }
 
     public async Task<CustomResult> UpdateTaskItem(UpdateTaskItemRequest updateTaskItemRequest)
@@ -50,7 +53,7 @@ public class TaskItemService : ITaskItemService
         currentTaskList.Title = updateTaskItemRequest.Title;
         currentTaskList.Title = updateTaskItemRequest.Description;
 
-        return await _taskItemRepository.AddAsync(currentTaskList);
+        return await _taskItemRepository.UpdateAsync(currentTaskList);
     }
 
 

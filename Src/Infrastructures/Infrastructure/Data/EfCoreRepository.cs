@@ -36,11 +36,11 @@ public class EfCoreRepository<TEntity, TKey> : IRepository<TEntity, TKey> where 
     }
 
 
-    public async Task<CustomResult> AddAsync(TEntity entity)
+    public async Task<TEntity> AddAsync(TEntity entity)
     {
         context.Set<TEntity>().Add(entity);
         await context.SaveChangesAsync(new CancellationToken());
-        return CustomResult.Success();
+        return entity;
     }
 
     public async Task<CustomResult> AddRangeAsync(IEnumerable<TEntity> entity)

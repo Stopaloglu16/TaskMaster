@@ -4,7 +4,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using WebApiAuth.Models;
 
-namespace WebApiAuth.Config; 
+namespace WebApiAuth.Config;
 
 public static class JwtTokenConfiguration
 {

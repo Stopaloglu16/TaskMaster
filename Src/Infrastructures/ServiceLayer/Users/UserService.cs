@@ -19,7 +19,7 @@ public class UserService : IUserService
     }
 
 
-    public async Task<CustomResult> AddUser(CreateUserRequest createUserRequest)
+    public async Task<CustomResult<Guid>> AddUser(CreateUserRequest createUserRequest)
     {
         var newUser = new User()
         {
@@ -29,11 +29,13 @@ public class UserService : IUserService
             RegisterTokenValid = DateTime.UtcNow.AddHours(2)
         };
 
-        var myReturn = await _userRepository.AddAsync(newUser);
+        var newUserRepo = await _userRepository.AddAsync(newUser);
 
-        if (myReturn == null) CustomResult.Failure("Not saved");
+        if (newUserRepo == null) return CustomResult<Guid>.Failure(new CustomError(false, "Not saved"));
 
-        return CustomResult.Success();
+        var newUser1 = await _userRepository.GetByIdAsync(newUserRepo.Id);
+
+        return CustomResult<Guid>.Success(newUser1.RegisterToken);
     }
 
     public Task<CustomResult<LoginResponse>> GetUserByAccessTokenAsync(string accessToken)
@@ -54,5 +56,10 @@ public class UserService : IUserService
     public Task<IEnumerable<UserDto>> GetUsers(bool IsActive, int UserTypeId)
     {
         throw new NotImplementedException();
+    }
+
+    public async Task<bool> SaveRefreshTokenAsync(RefreshToken refreshToken, int UserId)
+    {
+        return await _userRepository.SaveRefreshTokenAsync(refreshToken, UserId);
     }
 }
