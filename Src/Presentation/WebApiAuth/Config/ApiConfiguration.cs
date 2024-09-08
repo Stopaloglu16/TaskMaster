@@ -14,6 +14,8 @@ public static class ApiConfiguration
 
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserRegisterService, UserRegisterService>();
+        services.AddScoped<IUserRegisterRepository, UserRegisterRepository>();
 
         return services;
     }

@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace Application.Aggregates.UserAuthAggregate;
 
-public class RegisterUserRequest
+public record RegisterUserRequest
 {
 
     [Required(ErrorMessage = "{0} is required")]

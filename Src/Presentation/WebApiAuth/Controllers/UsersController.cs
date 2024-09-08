@@ -11,7 +11,6 @@ using ServiceLayer.Users;
 
 namespace WebApiAuth.Controllers
 {
-
     [ApiVersion(1)]
     [Route("api/v{v:apiVersion}/[controller]")]
     [ApiController]
@@ -33,9 +32,16 @@ namespace WebApiAuth.Controllers
 
 
         [HttpGet("users")]
-        public async Task<IEnumerable<UserDto>> Get(bool IsActive, int UserTypeId)
+        [ProducesResponseType(typeof(Ok), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(BadRequestResult), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> Get(bool IsActive, int UserTypeId)
         {
-            return await _userService.GetUsers(IsActive, UserTypeId);
+            var userList = await _userService.GetUsers(IsActive, UserTypeId);
+
+            if(userList != null)
+                return Ok(userList);
+
+            return BadRequest("asd");
         }
 
         [HttpGet("user/{Id}")]
@@ -53,7 +59,7 @@ namespace WebApiAuth.Controllers
 
 
         [HttpPost]
-       // [Authorize(Roles = "usermanager")]
+        // [Authorize(Roles = "usermanager")]
         [ProducesResponseType(typeof(Ok), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(BadRequestResult), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> Post(CreateUserRequest createUserRequest)

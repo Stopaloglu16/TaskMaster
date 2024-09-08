@@ -4,8 +4,6 @@ using Infrastructure.Abstractions;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.Extensions.Configuration;
 using WebApiAuth.Config;
 using WebApiAuth.Models;
 

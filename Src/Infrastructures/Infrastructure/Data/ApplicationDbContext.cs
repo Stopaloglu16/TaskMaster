@@ -1,6 +1,7 @@
 ﻿using Application.Common.Interfaces;
 using Domain.Common;
 using Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
@@ -24,6 +25,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        SeedAdminUser(builder);
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
 
@@ -58,4 +60,18 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
         return result;
     }
 
+
+    private void SeedAdminUser(ModelBuilder builder)
+    {
+        const string adminUserName = "taskmaster@hotmail.co.uk";
+
+
+        builder.Entity<User>().HasData(new User
+        {
+            Id = 1,
+            FullName = adminUserName,
+            UserEmail = adminUserName,
+            UserTypeId = Domain.Enums.UserType.AdminUser
+        });
+    }
 }

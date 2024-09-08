@@ -35,7 +35,7 @@ namespace WebApiAuth.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(Ok), 200)]
         [ProducesResponseType(typeof(BadRequestResult), 400)]
-        public async Task<IActionResult> Post([FromBody] RegisterUserRequest registerUserRequest)
+        public async Task<IActionResult> Post(RegisterUserRequest registerUserRequest)
         {
             var myUser = await _userregisterservice.GetUserByAsync(registerUserRequest.Username, registerUserRequest.TokenConfirm);
 

@@ -53,9 +53,9 @@ public class UserService : IUserService
         return await _userRepository.GetUserById(Id);
     }
 
-    public Task<IEnumerable<UserDto>> GetUsers(bool IsActive, int UserTypeId)
+    public async Task<IEnumerable<UserDto>> GetUsers(bool IsActive, int UserTypeId)
     {
-        throw new NotImplementedException();
+        return await _userRepository.GetUsers(IsActive, UserTypeId);
     }
 
     public async Task<bool> SaveRefreshTokenAsync(RefreshToken refreshToken, int UserId)

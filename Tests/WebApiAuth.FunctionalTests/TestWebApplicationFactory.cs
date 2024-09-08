@@ -13,6 +13,8 @@ namespace WebApiAuth.FunctionalTests;
 
 public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgram> where TProgram : class
 {
+
+    
     public void RunMigrations()
     {
         using (var scope = this.Services.CreateScope())
@@ -39,17 +41,6 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
             db.Database.Migrate();
 
 
-            //RoleGroup roleGroup = new RoleGroup()
-            //{
-            //    RoleGroupName = "AdminRole",
-            //    UserTypeId = (int)UserType.AdminUser
-            //};
-
-            //db.RoleGroups.Add(roleGroup);
-            //db.SaveChanges();
-
-
-
             User user = new User()
             {
                 AspId = identityUser.Id,
@@ -59,7 +50,6 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
             };
             db.Users.Add(user);
             db.SaveChanges();
-
         }
     }
 
@@ -67,8 +57,6 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
 
     protected override IHost CreateHost(IHostBuilder builder)
     {
-
-
         //builder.UseEnvironment("Development"); // will not send real emails
         //var host = builder.Build();
         //host.Start();
@@ -119,4 +107,6 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
 
         return base.CreateHost(builder);
     }
+
+
 }

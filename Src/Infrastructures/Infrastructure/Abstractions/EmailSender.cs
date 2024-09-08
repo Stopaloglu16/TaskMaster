@@ -36,7 +36,6 @@ public class EmailSender : IEmailSender
         {
             //Test system to change logic!
             //Send emails to mailinator system
-
             string MessageBody = "";
 
             string HtmlBegin = "<html><head><style> body { background: #eaeff1;  text-align: center; } " +
@@ -55,14 +54,14 @@ public class EmailSender : IEmailSender
 
             MessageToPost messageToPost = new MessageToPost()
             {
-                Subject = "Welcome to Carhire",
+                Subject = "Welcome to TaskMaster",
                 From = "noreply@carhire.com",  //To email on live system
-                Text = HtmlBegin + MessageBody + HtmlEnd
+                //Text = HtmlBegin + MessageBody + HtmlEnd
+                Text = $"{Username}|{Token}"
             };
 
             PostMessageRequest postMessageRequest = new PostMessageRequest() { Domain = _mailinatorDomain, Inbox = _mailinatorDomain, Message = messageToPost };
             PostMessageResponse postMessageResponse = await _mailinatorClient.MessagesClient.PostMessageAsync(postMessageRequest);
-
         }
         catch (Exception ex)
         {

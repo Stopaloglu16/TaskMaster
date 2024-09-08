@@ -55,7 +55,8 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
 
     public async Task<IEnumerable<UserDto>> GetUsers(bool IsActive, int UserTypeId)
     {
-        return await _dbContext.Users.Where(uu => uu.UserTypeId == (UserType)UserTypeId)
+        return await _dbContext.Users.Where(uu => uu.UserTypeId == (UserType)UserTypeId && 
+                                                      uu.IsDeleted == Convert.ToByte(!IsActive))
                                      .AsNoTracking()
                                      .Select(ss => new UserDto()
                                      {
