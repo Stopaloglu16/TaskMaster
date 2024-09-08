@@ -12,4 +12,8 @@ public class TaskItem : BaseEntity<int>
     public string? Description { get; set; }
     public bool IsCompleted { get; set; } = false;
     public DateOnly CompletedDate { get; set; }
+
+    public int TaskListId { get; set; }
+    public TaskList TaskList { get; set; }
+
 }
