@@ -6,6 +6,7 @@ using SharedUtilityTestMethods;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
+using WebApiAuth.FunctionalTests.SeedData;
 
 namespace WebApiAuth.FunctionalTests.ApiEndPoints
 {
@@ -27,16 +28,14 @@ namespace WebApiAuth.FunctionalTests.ApiEndPoints
         }
 
 
-        [Theory]
-        [InlineData("taskmaster@hotmail.co.uk", "SuperStrongPassword+123")]
-        public async Task CreateAdminUser_ValidValues_ReturnSuccess(string userName, string password)
+        [Fact]
+        public async Task CreateAdminUser_ValidValues_ReturnSuccess()
         {
-            const string mockUserEmail = "admin@hotmail.co.uk";
 
             //Arrange
             #region LogIn
 
-            LoginRequest loginRequest = new() { Username = userName, Password = password };
+            LoginRequest loginRequest = LoginRequestSamples.LoginRequestValidSample();
 
             var responseApiLogin = await _httpClient.PostAsJsonAsync($"/api/{_fixture.ApiVersion}/Login/login", loginRequest);
             Assert.True(System.Net.HttpStatusCode.OK == responseApiLogin.StatusCode, $"Login API {responseApiLogin.StatusCode}");
@@ -48,7 +47,7 @@ namespace WebApiAuth.FunctionalTests.ApiEndPoints
             #endregion
 
             //Act
-            CreateUserRequest createUserRequest = new CreateUserRequest() { FullName = "admin user", UserEmail = mockUserEmail, UserType = Domain.Enums.UserType.AdminUser };
+            CreateUserRequest createUserRequest = CreateUserRequestSamples.CreateUserRequestValidAdminSample();
 
             var json = JsonConvert.SerializeObject(createUserRequest);
             var content1 = new StringContent(json, Encoding.UTF8, "application/json");
@@ -75,18 +74,16 @@ namespace WebApiAuth.FunctionalTests.ApiEndPoints
 
                 var textArray = responseFetch.Text.Split('|');
 
-                if (mockUserEmail == textArray[0].ToString())
+                if (createUserRequest.FullName == textArray[0].ToString())
                 {
-                    Assert.True(textArray[0] == mockUserEmail, "User email not same");
+                    Assert.True(textArray[0] == createUserRequest.UserEmail, "User email not same");
                     Assert.True(responseFetch.Subject.Contains("Welcome"), "Email not sent");
                     break;
                 }
             }
 
-
-
             await mailinatorClient.MessagesClient.DeleteMessageAsync(new DeleteMessageRequest() { Domain = MailinatorDomain, Inbox = MailinatorDomain, MessageId = mailId });
-        }
 
+        }
     }
 }

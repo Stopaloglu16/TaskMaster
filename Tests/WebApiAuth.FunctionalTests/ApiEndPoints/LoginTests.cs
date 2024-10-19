@@ -1,6 +1,7 @@
 ﻿using Application.Aggregates.UserAuthAggregate;
 using SharedUtilityTestMethods;
 using System.Net.Http.Json;
+using WebApiAuth.FunctionalTests.SeedData;
 
 namespace WebApiAuth.FunctionalTests.ApiEndPoints;
 
@@ -19,12 +20,11 @@ public class LoginTests : IClassFixture<TestWebApplicationFactory<Program>>, ICl
     }
 
 
-    [Theory]
-    [InlineData("taskmaster@hotmail.co.uk", "SuperStrongPassword+123")]
-    public async Task PostAdminLogin_ValidValues_LoginSuccess(string userName, string password)
+    [Fact]
+    public async Task PostAdminLogin_ValidValues_LoginSuccess()
     {
         //Arrange
-        LoginRequest loginRequest = new() { Username = userName, Password = password };
+        var loginRequest = LoginRequestSamples.LoginRequestValidSample();
 
         //Act
         var responseApiLogin = await _httpClient.PostAsJsonAsync($"/api/{_fixture.ApiVersion}/Login/login", loginRequest);
@@ -38,21 +38,18 @@ public class LoginTests : IClassFixture<TestWebApplicationFactory<Program>>, ICl
     }
 
 
-    [Theory]
-    [InlineData("taskmaster@hotmail.co.uk", "SuperWrongPassword+123")]
-    public async Task PostAdminLogin_InValidValues_LoginFail(string userName, string password)
+    [Fact]
+    public async Task PostAdminLogin_InValidValues_LoginFail()
     {
         //Arrange
-        LoginRequest loginRequest = new() { Username = userName, Password = password };
+        var loginRequest = LoginRequestSamples.LoginRequestValidSample() with { Username = "NotFound" };
 
         //Act
         var responseApiLogin = await _httpClient.PostAsJsonAsync($"/api/{_fixture.ApiVersion}/Login/login", loginRequest);
 
         //Assert
         Assert.True(System.Net.HttpStatusCode.Unauthorized == responseApiLogin.StatusCode, $"Login API {responseApiLogin.StatusCode}");
-
     }
-
 
 
 }

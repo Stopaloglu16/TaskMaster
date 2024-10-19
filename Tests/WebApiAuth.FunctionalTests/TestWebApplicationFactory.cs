@@ -14,7 +14,7 @@ namespace WebApiAuth.FunctionalTests;
 public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgram> where TProgram : class
 {
 
-    
+
     public void RunMigrations()
     {
         using (var scope = this.Services.CreateScope())
@@ -35,21 +35,36 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
             var idb = scope.ServiceProvider.GetService<WebIdentityContext>();
             idb.Database.Migrate();
 
-            var identityUser = idb.Users.Single();
+
+            var uuList = idb.Users.ToList();
+
 
             var db = scope.ServiceProvider.GetService<ApplicationDbContext>();
             db.Database.Migrate();
 
-
-            User user = new User()
+            foreach (var userType in Enum.GetValues(typeof(UserType)))
             {
-                AspId = identityUser.Id,
-                FullName = "Admin User",
-                UserEmail = identityUser.Email,
-                UserTypeId = UserType.AdminUser
-            };
-            db.Users.Add(user);
+                string seedUserName = $"{userType}@hotmail.co.uk";
+
+                var identityUser = idb.Users.First(uu => uu.Email == seedUserName);
+
+                //AdminUser = 0,
+                //TaskUser = 1,
+                //ReadOnly = 2
+
+                User user = new User()
+                {
+                    AspId = identityUser.Id,
+                    FullName = $"{userType} user",
+                    UserEmail = identityUser.Email!,
+                    UserTypeId = (UserType)userType
+                };
+
+                db.Users.Add(user);
+            }
+
             db.SaveChanges();
+
         }
     }
 

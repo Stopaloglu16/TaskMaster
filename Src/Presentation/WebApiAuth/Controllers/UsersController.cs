@@ -1,5 +1,4 @@
 ﻿using Application.Aggregates.UserAggregate.Commands;
-using Application.Aggregates.UserAggregate.Queries;
 using Application.Common.Interfaces;
 using Application.Common.Models;
 using Asp.Versioning;
@@ -38,7 +37,7 @@ namespace WebApiAuth.Controllers
         {
             var userList = await _userService.GetUsers(IsActive, UserTypeId);
 
-            if(userList != null)
+            if (userList != null)
                 return Ok(userList);
 
             return BadRequest("asd");
@@ -59,7 +58,7 @@ namespace WebApiAuth.Controllers
 
 
         [HttpPost]
-        // [Authorize(Roles = "usermanager")]
+        [Authorize(Roles = "AdminUser")]
         [ProducesResponseType(typeof(Ok), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(BadRequestResult), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> Post(CreateUserRequest createUserRequest)

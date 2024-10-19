@@ -33,7 +33,7 @@ public class TaskListService : ITaskListService
             DueDate = createTaskListRequest.DueDate
         };
 
-        var newTaskListRepo =  await _taskListRepository.AddAsync(newTaskList);
+        var newTaskListRepo = await _taskListRepository.AddAsync(newTaskList);
 
         if (newTaskListRepo == null) return CustomResult.Failure("Not created");
 
