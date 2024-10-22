@@ -4,6 +4,7 @@ using Infrastructure.Abstractions;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using TaskMaster.ServiceDefaults;
 using WebApiAuth.Config;
 using WebApiAuth.Models;
 
@@ -66,27 +67,28 @@ builder.Services.AddTransient<IEmailSender>(provider =>
     services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 }
 
-var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
-
+//var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
 
 //JWT token config
-builder.Services.AddJtwToken(jwtSettings);
+//builder.Services.AddJtwToken(jwtSettings);
 
 builder.Services.AddHealthChecks();
 
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+//builder.Services.AddEndpointsApiExplorer();
+//builder.Services.AddSwaggerGen();
+
+var withApiVersioning = builder.Services.AddApiVersioning();
+builder.AddDefaultOpenApi(withApiVersioning);
 
 //Version Configuration
-builder.Services.AddApiVersioning();
+//builder.Services.AddApiVersioning();
 
+//builder.Services.AddAuthorization();
+//builder.Services.AddEndpointsApiExplorer();
 
-
-builder.Services.AddAuthorization();
-builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 

@@ -82,9 +82,9 @@ public class TaskListService : ITaskListService
     }
 
 
-    public async Task<IEnumerable<TaskListDto>> GetTaskLists()
+    public async Task<IEnumerable<TaskListDto>> GetTaskLists(CancellationToken cancellationToken)
     {
-        return await _taskListRepository.GetTaskListList();
+        return await _taskListRepository.GetTaskListList(cancellationToken);
     }
 
     public Task<TaskListDto> GetTaskListId(int Id)
@@ -92,7 +92,7 @@ public class TaskListService : ITaskListService
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<SelectListItem>> GetTaskListList()
+    public  Task<IEnumerable<SelectListItem>> GetTaskListSelectList()
     {
         throw new NotImplementedException();
     }

@@ -8,8 +8,8 @@ namespace ServiceLayer.TaskLists;
 public interface ITaskListService
 {
     Task<TaskListDto> GetTaskListId(int Id);
-    Task<IEnumerable<SelectListItem>> GetTaskListList();
-    Task<IEnumerable<TaskListDto>> GetTaskLists();
+    Task<IEnumerable<SelectListItem>> GetTaskListSelectList();
+    Task<IEnumerable<TaskListDto>> GetTaskLists(CancellationToken cancellationToken);
     Task<CustomResult> CreateTaskList(CreateTaskListRequest createTaskListRequest);
     Task<CustomResult> UpdateTaskList(UpdateTaskListRequest updateTaskListRequest);
     Task<CustomResult> SoftDeleteTaskListById(int Id);

@@ -25,7 +25,7 @@ public static class JwtTokenConfiguration
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.SecretKey)),
-                ValidateIssuer = false,
+                ValidateIssuer = true,
                 ValidateAudience = false,
                 ClockSkew = TimeSpan.Zero
             };
@@ -52,17 +52,17 @@ public static class JwtTokenConfiguration
 
         var contact = new OpenApiContact()
         {
-            Name = "Citipost",
-            Email = "it@citipost.co.uk",
-            Url = new Uri("https://citipost.com/")
+            Name = "Sertac",
+            Email = "test@hotmail.co.uk",
+            Url = new Uri("https://sites.google.com/site/sertactopaloglu")
         };
 
         var info = new OpenApiInfo()
         {
-            Version = "v1.0.1",
-            Title = "Carrier Hub API",
-            Description = "Carrier integration API",
-            TermsOfService = new Uri("https://citipost.com/"),
+            Version = "v1",
+            Title = "Task Master Auth API",
+            Description = "Task Master Auth API",
+            TermsOfService = new Uri("https://sites.google.com/site/sertactopaloglu"),
             Contact = contact
         };
 

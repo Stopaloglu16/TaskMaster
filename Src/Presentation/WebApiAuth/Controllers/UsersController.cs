@@ -11,11 +11,10 @@ using ServiceLayer.Users;
 namespace WebApiAuth.Controllers
 {
     [ApiVersion(1)]
-    [Route("api/v{v:apiVersion}/[controller]")]
+    [Route("api/v{apiVersion:apiVersion}/[controller]")]
     [ApiController]
     public class UsersController : ControllerBase
     {
-
         private readonly IUserService _userService;
         private readonly AppSettings _appSettings;
         private readonly IEmailSender _emailSender;

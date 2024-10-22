@@ -42,9 +42,11 @@ Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "DatabaseLayer", "Src\Infras
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApiAuth.FunctionalTests", "Tests\WebApiAuth.FunctionalTests\WebApiAuth.FunctionalTests.csproj", "{F8BFE84A-8142-4E32-BA9A-E787DA3BF3A5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.SqlServerMigrations", "Src\Infrastructures\Infrastructure.SqlServerMigrations\Infrastructure.SqlServerMigrations.csproj", "{180C9612-488F-4D13-82D9-58319DB70018}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure.SqlServerMigrations", "Src\Infrastructures\Infrastructure.SqlServerMigrations\Infrastructure.SqlServerMigrations.csproj", "{180C9612-488F-4D13-82D9-58319DB70018}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.SqliteMigrations", "Src\Infrastructures\Infrastructure.SqliteMigrations\Infrastructure.SqliteMigrations.csproj", "{4B09A0D6-77AE-49B0-8D9F-B21A76EFF8A4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure.SqliteMigrations", "Src\Infrastructures\Infrastructure.SqliteMigrations\Infrastructure.SqliteMigrations.csproj", "{4B09A0D6-77AE-49B0-8D9F-B21A76EFF8A4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskMaster.ServiceDefaults", "Src\Core\TaskMaster.ServiceDefaults\TaskMaster.ServiceDefaults.csproj", "{BB38562C-4D66-4695-809B-E0644F2AD097}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -110,6 +112,10 @@ Global
 		{4B09A0D6-77AE-49B0-8D9F-B21A76EFF8A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4B09A0D6-77AE-49B0-8D9F-B21A76EFF8A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4B09A0D6-77AE-49B0-8D9F-B21A76EFF8A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB38562C-4D66-4695-809B-E0644F2AD097}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB38562C-4D66-4695-809B-E0644F2AD097}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB38562C-4D66-4695-809B-E0644F2AD097}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB38562C-4D66-4695-809B-E0644F2AD097}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -132,6 +138,7 @@ Global
 		{F8BFE84A-8142-4E32-BA9A-E787DA3BF3A5} = {AC84E431-EC65-415A-B649-736F0A044467}
 		{180C9612-488F-4D13-82D9-58319DB70018} = {421702C0-07E5-412E-8860-64D1DC181A1E}
 		{4B09A0D6-77AE-49B0-8D9F-B21A76EFF8A4} = {421702C0-07E5-412E-8860-64D1DC181A1E}
+		{BB38562C-4D66-4695-809B-E0644F2AD097} = {B02ADE9D-0B63-4EA7-B45B-E286C659AB58}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5B8B3F2C-AE0B-4C1D-824D-9EC8F8E6C8C5}

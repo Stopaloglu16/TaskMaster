@@ -17,7 +17,7 @@ namespace WebApiAuth.Controllers
 {
 
     [ApiVersion(1)]
-    [Route("api/v{v:apiVersion}/[controller]")]
+    [Route("api/v{apiVersion:apiVersion}/[controller]")]
     [ApiController]
     public class LoginController : ControllerBase
     {

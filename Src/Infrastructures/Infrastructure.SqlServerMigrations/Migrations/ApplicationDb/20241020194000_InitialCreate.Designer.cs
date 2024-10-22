@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241020194000_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -93,7 +96,7 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                     b.Property<int?>("AssignedToId")
                         .HasColumnType("int");
 
-                    b.Property<DateOnly?>("CompletedDate")
+                    b.Property<DateOnly>("CompletedDate")
                         .HasColumnType("date");
 
                     b.Property<DateTime>("Created")
@@ -182,7 +185,7 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             FullName = "taskmaster@hotmail.co.uk",
                             IsDeleted = (byte)0,
-                            RegisterToken = new Guid("ea0035ec-0efa-4837-88a8-b6640182000b"),
+                            RegisterToken = new Guid("1981e350-e275-42f8-86cc-49afe55b9f3f"),
                             RegisterTokenValid = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             UserEmail = "taskmaster@hotmail.co.uk",
                             UserTypeId = 0

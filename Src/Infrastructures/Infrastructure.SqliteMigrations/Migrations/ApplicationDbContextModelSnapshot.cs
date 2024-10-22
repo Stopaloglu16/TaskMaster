@@ -82,7 +82,7 @@ namespace Infrastructure.SqliteMigrations.Migrations
                     b.Property<int?>("AssignedToId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateOnly>("CompletedDate")
+                    b.Property<DateOnly?>("CompletedDate")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("Created")
@@ -161,6 +161,19 @@ namespace Infrastructure.SqliteMigrations.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            FullName = "taskmaster@hotmail.co.uk",
+                            IsDeleted = (byte)0,
+                            RegisterToken = new Guid("610dd701-2050-4df8-a13f-adb036242279"),
+                            RegisterTokenValid = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            UserEmail = "taskmaster@hotmail.co.uk",
+                            UserTypeId = 0
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.RefreshToken", b =>

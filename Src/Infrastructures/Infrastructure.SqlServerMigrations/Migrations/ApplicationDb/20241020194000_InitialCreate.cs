@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -108,7 +109,7 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "AspId", "Created", "CreatedBy", "FullName", "IsDeleted", "LastModified", "LastModifiedBy", "RegisterToken", "RegisterTokenValid", "UserEmail", "UserTypeId" },
-                values: new object[] { 1, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "taskmaster@hotmail.co.uk", (byte)0, null, null, new Guid("781c49fe-db40-4e6a-991e-26087c610218"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "taskmaster@hotmail.co.uk", 0 });
+                values: new object[] { 1, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "taskmaster@hotmail.co.uk", (byte)0, null, null, new Guid("1981e350-e275-42f8-86cc-49afe55b9f3f"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "taskmaster@hotmail.co.uk", 0 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_UserId",

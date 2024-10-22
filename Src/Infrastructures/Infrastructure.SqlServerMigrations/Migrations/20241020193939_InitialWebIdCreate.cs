@@ -1,6 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
+
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
 namespace Infrastructure.SqlServerMigrations.Migrations
 {
@@ -158,7 +161,12 @@ namespace Infrastructure.SqlServerMigrations.Migrations
             migrationBuilder.InsertData(
                 table: "AspNetUsers",
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[] { "10d9d11f-d678-4aac-85dc-83a7408b33a7", 0, "eb3fa912-6482-4787-b3ac-15007580b359", "taskmaster@hotmail.co.uk", true, false, null, "TASKMASTER@HOTMAIL.CO.UK", "TASKMASTER@HOTMAIL.CO.UK", "AQAAAAIAAYagAAAAEBIJqmO9rah80eJdNbCNP15GGHqsqdPr6EAuMkDxLkNStrKM8RnF6wLGiJHvnxHb5Q==", null, false, "9a0c9a04-1bd8-4d63-984f-b8960b1c4be6", false, "taskmaster@hotmail.co.uk" });
+                values: new object[,]
+                {
+                    { "212780b4-107c-44b7-b651-91535ebb5c42", 0, "0be6e451-0fc7-46d6-82f3-b5016cae0ad7", "AdminUser@hotmail.co.uk", true, false, null, "ADMINUSER@HOTMAIL.CO.UK", "ADMINUSER@HOTMAIL.CO.UK", "AQAAAAIAAYagAAAAEOwr4tqP/DHy7NoVFE1kdwwkdhRnA0VO1I0MfAe+FBCvJ0ebAzh9hhsu/n9nGHXGLg==", null, false, "49a0c149-a03e-423e-b1df-f134ae3d90e8", false, "AdminUser@hotmail.co.uk" },
+                    { "265eaa0e-3c23-4fcf-bc3c-2df5107a5778", 0, "d3654ae4-1929-4735-adfd-36a88110d466", "ReadOnly@hotmail.co.uk", true, false, null, "READONLY@HOTMAIL.CO.UK", "READONLY@HOTMAIL.CO.UK", "AQAAAAIAAYagAAAAEGVqRtiqT9PLWYqYKClPiL9qmQH1SB8l541QXAh/QvH+qDkVxXI4bmY3V7YJJere5Q==", null, false, "eea0c0d1-771e-4c71-91ce-6cfeb19437e4", false, "ReadOnly@hotmail.co.uk" },
+                    { "cd7cf41d-75ad-47de-8309-e8e5e863a3b5", 0, "72e5698e-f7d1-4a3d-be42-8c56055c9fd2", "TaskUser@hotmail.co.uk", true, false, null, "TASKUSER@HOTMAIL.CO.UK", "TASKUSER@HOTMAIL.CO.UK", "AQAAAAIAAYagAAAAEGmEePd/GQl5JyChg/6+4STMvn8tn8lBw2ECZKrq/nrj4NKEFmF6MKG4xzObq3RDBA==", null, false, "6b1b8435-4daa-432d-b778-137f66a2d3ed", false, "TaskUser@hotmail.co.uk" }
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",

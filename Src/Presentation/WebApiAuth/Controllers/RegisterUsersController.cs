@@ -10,7 +10,7 @@ using ServiceLayer.Users;
 namespace WebApiAuth.Controllers
 {
     [ApiVersion(1)]
-    [Route("api/v{v:apiVersion}/registerusers")]
+    [Route("api/v{apiVersion:apiVersion}/registerusers")]
     [ApiController]
     public class RegisterUsersController : ControllerBase
     {
