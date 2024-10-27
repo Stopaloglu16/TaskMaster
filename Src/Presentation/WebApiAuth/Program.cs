@@ -10,6 +10,8 @@ using WebApiAuth.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.AddServiceDefaults();
+
 
 var configuration = builder.Configuration;
 var provider = builder.Configuration.GetValue("Provider", "SqlServer");
@@ -91,6 +93,8 @@ builder.AddDefaultOpenApi(withApiVersioning);
 
 
 var app = builder.Build();
+
+app.MapDefaultEndpoints();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

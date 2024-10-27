@@ -10,7 +10,6 @@
   <ItemGroup>
     <PackageReference Include="Asp.Versioning.Http" Version="8.1.0" />
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -19,10 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\TaskMaster.ServiceDefaults\TaskMaster.ServiceDefaults.csproj" />
     <ProjectReference Include="..\..\Infrastructures\Infrastructure.SqliteMigrations\Infrastructure.SqliteMigrations.csproj" />
     <ProjectReference Include="..\..\Infrastructures\Infrastructure.SqlServerMigrations\Infrastructure.SqlServerMigrations.csproj" />
     <ProjectReference Include="..\..\Infrastructures\ServiceLayer\ServiceLayer.csproj" />
+    <ProjectReference Include="..\TaskMaster.ServiceDefaults\TaskMaster.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

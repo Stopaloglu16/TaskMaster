@@ -12,8 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\TaskMaster.ServiceDefaults\TaskMaster.ServiceDefaults.csproj" />
     <ProjectReference Include="..\..\Infrastructures\ServiceLayer\ServiceLayer.csproj" />
+    <ProjectReference Include="..\TaskMaster.ServiceDefaults\TaskMaster.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>
