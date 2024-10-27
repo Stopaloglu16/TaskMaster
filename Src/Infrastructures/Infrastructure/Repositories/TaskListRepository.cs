@@ -25,17 +25,20 @@ public class TaskListRepository : EfCoreRepository<TaskList, int>, ITaskListRepo
         return CustomResult<int>.Success(taskListCount);
     }
 
-    public async Task<IEnumerable<TaskListDto>> GetTaskListList(CancellationToken cancellationToken)
+    public async Task<IEnumerable<TaskListDto>> GetTaskListActive(CancellationToken cancellationToken)
     {
         return await _dbContext.TaskLists.Include(ss => ss.AssignedTo)
                                          .AsNoTracking()
-                                         .Where(qq => qq.IsDeleted == 0)
+                                         .Where(qq => qq.IsDeleted == 0 && 
+                                                             qq.IsCompleted == false)
                                          .Select(ss => new TaskListDto
                                          {
                                              Id = ss.Id,
                                              Title = ss.Title,
                                              DueDate = ss.DueDate,
-                                             AssignedTo = ss.AssignedTo!.FullName
+                                             AssignedTo = ss.AssignedTo.FullName??"",
+                                             TaskItemCount = ss.TaskItems.Count(),
+                                             TaskItemCompletedCount = ss.TaskItems.Count(ti => ti.IsCompleted),
                                          }).ToListAsync();
     }
 }

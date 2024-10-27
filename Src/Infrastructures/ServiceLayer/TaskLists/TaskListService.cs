@@ -40,7 +40,7 @@ public class TaskListService : ITaskListService
         return CustomResult.Success();
     }
 
-    public async Task<CustomResult> UpdateTaskList(UpdateTaskListRequest updateTaskListRequest)
+    public async Task<CustomResult> UpdateTaskList(int Id, UpdateTaskListRequest updateTaskListRequest)
     {
         if (updateTaskListRequest.AssignedToId > 0)
         {
@@ -49,7 +49,7 @@ public class TaskListService : ITaskListService
             if (!validation.IsSuccess) return validation;
         }
 
-        var currentTaskList = await _taskListRepository.GetByIdAsync(updateTaskListRequest.Id);
+        var currentTaskList = await _taskListRepository.GetByIdAsync(Id);
 
         currentTaskList.Title = updateTaskListRequest.Title;
         currentTaskList.AssignedToId = updateTaskListRequest.AssignedToId;
@@ -82,9 +82,9 @@ public class TaskListService : ITaskListService
     }
 
 
-    public async Task<IEnumerable<TaskListDto>> GetTaskLists(CancellationToken cancellationToken)
+    public async Task<IEnumerable<TaskListDto>> GetTaskListActive(CancellationToken cancellationToken)
     {
-        return await _taskListRepository.GetTaskListList(cancellationToken);
+        return await _taskListRepository.GetTaskListActive(cancellationToken);
     }
 
     public Task<TaskListDto> GetTaskListId(int Id)

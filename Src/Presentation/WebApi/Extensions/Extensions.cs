@@ -3,6 +3,7 @@ using Application.Repositories;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using ServiceLayer.TaskItems;
 using ServiceLayer.TaskLists;
 using TaskMaster.ServiceDefaults;
 
@@ -35,6 +36,9 @@ internal static class Extensions
         // Add the integration services that consume the DbContext
         services.AddTransient<ITaskListRepository, TaskListRepository>();
         services.AddTransient<ITaskListService, TaskListService>();
+
+        services.AddTransient<ITaskItemRepository, TaskItemRepository>();
+        services.AddTransient<ITaskItemService, TaskItemService>();
 
 
         services.AddHttpContextAccessor();

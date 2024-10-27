@@ -24,9 +24,12 @@ if (app.Environment.IsDevelopment())
 }
 
 var taskList = app.NewVersionedApi("TaskList");
-
 //taskList.TaskListApiV1().RequireAuthorization();
 taskList.TaskListApiV1();
+
+var taskItem = app.NewVersionedApi("TaskItem");
+//taskItem.TaskListApiV1().RequireAuthorization();
+taskItem.TaskItemApiV1();
 
 app.UseAuthentication();
 app.UseAuthorization();

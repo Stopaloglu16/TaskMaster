@@ -16,9 +16,13 @@ public class TaskItemService : ITaskItemService
         _taskItemRepository = taskItemRepository;
     }
 
-    public Task<CustomResult> CompleteTaskItem(CompleteTaskItemRequest completeTaskItemRequest)
+    public async Task<CustomResult> CompleteTaskItem(CompleteTaskItemRequest completeTaskItemRequest)
     {
-        throw new NotImplementedException();
+        var currentTaskItem = await _taskItemRepository.GetByIdAsync(completeTaskItemRequest.Id);
+
+        currentTaskItem.CompletedDate = DateOnly.FromDateTime(DateTime.Now);
+
+        return await _taskItemRepository.UpdateAsync(currentTaskItem);
     }
 
     public async Task<CustomResult> CreateTaskItem(CreateTaskItemRequest createTaskItemRequest)
@@ -26,7 +30,6 @@ public class TaskItemService : ITaskItemService
         var validation = await CheckMaxTaskItemPerTaskList((int)createTaskItemRequest.TaskListId);
 
         if (!validation.IsSuccess) return validation;
-
 
         TaskItem newTaskItem = new TaskItem()
         {
@@ -43,23 +46,29 @@ public class TaskItemService : ITaskItemService
         return CustomResult.Success();
     }
 
-    public async Task<CustomResult> UpdateTaskItem(UpdateTaskItemRequest updateTaskItemRequest)
+    public async Task<CustomResult> UpdateTaskItem(int Id, UpdateTaskItemRequest updateTaskItemRequest)
     {
-        var validation = await CheckMaxTaskItemPerTaskList((int)updateTaskItemRequest.TaskListId);
+        var currentTaskItem = await _taskItemRepository.GetByIdAsync(Id);
+
+        if (currentTaskItem == null) return CustomResult.Failure("Task Item not found");
+
+        var validation = await CheckMaxTaskItemPerTaskList((int)currentTaskItem.TaskListId);
         if (!validation.IsSuccess) return validation;
 
-        var currentTaskList = await _taskItemRepository.GetByIdAsync(updateTaskItemRequest.Id);
+        currentTaskItem.Title = updateTaskItemRequest.Title;
+        currentTaskItem.Description = updateTaskItemRequest.Description;
 
-        currentTaskList.Title = updateTaskItemRequest.Title;
-        currentTaskList.Title = updateTaskItemRequest.Description;
-
-        return await _taskItemRepository.UpdateAsync(currentTaskList);
+        return await _taskItemRepository.UpdateAsync(currentTaskItem);
     }
 
 
-    public async Task<CustomResult> SoftDeleteTaskListById(int Id)
+    public async Task<CustomResult> SoftDeleteTaskItemById(int Id)
     {
-        return await _taskItemRepository.DeleteAsync(Id);
+        var currentTaskItem = await _taskItemRepository.GetByIdAsync(Id);
+
+        currentTaskItem.IsDeleted = 1;
+
+        return await _taskItemRepository.UpdateAsync(currentTaskItem);
     }
 
 
@@ -92,8 +101,9 @@ public class TaskItemService : ITaskItemService
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<TaskItemDto>> GetTaskItems(int taskListId)
+    public async Task<IEnumerable<TaskItemDto>> GetTaskItemsByTaskItem(int taskListId, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return await _taskItemRepository.GetTaskItems(taskListId, cancellationToken);
     }
+
 }

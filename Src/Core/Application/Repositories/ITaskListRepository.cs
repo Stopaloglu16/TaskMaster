@@ -8,7 +8,7 @@ namespace Application.Repositories;
 public interface ITaskListRepository : IRepository<TaskList, int>
 {
 
-    Task<IEnumerable<TaskListDto>> GetTaskListList(CancellationToken cancellationToken);
+    Task<IEnumerable<TaskListDto>> GetTaskListActive(CancellationToken cancellationToken);
 
     Task<CustomResult<int>> CheckMaxTaskListPerUser(int userId);
 
