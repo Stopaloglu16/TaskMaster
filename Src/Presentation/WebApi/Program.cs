@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.AddApplicationServices();
 builder.Services.AddProblemDetails();
-
+builder.Services.AddAuthorizationBuilder();
 
 var withApiVersioning = builder.Services.AddApiVersioning();
 builder.AddDefaultOpenApi(withApiVersioning);
@@ -26,8 +26,8 @@ if (app.Environment.IsDevelopment())
 }
 
 var taskList = app.NewVersionedApi("TaskList");
-//taskList.TaskListApiV1().RequireAuthorization();
-taskList.TaskListApiV1();
+taskList.TaskListApiV1().RequireAuthorization();
+//taskList.TaskListApiV1();
 
 var taskItem = app.NewVersionedApi("TaskItem");
 //taskItem.TaskListApiV1().RequireAuthorization();

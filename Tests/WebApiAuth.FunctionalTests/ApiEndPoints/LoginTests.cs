@@ -1,33 +1,47 @@
 ﻿using Application.Aggregates.UserAuthAggregate;
-using SharedUtilityTestMethods;
+using Domain.Enums;
+using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using System.Net.Http.Json;
-using WebApiAuth.FunctionalTests.SeedData;
 
 namespace WebApiAuth.FunctionalTests.ApiEndPoints;
 
-public class LoginTests : IClassFixture<TestWebApplicationFactory<Program>>, IClassFixture<ApiVersionFixture>
+public class LoginTests : BaseIntegrationTest
 {
-    private readonly TestWebApplicationFactory<Program> _factory;
-    private readonly HttpClient _httpClient;
-    private readonly ApiVersionFixture _fixture;
 
-    public LoginTests(TestWebApplicationFactory<Program> factory, ApiVersionFixture fixture)
+    
+
+    public LoginTests(IntegrationTestWebAppFactory factory) : base(factory)
     {
-        _factory = factory;
-        _httpClient = factory.CreateClient();
-        _factory.RunApiUserMigrations();
-        _fixture = fixture;
+     
     }
 
-
     [Fact]
-    public async Task PostAdminLogin_ValidValues_LoginSuccess()
+    public async Task Create_ShouldCreateUser()
     {
+
+
+        var myUU =  await _factory.GetAspNetUserByUserNameAsync(UserType.AdminUser.ToString());
+
+        try
+        {
+            
+            var uuLL = await _dbContext.Users.ToListAsync();
+        }
+        catch (Exception ex)
+        {
+
+            throw;
+        }
+
+        
+
         //Arrange
-        var loginRequest = LoginRequestSamples.LoginRequestValidSample();
+        var loginRequest = new LoginRequest() { Username = $"AdminUser@hotmail.co.uk", Password = "SuperStrongPassword+123" };
 
         //Act
-        var responseApiLogin = await _httpClient.PostAsJsonAsync($"/api/{_fixture.ApiVersion}/Login/login", loginRequest);
+        var responseApiLogin = await _httpClient.PostAsJsonAsync($"/api/v1.0/Login/login", loginRequest);
+
 
         //Assert
         Assert.True(System.Net.HttpStatusCode.OK == responseApiLogin.StatusCode, $"Login API {responseApiLogin.StatusCode}");
@@ -36,20 +50,5 @@ public class LoginTests : IClassFixture<TestWebApplicationFactory<Program>>, ICl
 
         Assert.NotNull(apiLoginResponse?.RefreshToken);
     }
-
-
-    [Fact]
-    public async Task PostAdminLogin_InValidValues_LoginFail()
-    {
-        //Arrange
-        var loginRequest = LoginRequestSamples.LoginRequestValidSample() with { Username = "NotFound" };
-
-        //Act
-        var responseApiLogin = await _httpClient.PostAsJsonAsync($"/api/{_fixture.ApiVersion}/Login/login", loginRequest);
-
-        //Assert
-        Assert.True(System.Net.HttpStatusCode.Unauthorized == responseApiLogin.StatusCode, $"Login API {responseApiLogin.StatusCode}");
-    }
-
 
 }

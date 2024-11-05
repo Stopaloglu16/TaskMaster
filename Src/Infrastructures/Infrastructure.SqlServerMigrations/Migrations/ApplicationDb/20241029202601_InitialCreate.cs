@@ -64,7 +64,7 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                     Title = table.Column<string>(type: "varchar(100)", nullable: false),
                     IsCompleted = table.Column<bool>(type: "bit", nullable: false),
                     DueDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    CompletedDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    CompletedDate = table.Column<DateOnly>(type: "date", nullable: true),
                     AssignedToId = table.Column<int>(type: "int", nullable: true),
                     IsDeleted = table.Column<byte>(type: "tinyint", nullable: false),
                     Created = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -109,7 +109,7 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "AspId", "Created", "CreatedBy", "FullName", "IsDeleted", "LastModified", "LastModifiedBy", "RegisterToken", "RegisterTokenValid", "UserEmail", "UserTypeId" },
-                values: new object[] { 1, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "taskmaster@hotmail.co.uk", (byte)0, null, null, new Guid("1981e350-e275-42f8-86cc-49afe55b9f3f"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "taskmaster@hotmail.co.uk", 0 });
+                values: new object[] { 1, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "taskmaster@hotmail.co.uk", (byte)0, null, null, new Guid("fe27d514-8d46-4e09-b400-e916815cc892"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "taskmaster@hotmail.co.uk", 0 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_UserId",

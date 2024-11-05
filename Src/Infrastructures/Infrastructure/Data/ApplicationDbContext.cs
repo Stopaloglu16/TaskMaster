@@ -31,32 +31,42 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public virtual async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {
-        if (_currentUserService != null)
+        try
         {
-            if (!String.IsNullOrEmpty(_currentUserService.UserId) && !String.IsNullOrEmpty(_currentUserService.UserName))
-            {
-                var userId = _currentUserService.UserId;
+            //Console.WriteLine( _currentUserService.UserName );
 
-                foreach (var entry in ChangeTracker.Entries<BaseAuditableEntity<int>>())
+            if (_currentUserService != null)
+            {
+                if (!String.IsNullOrEmpty(_currentUserService.UserId) && !String.IsNullOrEmpty(_currentUserService.UserName))
                 {
-                    switch (entry.State)
+                    var userId = _currentUserService.UserId;
+
+                    foreach (var entry in ChangeTracker.Entries<BaseAuditableEntity<int>>())
                     {
-                        case EntityState.Added:
-                            entry.Entity.CreatedBy = _currentUserService.UserName;
-                            entry.Entity.Created = DateTime.Now;
-                            break;
-                        case EntityState.Modified:
-                            entry.Entity.LastModifiedBy = _currentUserService.UserName;
-                            entry.Entity.LastModified = DateTime.Now;
-                            break;
+                        switch (entry.State)
+                        {
+                            case EntityState.Added:
+                                entry.Entity.CreatedBy = _currentUserService.UserName;
+                                entry.Entity.Created = DateTime.Now;
+                                break;
+                            case EntityState.Modified:
+                                entry.Entity.LastModifiedBy = _currentUserService.UserName;
+                                entry.Entity.LastModified = DateTime.Now;
+                                break;
+                        }
                     }
                 }
             }
+
+            var result = await base.SaveChangesAsync(cancellationToken);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"SaveChangesAsync {ex.Message}");
         }
 
-        var result = await base.SaveChangesAsync(cancellationToken);
-
-        return result;
     }
 
 

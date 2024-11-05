@@ -14,7 +14,7 @@ public class TaskList : BaseAuditableEntity<int>
     public DateOnly? CompletedDate { get; set; }
 
     public int? AssignedToId { get; set; }
-    public User AssignedTo { get; set; }
+    public User? AssignedTo { get; set; }
 
     public IList<TaskItem> TaskItems { get; private set; } = new List<TaskItem>();
 }

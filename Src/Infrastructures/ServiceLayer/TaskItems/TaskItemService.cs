@@ -10,10 +10,12 @@ namespace ServiceLayer.TaskItems;
 public class TaskItemService : ITaskItemService
 {
     private readonly ITaskItemRepository _taskItemRepository;
+    private readonly ITaskListRepository _taskListRepository;
 
-    public TaskItemService(ITaskItemRepository taskItemRepository)
+    public TaskItemService(ITaskItemRepository taskItemRepository, ITaskListRepository taskListRepository)
     {
         _taskItemRepository = taskItemRepository;
+        _taskListRepository = taskListRepository;
     }
 
     public async Task<CustomResult> CompleteTaskItem(CompleteTaskItemRequest completeTaskItemRequest)
@@ -27,6 +29,11 @@ public class TaskItemService : ITaskItemService
 
     public async Task<CustomResult> CreateTaskItem(CreateTaskItemRequest createTaskItemRequest)
     {
+
+        var taskList = await _taskListRepository.GetByIdAsync((int)createTaskItemRequest.TaskListId);
+
+        if (taskList == null) return CustomResult.Failure( "TaskList not found" );
+
         var validation = await CheckMaxTaskItemPerTaskList((int)createTaskItemRequest.TaskListId);
 
         if (!validation.IsSuccess) return validation;

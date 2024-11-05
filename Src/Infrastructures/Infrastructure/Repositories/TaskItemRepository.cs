@@ -27,15 +27,22 @@ public class TaskItemRepository : EfCoreRepository<TaskItem, int>, ITaskItemRepo
 
     public async Task<IEnumerable<TaskItemDto>> GetTaskItems(int taskListId, CancellationToken cancellationToken)
     {
-        return await _dbContext.TaskItems.AsNoTracking()
-                                         .Where(ti => ti.TaskListId == taskListId)
-                                         .Select(ti => new TaskItemDto
-                                         {
-                                             Title = ti.Title,
-                                             Description = ti.Description,
-                                             CompletedDate = ti.CompletedDate,
-                                             IsCompleted = ti.IsCompleted
-                                         })
-                                         .ToListAsync();
+        try
+        {
+            return await _dbContext.TaskItems.AsNoTracking()
+                                       .Where(ti => ti.TaskListId == taskListId && ti.IsDeleted == 0)
+                                       .Select(ti => new TaskItemDto
+                                       {
+                                           Title = ti.Title,
+                                           Description = ti.Description,
+                                           CompletedDate = ti.CompletedDate,
+                                           IsCompleted = ti.IsCompleted
+                                       })
+                                       .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            return null;
+        }
     }
 }

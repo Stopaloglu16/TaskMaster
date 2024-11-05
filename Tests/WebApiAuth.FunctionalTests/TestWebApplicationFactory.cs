@@ -35,9 +35,7 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
             var idb = scope.ServiceProvider.GetService<WebIdentityContext>();
             idb.Database.Migrate();
 
-
             var uuList = idb.Users.ToList();
-
 
             var db = scope.ServiceProvider.GetService<ApplicationDbContext>();
             db.Database.Migrate();

@@ -31,7 +31,6 @@ public class WebIdentityContext : IdentityDbContext
 
         var hasher = new PasswordHasher<IdentityUser>();
 
-
         foreach (var userType in Enum.GetValues(typeof(UserType)))
         {
             string seedUserName = $"{userType}@hotmail.co.uk";
@@ -39,14 +38,13 @@ public class WebIdentityContext : IdentityDbContext
             builder.Entity<IdentityUser>().HasData(new IdentityUser
             {
                 Id = Guid.NewGuid().ToString(),
-                UserName = seedUserName,
+                UserName = userType.ToString(),
                 NormalizedUserName = seedUserName.ToUpper(),
                 Email = seedUserName,
                 NormalizedEmail = seedUserName.ToUpper(),
                 EmailConfirmed = true,
                 PasswordHash = hasher.HashPassword(null, seedPassword)
             });
-
         }
 
     }
