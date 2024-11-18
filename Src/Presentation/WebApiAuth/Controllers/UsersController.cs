@@ -2,7 +2,6 @@
 using Application.Common.Interfaces;
 using Application.Common.Models;
 using Asp.Versioning;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -57,7 +56,7 @@ namespace WebApiAuth.Controllers
 
 
         [HttpPost]
-        [Authorize(Roles = "AdminUser")]
+        //[Authorize(Roles = "AdminUser")]
         [ProducesResponseType(typeof(Ok), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(BadRequestResult), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> Post(CreateUserRequest createUserRequest)

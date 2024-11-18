@@ -1,4 +1,5 @@
-﻿using Infrastructure.Data;
+﻿using Domain.Enums;
+using Infrastructure.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -13,6 +14,12 @@ namespace WebApiAuth.FunctionalTests;
 
 public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
+    private readonly MsSqlContainer _databaseIdContainer = new MsSqlBuilder()
+        .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
+        .WithPassword("Strong_password_123!")
+        .Build();
+
+
     private readonly MsSqlContainer _databaseContainer = new MsSqlBuilder()
         .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
         .WithPassword("Strong_password_123!")
@@ -20,17 +27,18 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.ConfigureTestServices(services =>
+        builder.ConfigureTestServices(async services =>
         {
 
-            //https://github.com/foadalavi/Test-Foundation-playlist
 
-
-            // Identity
             services.RemoveAll(typeof(DbContextOptions<WebIdentityContext>));
 
+            services.RemoveAll(typeof(DbContextOptions<ApplicationDbContext>));
 
             services.AddDbContext<WebIdentityContext>(options =>
+                     options.UseSqlServer(_databaseIdContainer.GetConnectionString()));
+
+            services.AddDbContext<ApplicationDbContext>(options =>
                      options.UseSqlServer(_databaseContainer.GetConnectionString()));
 
 
@@ -41,56 +49,33 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
                 var db = scopedServices.GetRequiredService<WebIdentityContext>();
                 db.Database.EnsureCreated();
 
-                // Seed test data if needed
-                //SeedTestData(db);
-            }
+                var db1 = scopedServices.GetRequiredService<ApplicationDbContext>();
 
-
-            // ApplicationDbContext
-            services.RemoveAll(typeof(DbContextOptions<ApplicationDbContext>));
-
-
-            services.AddDbContext<ApplicationDbContext>(options =>
-                     options.UseSqlServer(_databaseContainer.GetConnectionString()));
-
-
-            var sp1 = services.BuildServiceProvider();
-            using (var scope = sp1.CreateScope())
-            {
-                var scopedServices = scope.ServiceProvider;
-                var db = scopedServices.GetRequiredService<ApplicationDbContext>();
-                db.Database.EnsureCreated();
-
+                db1.Database.EnsureCreated();
 
 
                 // Seed test data if needed
                 //SeedTestData(db);
             }
-
-            //services.AddAuthentication("IntegrationTest")
-            //        .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
-            //            "IntegrationTest",
-            //            options => { }
-            //        );
-
-
 
         });
 
-
-
-      
 
     }
 
     public async Task InitializeAsync()
     {
         await _databaseContainer.StartAsync();
+        await _databaseIdContainer.StartAsync();
     }
 
     public async Task DisposeAsync()
     {
         await _databaseContainer.StopAsync();
+        await _databaseContainer.DisposeAsync();
+
+        await _databaseIdContainer.StopAsync();
+        await _databaseIdContainer.DisposeAsync();
     }
 
 
@@ -99,10 +84,18 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
         using var scope = Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<WebIdentityContext>();
 
-        var context1 = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var uuL =  await context1.Users.ToListAsync();
-
         return await context.Users.Where(uu => uu.UserName == userName).FirstAsync();
     }
+
+
+    public async Task<IdentityUser> RegisterUser()
+    {
+        using var scope = Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<WebIdentityContext>();
+
+        return await context.Users.Where(uu => uu.UserName == UserType.AdminUser.ToString()).FirstAsync();
+    }
+
+
 
 }

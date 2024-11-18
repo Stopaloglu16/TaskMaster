@@ -92,7 +92,7 @@ public class TaskListService : ITaskListService
         throw new NotImplementedException();
     }
 
-    public  Task<IEnumerable<SelectListItem>> GetTaskListSelectList()
+    public Task<IEnumerable<SelectListItem>> GetTaskListSelectList()
     {
         throw new NotImplementedException();
     }

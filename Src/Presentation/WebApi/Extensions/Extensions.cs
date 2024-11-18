@@ -17,7 +17,7 @@ internal static class Extensions
 
         // Add the authentication services to DI
         builder.AddDefaultAuthentication();
-        
+
 
         var connectionString = builder.Configuration.GetConnectionString("SqlServerConnection");
         services.AddSqlServer<ApplicationDbContext>(connectionString);
@@ -35,7 +35,7 @@ internal static class Extensions
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-        
+
     }
 
 }

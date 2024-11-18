@@ -1,6 +1,5 @@
 ﻿using Application.Aggregates.TaskItemAggregate.Commands.Create;
 using Application.Aggregates.TaskItemAggregate.Commands.Update;
-using Application.Aggregates.TaskListAggregate.Commands.Update;
 
 namespace SharedTestDataLibrary.TaskDataSample;
 
@@ -23,6 +22,6 @@ public class TaskItemData
 
     public static UpdateTaskItemRequest CreateUpdateTaskItemRequestValid(string title, string description)
     {
-        return new UpdateTaskItemRequest() {Id = 1, Title = title, Description = description };
+        return new UpdateTaskItemRequest() { Id = 1, Title = title, Description = description };
     }
 }

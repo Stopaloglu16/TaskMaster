@@ -1,7 +1,15 @@
+using Projects;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
-builder.AddProject<Projects.WebApi>("webapi");
+var webapi = builder.AddProject<WebApi>("webapi");
 
-builder.AddProject<Projects.WebApiAuth>("webapiauth");
+var webapiauth = builder.AddProject<WebApiAuth>("webapiauth");
+
+
+builder.AddProject<WebApp>("webapp")
+    .WithReference(webapiauth)
+    .WithReference(webapi);
+
 
 builder.Build().Run();

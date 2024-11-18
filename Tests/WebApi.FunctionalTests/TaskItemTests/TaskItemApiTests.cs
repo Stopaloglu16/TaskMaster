@@ -1,5 +1,4 @@
 ﻿using Application.Aggregates.TaskItemAggregate.Queries;
-using Domain.Entities;
 using SharedTestDataLibrary.TaskDataSample;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -60,7 +59,7 @@ public class TaskItemApiTests : BaseIntegrationTest
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
 
-  
+
         var response1 = await _httpClient.GetAsync($"/api/v1.0/taskitem?taskItemId=1");
         Assert.Equal(System.Net.HttpStatusCode.OK, response1.StatusCode);
 

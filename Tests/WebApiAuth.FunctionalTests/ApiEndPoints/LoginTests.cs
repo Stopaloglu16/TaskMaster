@@ -1,7 +1,7 @@
 ﻿using Application.Aggregates.UserAuthAggregate;
-using Domain.Enums;
-using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using SharedTestDataLibrary.UserDataSample;
+using SharedUtilityTestMethods;
 using System.Net.Http.Json;
 
 namespace WebApiAuth.FunctionalTests.ApiEndPoints;
@@ -9,35 +9,27 @@ namespace WebApiAuth.FunctionalTests.ApiEndPoints;
 public class LoginTests : BaseIntegrationTest
 {
 
-    
-
-    public LoginTests(IntegrationTestWebAppFactory factory) : base(factory)
+    public LoginTests(IntegrationTestWebAppFactory factory, ApiVersionFixture fixture) : base(factory, fixture)
     {
-     
+
     }
 
     [Fact]
     public async Task Create_ShouldCreateUser()
     {
 
+        var identityUserMock = await _factory.RegisterUser();
 
-        var myUU =  await _factory.GetAspNetUserByUserNameAsync(UserType.AdminUser.ToString());
+        var userMock = await _dbContext.Users.FirstAsync();
 
-        try
-        {
-            
-            var uuLL = await _dbContext.Users.ToListAsync();
-        }
-        catch (Exception ex)
-        {
+        userMock.AspId = identityUserMock.Id;
+        _dbContext.Users.Update(userMock);
 
-            throw;
-        }
+        await _dbContext.SaveChangesAsync();
 
-        
 
         //Arrange
-        var loginRequest = new LoginRequest() { Username = $"AdminUser@hotmail.co.uk", Password = "SuperStrongPassword+123" };
+        var loginRequest = LoginRequestSamples.CreateLoginRequestValidSample();
 
         //Act
         var responseApiLogin = await _httpClient.PostAsJsonAsync($"/api/v1.0/Login/login", loginRequest);
@@ -46,7 +38,7 @@ public class LoginTests : BaseIntegrationTest
         //Assert
         Assert.True(System.Net.HttpStatusCode.OK == responseApiLogin.StatusCode, $"Login API {responseApiLogin.StatusCode}");
 
-        var apiLoginResponse = await responseApiLogin.Content.ReadFromJsonAsync<LoginResponse>();
+        var apiLoginResponse = await responseApiLogin.Content.ReadFromJsonAsync<UserLoginResponse>();
 
         Assert.NotNull(apiLoginResponse?.RefreshToken);
     }

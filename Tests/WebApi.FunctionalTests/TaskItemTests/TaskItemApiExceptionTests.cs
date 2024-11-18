@@ -1,15 +1,9 @@
-﻿using Application.Aggregates.TaskItemAggregate.Queries;
-using Azure;
-using Domain.Entities;
+﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using SharedTestDataLibrary.TaskDataSample;
-using System.Collections.Generic;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text;
 using WebApi.FunctionalTests.Helpers;
-using WebApi.FunctionalTests.Utility;
 
 namespace WebApi.FunctionalTests.TaskItemTests;
 
@@ -69,7 +63,7 @@ public class TaskItemApiExceptionTests : BaseIntegrationTest
     [Fact]
     public async Task CreateTaskItems_MaxTaskItem_SaveFail()
     {
-        
+
         const int maxItemCount = 50;
 
         // Arrange
@@ -77,16 +71,16 @@ public class TaskItemApiExceptionTests : BaseIntegrationTest
         await _dbContext.TaskLists.AddAsync(taskList);
         await _dbContext.SaveChangesAsync();
 
-        var taskListMock =  await _dbContext.TaskLists.ToListAsync();
+        var taskListMock = await _dbContext.TaskLists.ToListAsync();
 
-        
+
         // Act
         for (int i = 0; i < maxItemCount; i++)
         {
             var mockTaskItem1 = TaskItemData.CreateCreateTaskItemRequestGenerator(1, i);
 
             var response = await _httpClient.PostAsJsonAsync($"/api/v1.0/taskitem", mockTaskItem1);
-            
+
             Assert.Equal(System.Net.HttpStatusCode.Created, response.StatusCode);
             await Task.Delay(100);
         }
@@ -98,7 +92,7 @@ public class TaskItemApiExceptionTests : BaseIntegrationTest
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, response1.StatusCode);
         var badRequestMessage = await response1.Content.ReadAsStringAsync();
-        
+
         //The task list reached to max task item
         Assert.True(badRequestMessage?.Contains("max"));
     }

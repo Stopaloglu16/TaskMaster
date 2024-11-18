@@ -1,5 +1,4 @@
 ﻿using Application.Aggregates.TaskListAggregate.Commands.Create;
-using Application.Aggregates.TaskListAggregate.Commands.Delete;
 using Application.Aggregates.TaskListAggregate.Commands.Update;
 using Application.Aggregates.TaskListAggregate.Queries;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -27,7 +26,7 @@ namespace WebApi.Apis
             api.MapPost("/", CreateTaskList);
             api.MapPut("/{id:int}", UpdateTaskList);
             api.MapDelete("/{id:int}", DeleteTaskList);
-            
+
             //TODO: Assing to multi user
             //api.MapPatch("/{id}", AssignTaskListToUser);
 

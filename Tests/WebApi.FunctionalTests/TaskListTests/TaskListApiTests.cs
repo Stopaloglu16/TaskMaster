@@ -1,10 +1,7 @@
-﻿using Application.Aggregates.TaskListAggregate.Commands.Create;
-using Application.Aggregates.TaskListAggregate.Queries;
-using Newtonsoft.Json;
+﻿using Application.Aggregates.TaskListAggregate.Queries;
 using SharedTestDataLibrary.TaskDataSample;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text;
 using WebApi.FunctionalTests.Helpers;
 using WebApi.FunctionalTests.Utility;
 

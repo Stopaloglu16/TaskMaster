@@ -1,5 +1,4 @@
 ﻿using Application.Aggregates.TaskItemAggregate.Commands.Create;
-using Application.Aggregates.TaskItemAggregate.Commands.Delete;
 using Application.Aggregates.TaskItemAggregate.Commands.Update;
 using Application.Aggregates.TaskItemAggregate.Queries;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -80,7 +79,7 @@ namespace WebApi.Apis
         }
 
 
-        public static async Task<Results<NoContent, BadRequest<string>>> DeleteTaskItem(ITaskItemService taskItemService, 
+        public static async Task<Results<NoContent, BadRequest<string>>> DeleteTaskItem(ITaskItemService taskItemService,
                                                                                         int Id)
         {
             var customResult = await taskItemService.SoftDeleteTaskItemById(Id);

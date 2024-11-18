@@ -52,7 +52,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskMaster.ServiceDefaults"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApi.FunctionalTests", "Tests\WebApi.FunctionalTests\WebApi.FunctionalTests.csproj", "{B26D9DEA-5E4C-4269-8861-BFC1B3613C0C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedTestDataLibrary", "Tests\SharedTestDataLibrary\SharedTestDataLibrary.csproj", "{E5A904BC-831B-46F4-8EF1-0390E8CEB99A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharedTestDataLibrary", "Tests\SharedTestDataLibrary\SharedTestDataLibrary.csproj", "{E5A904BC-831B-46F4-8EF1-0390E8CEB99A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp", "Src\WebApp\WebApp.csproj", "{7C4487EC-7282-4695-A3DF-8D5E2C33680E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -134,6 +136,10 @@ Global
 		{E5A904BC-831B-46F4-8EF1-0390E8CEB99A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E5A904BC-831B-46F4-8EF1-0390E8CEB99A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E5A904BC-831B-46F4-8EF1-0390E8CEB99A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C4487EC-7282-4695-A3DF-8D5E2C33680E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C4487EC-7282-4695-A3DF-8D5E2C33680E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C4487EC-7282-4695-A3DF-8D5E2C33680E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C4487EC-7282-4695-A3DF-8D5E2C33680E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -160,6 +166,7 @@ Global
 		{CDADBA22-077D-4E6F-A66C-80FE9AD70890} = {D1071BB3-2C6B-45C2-B538-707D462B9F5C}
 		{B26D9DEA-5E4C-4269-8861-BFC1B3613C0C} = {AC84E431-EC65-415A-B649-736F0A044467}
 		{E5A904BC-831B-46F4-8EF1-0390E8CEB99A} = {AC84E431-EC65-415A-B649-736F0A044467}
+		{7C4487EC-7282-4695-A3DF-8D5E2C33680E} = {D1071BB3-2C6B-45C2-B538-707D462B9F5C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5B8B3F2C-AE0B-4C1D-824D-9EC8F8E6C8C5}

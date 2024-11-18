@@ -1,10 +1,9 @@
-﻿using System.Security.Claims;
-using System.Text.Encodings.Web;
-using Domain.Entities;
-using Domain.Enums;
+﻿using Domain.Enums;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Security.Claims;
+using System.Text.Encodings.Web;
 
 namespace WebApi.FunctionalTests;
 

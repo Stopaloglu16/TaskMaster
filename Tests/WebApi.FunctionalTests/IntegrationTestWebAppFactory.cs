@@ -1,5 +1,4 @@
 ﻿using Infrastructure.Data;
-using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -23,7 +22,7 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
     {
         builder.ConfigureTestServices(services =>
         {
-          
+
             // ApplicationDbContext
             services.RemoveAll(typeof(DbContextOptions<ApplicationDbContext>));
 

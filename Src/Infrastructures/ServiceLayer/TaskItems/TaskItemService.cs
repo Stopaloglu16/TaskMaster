@@ -32,7 +32,7 @@ public class TaskItemService : ITaskItemService
 
         var taskList = await _taskListRepository.GetByIdAsync((int)createTaskItemRequest.TaskListId);
 
-        if (taskList == null) return CustomResult.Failure( "TaskList not found" );
+        if (taskList == null) return CustomResult.Failure("TaskList not found");
 
         var validation = await CheckMaxTaskItemPerTaskList((int)createTaskItemRequest.TaskListId);
 

@@ -38,7 +38,7 @@ public class UserService : IUserService
         return CustomResult<Guid>.Success(newUser1.RegisterToken);
     }
 
-    public Task<CustomResult<LoginResponse>> GetUserByAccessTokenAsync(string accessToken)
+    public Task<CustomResult<UserLoginResponse>> GetUserByAccessTokenAsync(string accessToken)
     {
         throw new NotImplementedException();
     }

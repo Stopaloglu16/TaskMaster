@@ -50,11 +50,11 @@ namespace WebApiAuth.Controllers
 
         [MapToApiVersion(1)]
         [HttpPost("login")]
-        [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(UserLoginResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Post(LoginRequest loginRequest)
+        public async Task<IActionResult> Post(UserLoginRequest loginRequest)
         {
             if (!ModelState.IsValid)
                 return BadRequest("Not valid");
@@ -82,17 +82,18 @@ namespace WebApiAuth.Controllers
                 if (webUser.IsFailure)
                     return BadRequest("Not registered user");
 
-                //myuser.myRoles.Add(new Role() { Id = 1, RoleName = "AdminRole" });
-
+                
                 await _userloginservice.SaveRefreshTokenAsync(refreshToken, webUser.Value.Id);
 
 
-                var LoginResponse = new LoginResponse();
+                var LoginResponse = new UserLoginResponse();
 
                 LoginResponse.RefreshToken = refreshToken.Token;
                 LoginResponse.AccessToken = GenerateAccessToken(aspUser.Id,
                                                                 loginRequest.Username,
                                                                 webUser.Value.UserType);
+                LoginResponse.UserName = loginRequest.Username;
+
 
                 return Ok(LoginResponse);
             }
