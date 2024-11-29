@@ -14,10 +14,12 @@ public interface IUserService
 
     Task<CustomResult<UserDto>> GetUserByAspId(string AspId);
 
-    public Task<CustomResult<LoginResponse>> GetUserByAccessTokenAsync(string accessToken);
+    public Task<CustomResult<UserLoginResponse>> GetUserByAccessTokenAsync(string accessToken);
 
     Task<CustomResult<Guid>> AddUser(CreateUserRequest createUserRequest);
 
     Task<bool> SaveRefreshTokenAsync(RefreshToken refreshToken, int UserId);
+
+    Task<RefreshToken> GetRefreshToken(string tokenRequest);
 
 }

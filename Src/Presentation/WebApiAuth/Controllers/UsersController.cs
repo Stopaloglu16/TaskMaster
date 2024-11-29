@@ -1,9 +1,7 @@
 ﻿using Application.Aggregates.UserAggregate.Commands;
-using Application.Aggregates.UserAggregate.Queries;
 using Application.Common.Interfaces;
 using Application.Common.Models;
 using Asp.Versioning;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -12,11 +10,10 @@ using ServiceLayer.Users;
 namespace WebApiAuth.Controllers
 {
     [ApiVersion(1)]
-    [Route("api/v{v:apiVersion}/[controller]")]
+    [Route("api/v{apiVersion:apiVersion}/[controller]")]
     [ApiController]
     public class UsersController : ControllerBase
     {
-
         private readonly IUserService _userService;
         private readonly AppSettings _appSettings;
         private readonly IEmailSender _emailSender;
@@ -38,7 +35,7 @@ namespace WebApiAuth.Controllers
         {
             var userList = await _userService.GetUsers(IsActive, UserTypeId);
 
-            if(userList != null)
+            if (userList != null)
                 return Ok(userList);
 
             return BadRequest("asd");
@@ -59,7 +56,7 @@ namespace WebApiAuth.Controllers
 
 
         [HttpPost]
-        // [Authorize(Roles = "usermanager")]
+        //[Authorize(Roles = "AdminUser")]
         [ProducesResponseType(typeof(Ok), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(BadRequestResult), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> Post(CreateUserRequest createUserRequest)

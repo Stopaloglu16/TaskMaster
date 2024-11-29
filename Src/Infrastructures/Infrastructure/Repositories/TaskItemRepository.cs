@@ -1,4 +1,5 @@
-﻿using Application.Common.Models;
+﻿using Application.Aggregates.TaskItemAggregate.Queries;
+using Application.Common.Models;
 using Application.Repositories;
 using Domain.Entities;
 using Infrastructure.Data;
@@ -22,5 +23,26 @@ public class TaskItemRepository : EfCoreRepository<TaskItem, int>, ITaskItemRepo
         var taskItemCount = await _dbContext.TaskItems.CountAsync(q => q.TaskListId == taskListId && q.IsCompleted == false);
 
         return CustomResult<int>.Success(taskItemCount);
+    }
+
+    public async Task<IEnumerable<TaskItemDto>> GetTaskItems(int taskListId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _dbContext.TaskItems.AsNoTracking()
+                                       .Where(ti => ti.TaskListId == taskListId && ti.IsDeleted == 0)
+                                       .Select(ti => new TaskItemDto
+                                       {
+                                           Title = ti.Title,
+                                           Description = ti.Description,
+                                           CompletedDate = ti.CompletedDate,
+                                           IsCompleted = ti.IsCompleted
+                                       })
+                                       .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            return null;
+        }
     }
 }

@@ -14,11 +14,3 @@ public class MockCurrentUserService : ICurrentUserService
     public string UserId { get; }
     public string UserName { get; }
 }
-
-
-public static class MockAdminUser
-{
-    public static string UserEmail = "taskmaster@hotmail.co.uk";
-    public static string Password = "SuperStrongPassword+123";
-}
-

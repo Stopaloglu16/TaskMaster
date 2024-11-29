@@ -26,6 +26,12 @@ namespace Infrastructure.SqliteMigrations.Migrations
                     b.Property<DateTime>("ExpiryDate")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Token")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -82,7 +88,7 @@ namespace Infrastructure.SqliteMigrations.Migrations
                     b.Property<int?>("AssignedToId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateOnly>("CompletedDate")
+                    b.Property<DateOnly?>("CompletedDate")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("Created")
@@ -161,6 +167,19 @@ namespace Infrastructure.SqliteMigrations.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            FullName = "taskmaster@hotmail.co.uk",
+                            IsDeleted = (byte)0,
+                            RegisterToken = new Guid("3f4efa76-c3b2-4f03-8903-e6abeb7ae673"),
+                            RegisterTokenValid = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            UserEmail = "taskmaster@hotmail.co.uk",
+                            UserTypeId = 0
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.RefreshToken", b =>

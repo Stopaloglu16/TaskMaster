@@ -1,0 +1,95 @@
+﻿@page "/Home"
+@inject NavigationManager navigationManager
+
+
+<PageTitle>Index</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+
+//https://learn.microsoft.com/en-us/aspnet/core/blazor/security/?view=aspnetcore-8.0
+
+<AuthorizeView>
+    <Authorized>
+        <p>Welcome to the Dashboard!</p>
+
+        <p>@authMessage</p>
+        <!-- Display dashboard content for authenticated users -->
+
+  
+    </Authorized>
+
+    <NotAuthorized>
+        <p>You are not authorized to view this page.</p>
+        <button @onclick="RedirectToLogin">Go to Login</button>
+    </NotAuthorized>
+</AuthorizeView>
+
+<AuthorizeView Roles="AdminUser">
+    <p>You have an 'AdminUser'  role claim.</p>
+</AuthorizeView>
+
+@code {
+
+    private string authMessage = "The user is NOT authenticated.";
+
+
+    [CascadingParameter] 
+    Task<AuthenticationState>? AuthStat { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        if (AuthStat is not null)
+        {
+            var authState = await AuthStat;
+            var user = authState?.User;
+
+            if (user?.Identity is not null && user.Identity.IsAuthenticated)
+            {
+                
+                authMessage = $"{user.Identity.Name} is authenticated. ";
+                
+                foreach (var item in user.Claims)
+                {
+                    authMessage = authMessage + "<br/>" + item.ValueType + " "  + item.Value ;
+                }
+
+            }
+        }
+
+        // var usser = (await AuthStat).User;
+
+        // if (!usser.Identity.IsAuthenticated)
+        // {
+        //     navigationManager.NavigateTo("/Login", false);
+        // }
+
+        //myCarModelList = new List<CarModelDto>();
+
+
+        await base.OnInitializedAsync();
+
+    }
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+           //await LoadCarBrandList();
+
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+
+    private async Task RedirectToLogin()
+    {
+        navigationManager.NavigateTo("/login");
+    }
+}

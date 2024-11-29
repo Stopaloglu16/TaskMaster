@@ -33,6 +33,12 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                     b.Property<DateTime>("ExpiryDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Token")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -93,7 +99,7 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                     b.Property<int?>("AssignedToId")
                         .HasColumnType("int");
 
-                    b.Property<DateOnly>("CompletedDate")
+                    b.Property<DateOnly?>("CompletedDate")
                         .HasColumnType("date");
 
                     b.Property<DateTime>("Created")
@@ -182,7 +188,7 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             FullName = "taskmaster@hotmail.co.uk",
                             IsDeleted = (byte)0,
-                            RegisterToken = new Guid("781c49fe-db40-4e6a-991e-26087c610218"),
+                            RegisterToken = new Guid("e8d68ac1-5726-4384-9c0a-7e48e490cca8"),
                             RegisterTokenValid = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             UserEmail = "taskmaster@hotmail.co.uk",
                             UserTypeId = 0

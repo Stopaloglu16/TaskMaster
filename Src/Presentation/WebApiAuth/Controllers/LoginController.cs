@@ -1,11 +1,14 @@
 ﻿using Application.Aggregates.UserAuthAggregate;
+using Application.Aggregates.UserAuthAggregate.Token;
 using Asp.Versioning;
 using Domain.Entities;
 using Domain.Enums;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using ServiceLayer.Users;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -17,7 +20,7 @@ namespace WebApiAuth.Controllers
 {
 
     [ApiVersion(1)]
-    [Route("api/v{v:apiVersion}/[controller]")]
+    [Route("api/v{apiVersion:apiVersion}/[controller]")]
     [ApiController]
     public class LoginController : ControllerBase
     {
@@ -50,11 +53,11 @@ namespace WebApiAuth.Controllers
 
         [MapToApiVersion(1)]
         [HttpPost("login")]
-        [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(UserLoginResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Post(LoginRequest loginRequest)
+        public async Task<IActionResult> Post(UserLoginRequest loginRequest)
         {
             if (!ModelState.IsValid)
                 return BadRequest("Not valid");
@@ -64,12 +67,11 @@ namespace WebApiAuth.Controllers
             try
             {
                 var myResult = await _signInManager.PasswordSignInAsync(loginRequest.Username,
-                                                                               loginRequest.Password,
-                                                                               isPersistent: true,
-                                                                               lockoutOnFailure: true);
+                                                                                   loginRequest.Password,
+                                                                                   isPersistent: true,
+                                                                                   lockoutOnFailure: true);
 
                 if (!myResult.Succeeded)
-
                     return Unauthorized("Failed to login");
 
 
@@ -82,17 +84,22 @@ namespace WebApiAuth.Controllers
                 if (webUser.IsFailure)
                     return BadRequest("Not registered user");
 
-                //myuser.myRoles.Add(new Role() { Id = 1, RoleName = "AdminRole" });
 
                 await _userloginservice.SaveRefreshTokenAsync(refreshToken, webUser.Value.Id);
 
 
-                var LoginResponse = new LoginResponse();
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, loginRequest.Username),
+                    new Claim(ClaimTypes.Role, webUser.Value.UserType.ToString())
+                };
+
+                var LoginResponse = new UserLoginResponse();
 
                 LoginResponse.RefreshToken = refreshToken.Token;
-                LoginResponse.AccessToken = GenerateAccessToken(aspUser.Id,
-                                                                loginRequest.Username,
-                                                                webUser.Value.UserType);
+                LoginResponse.AccessToken = GenerateAccessToken(claims);
+                LoginResponse.UserName = loginRequest.Username;
+
 
                 return Ok(LoginResponse);
             }
@@ -112,39 +119,120 @@ namespace WebApiAuth.Controllers
                 rng.GetBytes(randomNumber);
                 refreshToken.Token = Convert.ToBase64String(randomNumber);
             }
-            refreshToken.ExpiryDate = DateTime.UtcNow.AddMonths(6);
+            refreshToken.ExpiryDate = DateTime.UtcNow.AddDays(7);
 
             return refreshToken;
         }
 
-        private string GenerateAccessToken(string userId, string userName, UserType userType)
+        //private string GenerateAccessToken(string userId, string userName, UserType userType)
+        //{
+        //    var tokenHandler = new JwtSecurityTokenHandler();
+        //    var key = Encoding.ASCII.GetBytes(_jwtsettings.SecretKey);
+
+        //    var mylist = new List<Claim>();
+
+        //    //mylist.Add(new Claim(ClaimTypes.Name, userId));
+
+        //    mylist.Add(new Claim(ClaimTypes.NameIdentifier, userId));
+        //    mylist.Add(new Claim(ClaimTypes.GivenName, userName));
+        //    mylist.Add(new Claim(ClaimTypes.Role, userType.ToString()));
+
+
+        //    var tokenDescriptor = new SecurityTokenDescriptor
+        //    {
+        //        Subject = new ClaimsIdentity(mylist),
+        //        Expires = DateTime.UtcNow.AddDays(1),
+        //        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
+        //        SecurityAlgorithms.HmacSha256Signature)
+        //    };
+
+
+        //    var token = tokenHandler.CreateToken(tokenDescriptor);
+        //    return tokenHandler.WriteToken(token);
+        //}
+
+
+        private string GenerateAccessToken(IEnumerable<Claim> claims)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_jwtsettings.SecretKey);
+            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtsettings.SecretKey));
+            var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
 
-            var mylist = new List<Claim>();
+            var tokeOptions = new JwtSecurityToken(
+                issuer: "https://localhost:5001",
+                audience: "https://localhost:5001",
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(5),
+                signingCredentials: signinCredentials
+            );
 
-            //mylist.Add(new Claim(ClaimTypes.Name, userId));
-
-            mylist.Add(new Claim(ClaimTypes.NameIdentifier, userId));
-            mylist.Add(new Claim(ClaimTypes.GivenName, userName));
-
-
-            mylist.Add(new Claim(ClaimTypes.Role, userType.ToString()));
-
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(mylist),
-                Expires = DateTime.UtcNow.AddDays(1),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
-                SecurityAlgorithms.HmacSha256Signature)
-            };
-
-
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            return new JwtSecurityTokenHandler().WriteToken(tokeOptions);
         }
+
+
+        [MapToApiVersion(1)]
+        [HttpPost("refresh-token")]
+        [ProducesResponseType(typeof(UserLoginResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetRefreshToken([FromBody] TokenRefreshRequest tokenRefreshRequest)
+        {
+            try
+            {
+                var refreshToken = await _userloginservice.GetRefreshToken(tokenRefreshRequest.RefreshToken);
+
+                if (refreshToken == null || refreshToken.IsUsed || refreshToken.IsRevoked || refreshToken.ExpiryDate <= DateTime.UtcNow)
+                    return Unauthorized("Invalid refresh token");
+
+                var tokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtsettings.SecretKey)),
+                    ValidateIssuer = false,
+                    ValidateAudience = false //the token's expiration date not important
+                };
+
+
+                var tokenHandler = new JwtSecurityTokenHandler();
+                SecurityToken securityToken;
+                var principal = tokenHandler.ValidateToken(tokenRefreshRequest.AccessToken, tokenValidationParameters, out securityToken);
+                var jwtSecurityToken = securityToken as JwtSecurityToken;
+                if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                    return Unauthorized("Invalid token");
+
+
+                var username = principal.Identity.Name; //this is mapped to the Name claim by default
+
+                
+                var newAccessToken = GenerateAccessToken(principal.Claims);
+                var newRefreshToken = GenerateRefreshToken();
+
+                var aspUser = await _userManager.FindByNameAsync(username);
+                var webUser = await _userloginservice.GetUserByAspId(aspUser.Id);
+
+                if (webUser.IsFailure)
+                    return BadRequest("Not registered user");
+
+
+                await _userloginservice.SaveRefreshTokenAsync(newRefreshToken, webUser.Value.Id);
+
+                var LoginResponse = new UserLoginResponse();
+
+                LoginResponse.RefreshToken = newRefreshToken.Token;
+                LoginResponse.AccessToken = newAccessToken;
+                LoginResponse.UserName = aspUser.UserName;
+
+                return Ok(LoginResponse);
+
+            }
+            catch (Exception ex)
+            {
+                return Ok(new UserLoginResponse());
+            }
+        }
+
+
+
 
     }
 }

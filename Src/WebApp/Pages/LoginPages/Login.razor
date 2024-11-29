@@ -1,0 +1,107 @@
+﻿@page "/"
+@page "/login"
+@using Application.Aggregates.UserAuthAggregate
+@using Newtonsoft.Json
+@using System.Security.Claims
+@using WebApp.Data
+@using WebApp.Services
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService localStorageService
+@inject IAuthService authService
+@inject IJSRuntime jsRunTime
+@inject NavigationManager Navigation
+
+<EditForm Model="@userModel" OnValidSubmit="@ValidateUser">
+   <DataAnnotationsValidator/>
+    <div class="col-10 row">
+        <input class="form-control col-12" @bind="userModel.Username" placeholder="user name" />
+      
+    </div>
+    <br />
+    <div class="col-10 row">
+        <input type="password" class="form-control col-12" @bind="userModel.Password" placeholder="password" />
+        
+    </div>
+    <br />
+    <div class="col-5 row">
+        <span class="col-12"></span>
+        <input type="submit" class="form-control offset-1 col-10 btn btn-primary" value="Login" />
+    </div>
+    <br />
+    <div class="col-10 row" style="text-align:left; font-weight:bold">
+        <span class="col-12">@LoginMesssage</span>
+    </div>
+
+</EditForm>
+
+
+
+@code {
+
+
+        //private User user;
+    private UserLoginRequest userModel;
+    public string LoginMesssage { get; set; }
+    ClaimsPrincipal claimsPrincipal;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+
+        //user = new User();
+        userModel = new UserLoginRequest() { Username = "", Password = "" };
+
+        userModel.Username = "AdminUser@hotmail.co.uk";
+        userModel.Password = "SuperStrongPassword+123"; 
+
+        //claimsPrincipal = (await authenticationStateTask).User;
+
+        // if (claimsPrincipal.Identity.IsAuthenticated)
+        // {
+        //     NavigationManager.NavigateTo("/Home", false);
+        // }
+        // else
+        // {
+         
+        //     userModel = new UserLoginRequest() { Username = "Sertac01", Password = "Password@123" };
+
+        //     //userModel.Username = "";
+        //     //userModel.Password = "";
+        // }
+
+    }
+
+    private async Task ValidateUser()
+    {
+
+        var returnedUser = await authService.LoginAsync(userModel);
+
+        try
+        {
+            if (returnedUser.UserName != null)
+            {
+
+               await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(returnedUser);
+
+                NavigationManager.NavigateTo("/Home", false);
+
+            }
+            else
+            {
+                LoginMesssage = "Invalid username or password";
+            }
+        }
+        catch (Exception ex)
+        {
+
+            LoginMesssage = ex.Message;
+        }
+
+
+        // return await Task.FromResult(true);
+    }
+}

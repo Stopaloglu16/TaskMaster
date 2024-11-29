@@ -16,12 +16,14 @@
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.8" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="Testcontainers.MsSql" Version="4.0.0" />
     <PackageReference Include="xunit" Version="2.5.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Src\Presentation\WebApiAuth\WebApiAuth.csproj" />
+    <ProjectReference Include="..\SharedTestDataLibrary\SharedTestDataLibrary.csproj" />
     <ProjectReference Include="..\SharedUtilityTestMethods\SharedUtilityTestMethods.csproj" />
   </ItemGroup>
 

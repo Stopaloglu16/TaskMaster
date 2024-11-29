@@ -55,7 +55,7 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
 
     public async Task<IEnumerable<UserDto>> GetUsers(bool IsActive, int UserTypeId)
     {
-        return await _dbContext.Users.Where(uu => uu.UserTypeId == (UserType)UserTypeId && 
+        return await _dbContext.Users.Where(uu => uu.UserTypeId == (UserType)UserTypeId &&
                                                       uu.IsDeleted == Convert.ToByte(!IsActive))
                                      .AsNoTracking()
                                      .Select(ss => new UserDto()
@@ -72,11 +72,19 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
                    {
                        UserId = _UserId,
                        Token = refreshToken.Token,
-                       ExpiryDate = refreshToken.ExpiryDate
+                       ExpiryDate = refreshToken.ExpiryDate,
+                       IsRevoked = false,
+                       IsUsed = false
                    });
 
         await _dbContext.SaveChangesAsync();
 
         return true;
     }
+
+    public async Task<RefreshToken> GetRefreshToken(string tokenRequest)
+    {
+        return await _dbContext.RefreshTokens.FirstOrDefaultAsync(t => t.Token == tokenRequest);
+    }
+
 }

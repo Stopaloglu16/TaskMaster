@@ -10,9 +10,9 @@ public interface ITaskItemService
 {
     Task<TaskItemDto> GetTaskItemId(int Id);
     Task<IEnumerable<SelectListItem>> GetTaskItemList();
-    Task<IEnumerable<TaskItemDto>> GetTaskItems(int taskListId);
+    Task<IEnumerable<TaskItemDto>> GetTaskItemsByTaskItem(int taskListId, CancellationToken cancellationToken);
     Task<CustomResult> CreateTaskItem(CreateTaskItemRequest createTaskItemRequest);
-    Task<CustomResult> UpdateTaskItem(UpdateTaskItemRequest updateTaskItemRequest);
+    Task<CustomResult> UpdateTaskItem(int Id, UpdateTaskItemRequest updateTaskItemRequest);
     Task<CustomResult> CompleteTaskItem(CompleteTaskItemRequest completeTaskItemRequest);
-    Task<CustomResult> SoftDeleteTaskListById(int Id);
+    Task<CustomResult> SoftDeleteTaskItemById(int Id);
 }
