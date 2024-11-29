@@ -38,6 +38,8 @@ public class UserService : IUserService
         return CustomResult<Guid>.Success(newUser1.RegisterToken);
     }
 
+ 
+
     public Task<CustomResult<UserLoginResponse>> GetUserByAccessTokenAsync(string accessToken)
     {
         throw new NotImplementedException();
@@ -61,5 +63,10 @@ public class UserService : IUserService
     public async Task<bool> SaveRefreshTokenAsync(RefreshToken refreshToken, int UserId)
     {
         return await _userRepository.SaveRefreshTokenAsync(refreshToken, UserId);
+    }
+
+    public async Task<RefreshToken> GetRefreshToken(string tokenRequest)
+    {
+        return await _userRepository.GetRefreshToken(tokenRequest);
     }
 }

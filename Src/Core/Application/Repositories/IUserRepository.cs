@@ -14,4 +14,7 @@ public interface IUserRepository : IRepository<User, int>
     Task<CustomResult<UserDto>> GetUserByAspId(string AspId);
 
     Task<bool> SaveRefreshTokenAsync(RefreshToken refreshToken, int UserId);
+
+    Task<RefreshToken> GetRefreshToken(string tokenRequest);
+
 }

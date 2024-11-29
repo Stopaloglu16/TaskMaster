@@ -17,11 +17,18 @@ Welcome to your new app.
 
         <p>@authMessage</p>
         <!-- Display dashboard content for authenticated users -->
+
+  
     </Authorized>
+
     <NotAuthorized>
         <p>You are not authorized to view this page.</p>
         <button @onclick="RedirectToLogin">Go to Login</button>
     </NotAuthorized>
+</AuthorizeView>
+
+<AuthorizeView Roles="AdminUser">
+    <p>You have an 'AdminUser'  role claim.</p>
 </AuthorizeView>
 
 @code {
@@ -34,7 +41,7 @@ Welcome to your new app.
 
     protected override async Task OnInitializedAsync()
     {
-        
+
         if (AuthStat is not null)
         {
             var authState = await AuthStat;
@@ -42,7 +49,14 @@ Welcome to your new app.
 
             if (user?.Identity is not null && user.Identity.IsAuthenticated)
             {
-                authMessage = $"{user.Identity.Name} is authenticated.";
+                
+                authMessage = $"{user.Identity.Name} is authenticated. ";
+                
+                foreach (var item in user.Claims)
+                {
+                    authMessage = authMessage + "<br/>" + item.ValueType + " "  + item.Value ;
+                }
+
             }
         }
 

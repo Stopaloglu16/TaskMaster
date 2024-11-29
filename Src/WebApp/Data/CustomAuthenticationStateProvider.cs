@@ -1,8 +1,11 @@
 ﻿using Application.Aggregates.UserAuthAggregate;
+using Application.Aggregates.UserAuthAggregate.Token;
+using Azure.Core;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 
 using ServiceLayer.Users;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
 using WebApp.Services;
@@ -30,20 +33,24 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
         try
         {
             var accessToken = await _localStorageService.GetItemAsync<string>("accessToken");
+            var refreshToken = await _localStorageService.GetItemAsync<string>("refreshToken");
 
             ClaimsIdentity identity;
 
-            if (accessToken != null && accessToken != string.Empty)
-            {
-                var user = await _authService.GetUserByAccessTokenAsync(accessToken);
-
-                identity = GetClaimsIdentity(user);
-            }
-            else
+            if (String.IsNullOrEmpty(accessToken) && String.IsNullOrEmpty(refreshToken))
             {
                 identity = new ClaimsIdentity();
             }
+            else
+            {
+                TokenRefreshRequest tokenRefreshRequest = new TokenRefreshRequest() { AccessToken = accessToken, RefreshToken = refreshToken };
 
+                var user = await _authService.GetUserByAccessTokenAsync(tokenRefreshRequest);
+
+                identity = new ClaimsIdentity(GetClaimsIdentity(user), "testAuthType");
+            }
+
+            //var myrr = GetClaimsFromAccessToken(accessToken);
 
             var claimsPrincipal = new ClaimsPrincipal(identity);
 
@@ -56,20 +63,16 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
 
     }
 
-    public void MarkUserAsAuthenticated(UserLoginResponse user)
+    public async Task MarkUserAsAuthenticated(UserLoginResponse user)
     {
 
-        _localStorageService.SetItemAsync("accessToken", user.AccessToken);
-        _localStorageService.SetItemAsync("refreshToken", user.RefreshToken);
+        await _localStorageService.SetItemAsync("accessToken", user.AccessToken);
+        await _localStorageService.SetItemAsync("refreshToken", user.RefreshToken);
 
-        var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(ClaimTypes.Role, "test")
-                };
 
-        var identity = new ClaimsIdentity(claims, "testAuthType");
-        
+        var identity = new ClaimsIdentity(GetClaimsIdentity(user), "testAuthType");
+
+
         var myuser = new ClaimsPrincipal(identity);
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(myuser)));
 
@@ -80,39 +83,64 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
         await _localStorageService.RemoveItemAsync("refreshToken");
         await _localStorageService.RemoveItemAsync("accessToken");
 
-        
-        var identity = new ClaimsIdentity();
-
-        var user = new ClaimsPrincipal(identity);
+        var user = new ClaimsPrincipal(new ClaimsIdentity());
 
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
     }
 
 
-    private ClaimsIdentity GetClaimsIdentity(UserLoginResponse user)
+    private IEnumerable<Claim> GetClaimsIdentity(UserLoginResponse user)
     {
-        var claimsIdentity = new ClaimsIdentity();
+       var claimsIdentity = new ClaimsIdentity();
 
-        if (user.UserEmail != null)
+        if (!String.IsNullOrEmpty(user.UserName))
         {
-            claimsIdentity = new ClaimsIdentity(new[]
-                            {
-                                    new Claim(ClaimTypes.Name, user.UserName)
-                                    //new Claim(ClaimTypes.Role, "Add art"),
-                                    //new Claim(ClaimTypes.Role, "Add movie"),
-                                    //new Claim("IsUserEmployedBefore1990", IsUserEmployedBefore1990(user))
-                                }, "apiauth_type");
+
+            var handler = new JwtSecurityTokenHandler();
+
+            if (handler.CanReadToken(user.AccessToken))
+            {
+                var jwtToken = handler.ReadJwtToken(user.AccessToken);
+                return jwtToken.Claims.ToList();
+            }
+
+            //claimsIdentity = new ClaimsIdentity(new[]
+            //                {
+            //                        new Claim(ClaimTypes.Name, user.UserName)
+            //                    }, "apiauth_type");
         }
 
-        //if (user.myRoles != null)
-        //{
-        //    foreach (Role role in user.myRoles)
-        //    {
-        //        claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, role.RoleName));
-        //    }
-        //}
 
-        return claimsIdentity;
+        return new List<Claim>();
     }
 
+
+    public IDictionary<string, string> GetClaimsFromAccessToken(string accessToken)
+    {
+        var handler = new JwtSecurityTokenHandler();
+
+        if (handler.CanReadToken(accessToken))
+        {
+            var jwtToken = handler.ReadJwtToken(accessToken);
+
+            // Extract claims
+           // var claims = jwtToken.Claims.ToDictionary(claim => claim.Type, claim => claim.Value);
+
+
+            var mappedClaims = jwtToken.Claims.ToDictionary(
+        claim => claim.Type switch
+        {
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role" => "role",
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name" => "name",
+            _ => claim.Type // Keep other claims as-is
+        },
+        claim => claim.Value
+    );
+
+
+            return mappedClaims;
+        }
+
+        throw new ArgumentException("Invalid access token");
+    }
 }

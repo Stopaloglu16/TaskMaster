@@ -20,4 +20,6 @@ public interface IUserService
 
     Task<bool> SaveRefreshTokenAsync(RefreshToken refreshToken, int UserId);
 
+    Task<RefreshToken> GetRefreshToken(string tokenRequest);
+
 }

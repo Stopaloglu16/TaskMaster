@@ -14,6 +14,7 @@ public class TaskListApiTests : BaseIntegrationTest
 {
 
     private string token { get; set; }
+    private string apiVersion = "v1.0";
 
     public TaskListApiTests(IntegrationTestWebAppFactory factory) : base(factory)
     {
@@ -21,7 +22,6 @@ public class TaskListApiTests : BaseIntegrationTest
 
         // Set JWT Token in the Authorization header
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
     }
 
 
@@ -33,15 +33,14 @@ public class TaskListApiTests : BaseIntegrationTest
 
 
         // Act
-        var response = await _httpClient.PostAsJsonAsync($"/api/v1.0/tasklist", mockTaskList);
+        var response = await _httpClient.PostAsJsonAsync($"/api/{apiVersion}/tasklist", mockTaskList);
 
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.Created, response.StatusCode);
 
-        var response1 = await _httpClient.GetAsync($"/api/v1.0/tasklist");
+        var response1 = await _httpClient.GetAsync($"/api/{apiVersion}/tasklist");
 
         var personId = await response1.Content.ReadAsStringAsync();
-
     }
 
 
@@ -58,12 +57,12 @@ public class TaskListApiTests : BaseIntegrationTest
         mockTaskList.DueDate = mockDueDate;
 
         // Act
-        var response = await _httpClient.PutAsync($"/api/v1.0/tasklist/{mockTaskList.Id}", HttpHelper.GetJsonHttpContent(mockTaskList));
+        var response = await _httpClient.PutAsync($"/api/{apiVersion}/tasklist/{mockTaskList.Id}", HttpHelper.GetJsonHttpContent(mockTaskList));
 
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
 
-        var response1 = await _httpClient.GetAsync($"/api/v1.0/tasklist");
+        var response1 = await _httpClient.GetAsync($"/api/{apiVersion}/tasklist");
         var result = await response1.Content.ReadFromJsonAsync<List<TaskListDto>>();
 
         Assert.Equal(mockTitle, result[0].Title);
@@ -79,12 +78,12 @@ public class TaskListApiTests : BaseIntegrationTest
         // Arrange
 
         // Act
-        var response = await _httpClient.DeleteAsync($"/api/v1.0/tasklist/1");
+        var response = await _httpClient.DeleteAsync($"/api/{apiVersion}/tasklist/1");
 
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.NoContent, response.StatusCode);
 
-        var response1 = await _httpClient.GetAsync($"/api/v1.0/tasklist");
+        var response1 = await _httpClient.GetAsync($"/api/{apiVersion}/tasklist");
         var result = await response1.Content.ReadFromJsonAsync<List<TaskListDto>>();
 
         Assert.Equal(0, result.Count);

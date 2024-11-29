@@ -16,5 +16,7 @@ Update-Database -context Infrastructure.Data.ApplicationDbContext
 Update-Database -context Infrastructure.Data.WebIdentityContext
 
 
-Add-Migration Update20Oct -Context Infrastructure.Data.ApplicationDbContext -project Src\Infrastructures\Infrastructure.SqliteMigrations -Args "--Provider Sqlite"
-Add-Migration Update20Oct -Context Infrastructure.Data.ApplicationDbContext -project Src\Infrastructures\Infrastructure.SqlServerMigrations -Args "--Provider SqlServer"
+Add-Migration UpdateRefreshToken -Context Infrastructure.Data.ApplicationDbContext -project Src\Infrastructures\Infrastructure.SqliteMigrations -Args "--Provider Sqlite"
+Add-Migration UpdateRefreshToken -Context Infrastructure.Data.ApplicationDbContext -project Src\Infrastructures\Infrastructure.SqlServerMigrations -Args "--Provider SqlServer"
+
+update-database -Context Infrastructure.Data.ApplicationDbContext -project Src\Infrastructures\Infrastructure.SqlServerMigrations -Args "--Provider SqlServer"

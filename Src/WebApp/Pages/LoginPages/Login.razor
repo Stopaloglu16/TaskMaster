@@ -77,21 +77,6 @@
 
     private async Task ValidateUser()
     {
-        //var token = await authService.LoginAsync(userModel);
-
-        // if (!string.IsNullOrEmpty(token))
-        // {
-        //     AuthenticationStateProvider.MarkUserAsAuthenticated(token);
-        //     Navigation.NavigateTo("/dashboard"); // Redirect to another page after login
-        // }
-        // else
-        // {
-        //     // Show error
-        //     LoginMesssage = "Invalid username or password";
-        // }
-
-        //assume that user is valid
-        //call an API
 
         var returnedUser = await authService.LoginAsync(userModel);
 
@@ -100,7 +85,7 @@
             if (returnedUser.UserName != null)
             {
 
-               ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(returnedUser);
+               await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(returnedUser);
 
                 NavigationManager.NavigateTo("/Home", false);
 

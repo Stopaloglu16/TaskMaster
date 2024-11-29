@@ -72,11 +72,19 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
                    {
                        UserId = _UserId,
                        Token = refreshToken.Token,
-                       ExpiryDate = refreshToken.ExpiryDate
+                       ExpiryDate = refreshToken.ExpiryDate,
+                       IsRevoked = false,
+                       IsUsed = false
                    });
 
         await _dbContext.SaveChangesAsync();
 
         return true;
     }
+
+    public async Task<RefreshToken> GetRefreshToken(string tokenRequest)
+    {
+        return await _dbContext.RefreshTokens.FirstOrDefaultAsync(t => t.Token == tokenRequest);
+    }
+
 }
