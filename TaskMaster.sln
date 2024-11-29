@@ -5,6 +5,7 @@ VisualStudioVersion = 17.10.35013.160
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{99F97F37-B2BB-4D45-899F-190F5CA61CC6}"
 	ProjectSection(SolutionItems) = preProject
+		Docs\design templates.png = Docs\design templates.png
 		Docs\EfCoreCommands.txt = Docs\EfCoreCommands.txt
 	EndProjectSection
 EndProject
