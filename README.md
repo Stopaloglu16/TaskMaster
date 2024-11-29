@@ -47,6 +47,10 @@ Task will have Due date and Complete date for performance calculation. Each task
 
 https://wireframepro.mockflow.com/
 
+<details><summary> Admin </summary><blockquote>
+<img src="Docs/design templates.png" name="image-name">
+</blockquote></details>
+
 
 
 # Completed Design
