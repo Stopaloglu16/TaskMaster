@@ -1,9 +1,8 @@
 using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Web;
-
+using WebApp.Config;
 using WebApp.Data;
+using WebApp.Handlers;
 using WebApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,14 +14,18 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
 
+var appSettingSection = builder.Configuration.GetSection("AppSettings");
+builder.Services.Configure<ApiSettingConfig>(appSettingSection);
 
-//builder.Services.AddAuthorization();
+builder.Services.AddTransient<ValidateHeaderHandler>();
+
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
-//builder.Services.AddScoped<ILocalStorageService, LocalStorageService>(); // Local storage service
 builder.Services.AddScoped<IAuthService, AuthService>(); // Authentication service
+
+builder.Services.AddBlazorServices();
 
 builder.Services.AddBlazoredLocalStorage();
 

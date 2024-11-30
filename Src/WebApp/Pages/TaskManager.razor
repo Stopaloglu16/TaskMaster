@@ -1,5 +1,52 @@
-﻿<h3>TaskManager</h3>
+﻿@page "/taskmanager"
+@attribute [Authorize]
+
+@using Application.Aggregates.TaskListAggregate.Queries
+@using WebApp.Services
+
+@inject IWebApiService<TaskListDto, TaskListDto> _taskListService
+
+
+
+<h3>TaskManager</h3>
+
+@if(taskListDtos != null)
+{
+    @taskListDtos.Count <br />
+
+    foreach(var item in taskListDtos) 
+    {
+        @item.Title; 
+    }
+
+}
+
 
 @code {
+
+
+    public List<TaskListDto> taskListDtos { get; set; }
+
+
+    protected async override Task OnInitializedAsync()
+    {
+        taskListDtos = new List<TaskListDto>();
+
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            taskListDtos = await _taskListService.GetAllDataAsync("tasklist");
+            
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+
 
 }

@@ -1,14 +1,7 @@
-﻿using Application.Aggregates.TaskItemAggregate.Queries;
-using Application.Aggregates.TaskListAggregate.Queries;
-using Azure;
+﻿using Application.Aggregates.TaskListAggregate.Queries;
 using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text;
-using System.Threading.Tasks;
 using WebApi.FunctionalTests.Helpers;
 
 namespace WebApi.FunctionalTests.TaskListTests.Query;
@@ -26,40 +19,17 @@ public class TaskListApiGetTests : BaseIntegrationTest
 
         // Set JWT Token in the Authorization header
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
     }
-
-
-    //TODO Add more user scenarios
-    // null task item
-    // 1 task item
-    // half completed
-    // all completed
 
 
     [Fact]
     public async Task GetTaskList_ActiveTaskList_GetSuccess()
     {
-
-        //TODO Add more user scenarios
-
-        CancellationToken cancellationToken = new CancellationToken();
-
         //Arrange
-        TaskList taskList = new TaskList() { Title = "mockTitle", DueDate = DateOnly.FromDateTime(DateTime.Now) };
-
-        await _dbContext.TaskLists.AddAsync(taskList);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-
-        TaskItem taskItem = new TaskItem() { Title = "mockTitle", Description = "lorem ipsumn", TaskListId = 1 };
-
-        await _dbContext.TaskItems.AddAsync(taskItem);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await ArrangeDb();
 
         // Act
-        
-        var response = await _httpClient.GetAsync($"/api/{apiVersion]}/tasklist");
+        var response = await _httpClient.GetAsync($"/api/{apiVersion}/tasklist");
 
 
         // Assert
@@ -68,8 +38,84 @@ public class TaskListApiGetTests : BaseIntegrationTest
         var result = await response.Content.ReadFromJsonAsync<List<TaskListDto>>();
 
 
-        Assert.True(result.Count > 0);     
+        Assert.True(result.Count > 0);
+
+        foreach (var taskList in result)
+        {
+            if (taskList.Title == "task1")
+            {
+                Assert.Equal(0, taskList.TaskItemCount);
+                Assert.Equal(0, taskList.TaskItemCompletedCount);
+            }
+            else if (taskList.Title == "task2")
+            {
+                Assert.Equal(1, taskList.TaskItemCount);
+                Assert.Equal(0, taskList.TaskItemCompletedCount);
+            }
+            else if (taskList.Title == "task3")
+            {
+                Assert.Equal(4, taskList.TaskItemCount);
+                Assert.Equal(2, taskList.TaskItemCompletedCount);
+            }
+            else if (taskList.Title == "task4")
+            {
+                Assert.Equal(4, taskList.TaskItemCount);
+                Assert.Equal(4, taskList.TaskItemCompletedCount);
+            }
+
+        }
+    }
+
+    public async Task ArrangeDb()
+    {
+        CancellationToken cancellationToken = new CancellationToken();
+
+        // null task item
+        TaskList taskList = new TaskList() { Title = "task1", DueDate = DateOnly.FromDateTime(DateTime.Now) };
+        await _dbContext.TaskLists.AddAsync(taskList);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // 1 task item
+        taskList = new TaskList() { Title = "task2", DueDate = DateOnly.FromDateTime(DateTime.Now) };
+
+        TaskItem taskItem = new TaskItem() { Title = "mockTitle", Description = "lorem ipsumn" };
+        taskList.TaskItems.Add(taskItem);
+
+        await _dbContext.TaskLists.AddAsync(taskList);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // half completed
+        taskList = new TaskList() { Title = "task3", DueDate = DateOnly.FromDateTime(DateTime.Now) };
+
+        for (int i = 0; i < 2; i++)
+        {
+            taskItem = new TaskItem() { Title = "mockTitle" + i.ToString(), Description = "lorem ipsumn" };
+            taskList.TaskItems.Add(taskItem);
+        }
+
+        for (int i = 3; i < 5; i++)
+        {
+            taskItem = new TaskItem() { Title = "mockTitle" + i.ToString(), Description = "lorem ipsumn", IsCompleted = true };
+            taskList.TaskItems.Add(taskItem);
+        }
+
+        await _dbContext.TaskLists.AddAsync(taskList);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // all completed
+        taskList = new TaskList() { Title = "task4", DueDate = DateOnly.FromDateTime(DateTime.Now) };
+
+        for (int i = 0; i < 4; i++)
+        {
+            taskItem = new TaskItem() { Title = "mockTitle" + i.ToString(), Description = "lorem ipsumn", IsCompleted = true };
+            taskList.TaskItems.Add(taskItem);
+        }
+
+        await _dbContext.TaskLists.AddAsync(taskList);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
     }
+
 }
 
