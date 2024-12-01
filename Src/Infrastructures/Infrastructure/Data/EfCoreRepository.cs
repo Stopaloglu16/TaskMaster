@@ -1,4 +1,5 @@
-﻿using Application.Common.Interfaces;
+﻿using Application.Aggregates.TaskListAggregate.Queries;
+using Application.Common.Interfaces;
 using Application.Common.Models;
 using Domain.Common;
 using Microsoft.EntityFrameworkCore;
@@ -70,4 +71,5 @@ public class EfCoreRepository<TEntity, TKey> : IRepository<TEntity, TKey> where 
 
         return CustomResult.Success();
     }
+
 }

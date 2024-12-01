@@ -28,7 +28,7 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
         _httpClient = httpClient;
     }
 
-    public async Task<List<TResponse>> GetAllDataAsync(string requestUri)
+    public async Task<PagingResponse<TResponse>> GetAllDataAsync(string requestUri)
     {
         var requestMessage = new HttpRequestMessage(HttpMethod.Get, Apitext + requestUri);
 
@@ -40,7 +40,7 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {
             var responseBody = await response.Content.ReadAsStringAsync();
-            return await Task.FromResult(JsonConvert.DeserializeObject<List<TResponse>>(responseBody));
+            return await Task.FromResult(JsonConvert.DeserializeObject<PagingResponse<TResponse>>(responseBody));
         }
         else
             return null;

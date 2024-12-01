@@ -25,9 +25,11 @@ public class TaskListRepository : EfCoreRepository<TaskList, int>, ITaskListRepo
         return CustomResult<int>.Success(taskListCount);
     }
 
-    public async Task<IEnumerable<TaskListDto>> GetTaskListActive(CancellationToken cancellationToken)
+    public async Task<PagingResponse<TaskListDto>> GetActiveTaskListWithPagination(PagingParameters pagingParameters, 
+                                                                                   CancellationToken cancellationToken)
     {
-        return await _dbContext.TaskLists.Include(ss => ss.AssignedTo)
+
+        var query = _dbContext.TaskLists.Include(ss => ss.AssignedTo)
                                          .AsNoTracking()
                                          .Where(qq => qq.IsDeleted == 0 &&
                                                              qq.IsCompleted == false)
@@ -39,6 +41,9 @@ public class TaskListRepository : EfCoreRepository<TaskList, int>, ITaskListRepo
                                              AssignedTo = ss.AssignedTo.FullName ?? "",
                                              TaskItemCount = ss.TaskItems.Count(),
                                              TaskItemCompletedCount = ss.TaskItems.Count(ti => ti.IsCompleted),
-                                         }).ToListAsync();
+                                         });
+
+        return await PagingResponse<TaskListDto>.CreateAsync(query, pagingParameters);
+        
     }
 }

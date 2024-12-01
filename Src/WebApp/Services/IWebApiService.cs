@@ -1,9 +1,11 @@
-﻿namespace WebApp.Services;
+﻿using Application.Common.Models;
+
+namespace WebApp.Services;
 
 public interface IWebApiService<TRequest, TResponse>
 {
 
-    Task<List<TResponse>> GetAllDataAsync(string requestUri);
+    Task<PagingResponse<TResponse>> GetAllDataAsync(string requestUri);
 
     Task<TResponse> GetDataByIdAsync(string requestUri);
 

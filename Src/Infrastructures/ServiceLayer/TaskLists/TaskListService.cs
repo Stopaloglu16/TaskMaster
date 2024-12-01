@@ -16,6 +16,8 @@ public class TaskListService : ITaskListService
         _taskListRepository = taskListRepository;
     }
 
+    #region Crud operations
+
     public async Task<CustomResult> CreateTaskList(CreateTaskListRequest createTaskListRequest)
     {
         if (createTaskListRequest.AssignedToId > 0)
@@ -65,6 +67,7 @@ public class TaskListService : ITaskListService
         return await _taskListRepository.DeleteAsync(Id);
     }
 
+    #endregion
 
     /// <summary>
     /// Check the user assigned enough task
@@ -82,9 +85,9 @@ public class TaskListService : ITaskListService
     }
 
 
-    public async Task<IEnumerable<TaskListDto>> GetTaskListActive(CancellationToken cancellationToken)
+    public async Task<PagingResponse<TaskListDto>> GetActiveTaskListWithPagination(PagingParameters pagingParameters, CancellationToken cancellationToken)
     {
-        return await _taskListRepository.GetTaskListActive(cancellationToken);
+        return await _taskListRepository.GetActiveTaskListWithPagination(pagingParameters, cancellationToken);
     }
 
     public Task<TaskListDto> GetTaskListId(int Id)

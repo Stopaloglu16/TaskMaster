@@ -1,6 +1,7 @@
 ﻿using Application.Aggregates.TaskListAggregate.Commands.Create;
 using Application.Aggregates.TaskListAggregate.Commands.Update;
 using Application.Aggregates.TaskListAggregate.Queries;
+using Application.Common.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using ServiceLayer.TaskLists;
 
@@ -15,7 +16,7 @@ namespace WebApi.Apis
                                         .HasApiVersion(1.0);
 
             // Route for query task lists
-            api.MapGet("/", GetTaskListActive);
+            api.MapGet("/", GetActiveTaskListWithPagination);
 
             //TODO: Get tasklist assigned to user
 
@@ -34,12 +35,13 @@ namespace WebApi.Apis
         }
 
 
-        public static async Task<Ok<IEnumerable<TaskListDto>>> GetTaskListActive(ITaskListService taskListService,
-                                                                               CancellationToken cancellationToken)
+        public static async Task<Ok<PagingResponse<TaskListDto>>> GetActiveTaskListWithPagination(ITaskListService taskListService,
+                                                                                                 [AsParameters] PagingParameters pagingParameters,
+                                                                                                  CancellationToken cancellationToken)
         {
-            var taskList = await taskListService.GetTaskListActive(cancellationToken);
+            var taskList = await taskListService.GetActiveTaskListWithPagination(pagingParameters, cancellationToken);
 
-            return TypedResults.Ok(taskList.AsEnumerable());
+            return TypedResults.Ok(taskList);
         }
 
 

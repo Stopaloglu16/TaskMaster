@@ -2,6 +2,7 @@
 @attribute [Authorize]
 
 @using Application.Aggregates.TaskListAggregate.Queries
+@using Application.Common.Models
 @using WebApp.Services
 
 @inject IWebApiService<TaskListDto, TaskListDto> _taskListService
@@ -12,11 +13,16 @@
 
 @if(taskListDtos != null)
 {
-    @taskListDtos.Count <br />
+    @taskListDtos.TotalPages <br />
+    @taskListDtos.HasPreviousPage <br />
+    @taskListDtos.PageNumber <br />
+    @taskListDtos.HasNextPage <br />
+    @taskListDtos.TotalCount
 
-    foreach(var item in taskListDtos) 
+
+    foreach(var item in taskListDtos.Items) 
     {
-        @item.Title; 
+        @item.Title <br /> 
     }
 
 }
@@ -25,12 +31,12 @@
 @code {
 
 
-    public List<TaskListDto> taskListDtos { get; set; }
+    public PagingResponse<TaskListDto> taskListDtos { get; set; }
 
 
     protected async override Task OnInitializedAsync()
     {
-        taskListDtos = new List<TaskListDto>();
+        //taskListDtos = new PagingResponse<TaskListDto>();
 
         await base.OnInitializedAsync();
     }
@@ -39,7 +45,7 @@
     {
         if (firstRender)
         {
-            taskListDtos = await _taskListService.GetAllDataAsync("tasklist");
+            taskListDtos = await _taskListService.GetAllDataAsync($"tasklist?PageNumber=2&PageSize=15&OrderBy=Id&IsDescending=false");
             
             StateHasChanged();
         }
