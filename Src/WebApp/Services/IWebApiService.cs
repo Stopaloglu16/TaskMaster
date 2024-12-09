@@ -9,7 +9,7 @@ public interface IWebApiService<TRequest, TResponse>
 
     Task<TResponse> GetDataByIdAsync(string requestUri);
 
-    Task<TResponse> SaveAsync(string requestUri, TRequest obj);
+    Task<HttpResponseMessage> SaveAsync(string requestUri, TRequest obj);
 
     //Task<TResponse> SaveBulkAsync(string requestUri, List<TRequest> obj);
 

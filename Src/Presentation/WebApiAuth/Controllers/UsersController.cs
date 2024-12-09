@@ -2,6 +2,7 @@
 using Application.Common.Interfaces;
 using Application.Common.Models;
 using Asp.Versioning;
+using Domain.Enums;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -31,14 +32,14 @@ namespace WebApiAuth.Controllers
         [HttpGet("users")]
         [ProducesResponseType(typeof(Ok), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(BadRequestResult), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> Get(bool IsActive, int UserTypeId)
+        public async Task<ActionResult> Get(bool IsActive, UserType UserType)
         {
-            var userList = await _userService.GetUsers(IsActive, UserTypeId);
+            var userList = await _userService.GetUsers(IsActive, UserType);
 
             if (userList != null)
                 return Ok(userList);
 
-            return BadRequest("asd");
+            return BadRequest("Not found users");
         }
 
         [HttpGet("user/{Id}")]
@@ -78,6 +79,19 @@ namespace WebApiAuth.Controllers
             }
         }
 
+
+        [HttpGet("taskuserselectlist")]
+        [ProducesResponseType(typeof(Ok), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(BadRequestResult), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> GetTaskUserSelectList()
+        {
+            var userList = await _userService.GetTaskUserSelectList();
+
+            if (userList != null)
+                return Ok(userList);
+
+            return BadRequest("Not found users");
+        }
     }
 
 }

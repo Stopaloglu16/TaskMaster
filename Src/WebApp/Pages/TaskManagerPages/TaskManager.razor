@@ -1,0 +1,270 @@
+﻿@page "/taskmanager"
+@attribute [Authorize]
+
+@using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate
+@using Application.Aggregates.TaskListAggregate.Queries
+@using Application.Common.Models
+@using WebApp.Services
+﻿@using Microsoft.AspNetCore.Components.QuickGrid
+
+@inject IWebApiService<TaskListDto, TaskListDto> _taskListService
+@inject IWebApiService<TaskListFormRequest, TaskListFormRequest> _taskListFormService
+@inject IWebApiService<TaskListFormRequest, HttpResponseMessage> _taskListFormCrudService
+
+<div class="container mt-3">
+    <h2>Task Manager</h2>
+    <div class="card">
+        <div class="card-header">
+            <button class="btn btn-primary" type="button" @onclick="@(() => EditTasklist(0))">New</button>
+        </div>
+        <div class="card-body">
+            <div class="page-size-chooser">
+                Items per page:
+                <select @bind="ItemsPerPage">
+                    <option>5</option>
+                    <option>10</option>
+                    <option>20</option>
+                    <option>50</option>
+                </select>
+            </div>
+
+            <div class="grid">
+                <QuickGrid ItemsProvider="@gridItemsProvider" Pagination="@pagination">
+                    <PropertyColumn Property="@(p => p.Title)" Title="Title" Sortable="true" />
+                    <PropertyColumn Property="@(p => p.DueDate)" Title="DueDate" Format="yyyy-MM-dd" Sortable="true" />
+                    <PropertyColumn Property="@(p => p.CompletedDate)" Title="Completed Date" Format="yyyy-MM-dd" Sortable="true" />
+                    <PropertyColumn Property="@(p => p.AssignedTo)" Title="Assign To" Sortable="true" />
+                    <TemplateColumn Title="Actions">
+                        <button class="btn btn-success" @onclick="@(() => EditTasklist(context.Id))"><i class="oi oi-pencil"></i> </button>
+                        <button class="btn btn-danger" @onclick="@(() => DeleteTasklist(context))"><i class="oi oi-trash"></i></button>
+                    </TemplateColumn>
+                </QuickGrid>
+            </div>
+        </div>
+        <div class="card-footer">
+            <nav role="navigation">
+                @if (pagination.TotalItemCount.HasValue)
+                {
+                    var lastIx = (int)pagination.LastPageIndex;
+
+                    <button class="oi oi-arrow-circle-left" type="button" title="Go to first page" @onclick="@(() => GoToPageAsync(0))"></button>
+                    <button class="oi oi-arrow-thick-left" type="button" title="Go to previous page" @onclick="@(() => GoToPageAsync((int)(currentPageIndex-1)))"></button>
+                    <div class="pagination-text">
+                        Page <strong b-3qssc0bm46="">@((int)currentPageIndex + 1)</strong>
+                        of <strong b-3qssc0bm46=""> @lastIx</strong>
+                    </div>
+                    <button class="oi oi-arrow-thick-right" type="button" title="Go to next page" @onclick="@(() => GoToPageAsync((int)(currentPageIndex+1)))"></button>
+                    <button class="oi oi-arrow-circle-right" type="button" title="Go to last page" @onclick="@(() => GoToPageAsync((int)pagination.LastPageIndex))"></button>
+                }
+            </nav>
+        </div>
+    </div>
+</div>
+
+
+@if (TaskListModalOpen)
+{
+    <TaskListModal taskListFormRequest="@taskListFormRequest" taskUserList="@taskUserList"
+    OnClose="@SaveTaskListModel">
+    </TaskListModal>
+}
+
+
+@* <div class="page-buttons">
+    Page:
+    @if (pagination.TotalItemCount.HasValue)
+    {
+        for (var pageIndex = 0; pageIndex <= pagination.LastPageIndex; pageIndex++)
+        {
+            var capturedIndex = pageIndex;
+            <button @onclick="@(() => GoToPageAsync(capturedIndex))"
+            class="@PageButtonClass(capturedIndex)"
+            aria-current="@AriaCurrentValue(capturedIndex)"
+            aria-label="Go to page @(pageIndex + 1)">
+                @(pageIndex + 1)
+            </button>
+        }
+    }
+</div>
+ *@
+
+@* <div class="page-buttons">
+    Page:
+    @if (pagination.TotalItemCount.HasValue)
+    {
+        for (var pageIndex = 0; pageIndex <= pagination.LastPageIndex; pageIndex++)
+        {
+            var capturedIndex = (int)pagination.LastPageIndex;
+            <button @onclick="@(() => GoToPageAsync(capturedIndex))"
+                    class="@PageButtonClass(capturedIndex)"
+                    aria-current="@AriaCurrentValue(capturedIndex)"
+                    aria-label="Go to page @(pageIndex + 1)">
+                @(pageIndex + 1)
+            </button>
+        }
+    }
+</div> *@
+
+@code {
+
+    public PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    public GridItemsProvider<TaskListDto>? gridItemsProvider;
+    private int? totalItemCount; // Manages total items across all pages
+
+    private int? currentPageIndex = 0;
+    private int? lastPageIndex = 0;
+
+    private int _itemsPerPage = 10;
+
+    private int ItemsPerPage
+    {
+        get => _itemsPerPage;
+        set
+        {
+            if (_itemsPerPage != value)
+            {
+                _itemsPerPage = value;
+                OnItemsPerPageChanged(); // Trigger change handler
+            }
+        }
+    }
+
+
+    public bool TaskListModalOpen = false;
+    public TaskListFormRequest taskListFormRequest { get; set; }
+
+    public List<SelectListItem> taskUserList { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await OnItemsPerPageChanged();
+            //await GoToPageAsync(0);
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task OnItemsPerPageChanged()
+    {
+        currentPageIndex = 0;
+        pagination.ItemsPerPage = ItemsPerPage; // Update pagination state
+        await pagination.SetCurrentPageIndexAsync(0); // Reset to the first page
+        await LoadTaskListAsync(); // Reload data with the updated page size
+
+        StateHasChanged();
+    }
+
+
+    private async Task GoToPageAsync(int pageIndex)
+    {
+        currentPageIndex = pageIndex;
+        //pagination.ItemsPerPage = ItemsPerPage;
+        await pagination.SetCurrentPageIndexAsync(pageIndex);
+        await LoadTaskListAsync();
+
+
+        StateHasChanged();
+    }
+
+    private string? PageButtonClass(int pageIndex)
+        => pagination.CurrentPageIndex == pageIndex ? "current" : null;
+
+
+    private string? AriaCurrentValue(int pageIndex)
+      => pagination.CurrentPageIndex == pageIndex ? "page" : null;
+
+
+
+
+    private async Task LoadTaskListAsync()
+    {
+        // Fetch paginated data
+        var pageNumber = pagination.CurrentPageIndex + 1; // Convert to 1-based index
+                                                          //var pageSize = pagination.ItemsPerPage;
+
+        gridItemsProvider = async req =>
+        {
+            var taskListDtos = await _taskListService.GetAllDataAsync(
+            $"tasklist?PageNumber={pageNumber}&PageSize={ItemsPerPage}&OrderBy=Id&IsDescending=false");
+
+            //lastPageIndex = taskListDtos.TotalPages;
+            return GridItemsProviderResult.From(taskListDtos.Items.ToList(), taskListDtos.TotalCount);
+        };
+
+        //StateHasChanged();
+    }
+
+
+    // protected async Task EditTasklist(int Id)
+    // {
+    //     await Task.Delay(1000);
+    // }
+    protected async Task DeleteTasklist(TaskListDto taskListDto)
+    {
+        await Task.Delay(1000);
+    }
+
+
+
+    #region Modal
+
+
+    protected async Task EditTasklist(int Id)
+    {
+
+        taskUserList = new List<SelectListItem>() { new SelectListItem() { Value = 1, Text = "uu1" } };
+
+        if (Id > 0)
+        {
+            var apiReturn = await _taskListFormService.GetDataByIdAsync($"tasklist/{Id}");
+
+            taskListFormRequest = apiReturn;
+        }
+        else
+        {
+            taskListFormRequest = new TaskListFormRequest() { Title = "" };
+        }
+
+        TaskListModalOpen = true;
+    }
+
+    protected async Task SaveTaskListModel(TaskListFormRequest taskListFormRequest)
+    {
+        
+        if (taskListFormRequest == null)
+        {
+            TaskListModalOpen = false;
+        }
+        else
+        {
+
+            if(taskListFormRequest.Id > 0)
+            {
+                var apiReturn = await _taskListFormCrudService.UpdateAsync("tasklist", taskListFormRequest.Id, taskListFormRequest);
+                Console.WriteLine("");
+            }
+            else
+            {
+                var apiReturn = await _taskListFormCrudService.SaveAsync("tasklist", taskListFormRequest);
+
+                Console.WriteLine("");
+            }
+
+            TaskListModalOpen = false;
+        }
+
+        StateHasChanged();
+
+    }
+
+    #endregion
+
+}

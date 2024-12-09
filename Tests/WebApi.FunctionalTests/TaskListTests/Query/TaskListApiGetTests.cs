@@ -1,4 +1,5 @@
 ﻿using Application.Aggregates.TaskListAggregate.Queries;
+using Application.Common.Models;
 using Domain.Entities;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -12,6 +13,8 @@ public class TaskListApiGetTests : BaseIntegrationTest
 
     private string token { get; set; }
     private string apiVersion = "v1.0";
+    const int pageNumber = 1;
+    const int ItemsPerPage = 10;
 
     public TaskListApiGetTests(IntegrationTestWebAppFactory factory) : base(factory)
     {
@@ -25,22 +28,21 @@ public class TaskListApiGetTests : BaseIntegrationTest
     [Fact]
     public async Task GetTaskList_ActiveTaskList_GetSuccess()
     {
-        //Arrange
+        // Arrange
         await ArrangeDb();
 
         // Act
-        var response = await _httpClient.GetAsync($"/api/{apiVersion}/tasklist");
-
+        var response = await _httpClient.GetAsync($"/api/{apiVersion}/tasklist?PageNumber={pageNumber}&PageSize={ItemsPerPage}&OrderBy=Id&IsDescending=false");
 
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
 
-        var result = await response.Content.ReadFromJsonAsync<List<TaskListDto>>();
+        var result = await response.Content.ReadFromJsonAsync<PagingResponse<TaskListDto>>();
 
 
-        Assert.True(result.Count > 0);
+        Assert.True(result.Items.Count > 0);
 
-        foreach (var taskList in result)
+        foreach (var taskList in result.Items)
         {
             if (taskList.Title == "task1")
             {

@@ -30,7 +30,7 @@ public class SelectListItem
     //
     // Returns:
     //     The value.
-    public string Value { get; set; }
+    public int Value { get; set; }
 
     //
     // Summary:

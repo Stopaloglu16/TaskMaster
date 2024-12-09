@@ -62,7 +62,7 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
         return await Task.FromResult(JsonConvert.DeserializeObject<TResponse>(responseBody));
     }
 
-    public async Task<TResponse> SaveAsync(string requestUri, TRequest obj)
+    public async Task<HttpResponseMessage> SaveAsync(string requestUri, TRequest obj)
     {
         string serializedUser = JsonConvert.SerializeObject(obj);
 
@@ -79,10 +79,18 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
 
         var response = await _httpClient.SendAsync(requestMessage);
 
-        var responseStatusCode = response.StatusCode;
-        var responseBody = await response.Content.ReadAsStringAsync();
+        return response;
 
-        return await Task.FromResult(JsonConvert.DeserializeObject<TResponse>(responseBody));
+        //if (response.StatusCode == System.Net.HttpStatusCode.Created)
+        //{
+        //    var responseBody1 = await response.Content.ReadAsStringAsync();
+        //    return await Task.FromResult(JsonConvert.DeserializeObject<CustomResult>(responseBody1));
+        //}
+
+        //    var responseStatusCode = response.StatusCode;
+        //var responseBody = await response.Content.ReadAsStringAsync();
+
+        //return await Task.FromResult(JsonConvert.DeserializeObject<TResponse>(responseBody));
     }
 
     public async Task<TResponse> SaveBulkAsync(string requestUri, List<TRequest> obj)

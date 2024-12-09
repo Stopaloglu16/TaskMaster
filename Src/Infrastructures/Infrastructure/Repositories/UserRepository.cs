@@ -53,15 +53,27 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
         return CustomResult<UserDto>.Success(myUserDto);
     }
 
-    public async Task<IEnumerable<UserDto>> GetUsers(bool IsActive, int UserTypeId)
+    public async Task<IEnumerable<UserDto>> GetUsers(bool IsActive, UserType UserTypeId)
     {
-        return await _dbContext.Users.Where(uu => uu.UserTypeId == (UserType)UserTypeId &&
+        return await _dbContext.Users.Where(uu => uu.UserTypeId == UserTypeId &&
                                                       uu.IsDeleted == Convert.ToByte(!IsActive))
                                      .AsNoTracking()
                                      .Select(ss => new UserDto()
                                      {
                                          Id = ss.Id,
                                          FullName = ss.FullName
+                                     }).ToListAsync();
+    }
+
+    public async Task<IEnumerable<SelectListItem>> GetTaskUserSelectList()
+    {
+        return await _dbContext.Users.Where(uu => uu.UserTypeId == UserType.TaskUser &&
+                                                      uu.IsDeleted == 0)
+                                     .AsNoTracking()
+                                     .Select(ss => new SelectListItem()
+                                     {
+                                         Value = ss.Id,
+                                         Text = ss.FullName
                                      }).ToListAsync();
     }
 

@@ -1,5 +1,4 @@
-﻿using Application.Aggregates.TaskListAggregate.Commands.Create;
-using Application.Aggregates.TaskListAggregate.Commands.Update;
+﻿using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
 using Application.Aggregates.TaskListAggregate.Queries;
 using Application.Common.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -17,6 +16,8 @@ namespace WebApi.Apis
 
             // Route for query task lists
             api.MapGet("/", GetActiveTaskListWithPagination);
+
+            api.MapGet("/{id:int}", GetTaskList);
 
             //TODO: Get tasklist assigned to user
 
@@ -45,14 +46,27 @@ namespace WebApi.Apis
         }
 
 
+        public static async Task<Results<Ok<TaskListFormRequest>, BadRequest<CustomError>>> GetTaskList(int Id, ITaskListService taskListService,
+                                                                                           CancellationToken cancellationToken)
+        {
+            var taskListFormRequest = await taskListService.GetTaskListById(Id, cancellationToken);
 
+            if (taskListFormRequest.IsSuccess)
+            {
+                return TypedResults.Ok(taskListFormRequest.Value);
+            }
+            else
+            {
+                return TypedResults.BadRequest(taskListFormRequest.CustomError);
+            }
+        }
 
         #region Routes for modify
 
-        public static async Task<Results<Created, BadRequest<string>>> CreateTaskList(CreateTaskListRequest createTaskListRequest,
-                                                                                     ITaskListService taskListService)
+        public static async Task<Results<Created, BadRequest<string>>> CreateTaskList(TaskListFormRequest taskListFormRequest,
+                                                                                      ITaskListService taskListService)
         {
-            var customResult = await taskListService.CreateTaskList(createTaskListRequest);
+            var customResult = await taskListService.CreateTaskList(taskListFormRequest);
 
             if (customResult.IsSuccess)
             {
@@ -65,10 +79,10 @@ namespace WebApi.Apis
         }
 
 
-        public static async Task<Results<Ok, BadRequest<string>>> UpdateTaskList(int Id, UpdateTaskListRequest updateTaskListRequest,
+        public static async Task<Results<Ok, BadRequest<string>>> UpdateTaskList(int Id, TaskListFormRequest taskListFormRequest,
                                                                                  ITaskListService taskListService)
         {
-            var customResult = await taskListService.UpdateTaskList(Id, updateTaskListRequest);
+            var customResult = await taskListService.UpdateTaskList(Id, taskListFormRequest);
 
             if (customResult.IsSuccess)
             {

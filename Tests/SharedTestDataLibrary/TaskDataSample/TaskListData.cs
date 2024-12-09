@@ -1,23 +1,21 @@
-﻿using Application.Aggregates.TaskListAggregate.Commands.Create;
-using Application.Aggregates.TaskListAggregate.Commands.Update;
+﻿using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
 
 namespace SharedTestDataLibrary.TaskDataSample;
 
 public class TaskListData
 {
-    public static CreateTaskListRequest CreateCreateTaskListRequestEmpty()
+    public static TaskListFormRequest CreateCreateTaskListRequestEmpty()
     {
-        return new CreateTaskListRequest() { Title = string.Empty, DueDate = DateOnly.FromDateTime(DateTime.Now) };
+        return new TaskListFormRequest() { Title = string.Empty, DueDate = DateOnly.FromDateTime(DateTime.Now) };
     }
 
-    public static CreateTaskListRequest CreateCreateTaskListRequestValid()
+    public static TaskListFormRequest CreateCreateTaskListRequestValid()
     {
         return CreateCreateTaskListRequestEmpty() with { Title = "MockTitle" };
     }
 
-    public static UpdateTaskListRequest CreateUpdateTaskListRequestEmpty()
+    public static TaskListFormRequest CreateUpdateTaskListRequestEmpty()
     {
-        return new UpdateTaskListRequest() { Id = 1, Title = string.Empty, DueDate = DateOnly.FromDateTime(DateTime.Now) };
+        return new TaskListFormRequest() { Id = 1, Title = string.Empty, DueDate = DateOnly.FromDateTime(DateTime.Now) };
     }
-
 }

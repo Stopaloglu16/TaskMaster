@@ -3,13 +3,14 @@ using Application.Aggregates.UserAggregate.Queries;
 using Application.Aggregates.UserAuthAggregate;
 using Application.Common.Models;
 using Domain.Entities;
+using Domain.Enums;
 
 namespace ServiceLayer.Users;
 
 public interface IUserService
 {
-    Task<IEnumerable<UserDto>> GetUsers(bool IsActive, int UserTypeId);
-
+    Task<IEnumerable<UserDto>> GetUsers(bool IsActive, UserType UserType);
+    Task<IEnumerable<SelectListItem>> GetTaskUserSelectList();
     Task<CustomResult<UserDto>> GetUserById(int Id);
 
     Task<CustomResult<UserDto>> GetUserByAspId(string AspId);

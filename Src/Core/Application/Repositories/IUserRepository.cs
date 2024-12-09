@@ -2,12 +2,14 @@
 using Application.Common.Interfaces;
 using Application.Common.Models;
 using Domain.Entities;
+using Domain.Enums;
 
 namespace Application.Repositories;
 
 public interface IUserRepository : IRepository<User, int>
 {
-    Task<IEnumerable<UserDto>> GetUsers(bool IsActive, int UserTypeId);
+    Task<IEnumerable<UserDto>> GetUsers(bool IsActive, UserType userType);
+    Task<IEnumerable<SelectListItem>> GetTaskUserSelectList();
 
     Task<CustomResult<UserDto>> GetUserById(int Id);
 
