@@ -18,34 +18,43 @@
             <button class="btn btn-primary" type="button" @onclick="@(() => EditTasklist(0))">New</button>
         </div>
         <div class="card-body">
-            <div class="page-size-chooser">
-                Items per page:
-                <select @bind="ItemsPerPage">
-                    <option>5</option>
-                    <option>10</option>
-                    <option>20</option>
-                    <option>50</option>
-                </select>
-            </div>
 
-            <div class="grid">
-                <QuickGrid ItemsProvider="@gridItemsProvider" Pagination="@pagination">
-                    <PropertyColumn Property="@(p => p.Title)" Title="Title" Sortable="true" />
-                    <PropertyColumn Property="@(p => p.DueDate)" Title="DueDate" Format="yyyy-MM-dd" Sortable="true" />
-                    <PropertyColumn Property="@(p => p.CompletedDate)" Title="Completed Date" Format="yyyy-MM-dd" Sortable="true" />
-                    <PropertyColumn Property="@(p => p.AssignedTo)" Title="Assign To" Sortable="true" />
-                    <TemplateColumn Title="Actions">
-                        <button class="btn btn-success" @onclick="@(() => EditTasklist(context.Id))"><i class="oi oi-pencil"></i> </button>
-                        <button class="btn btn-danger" @onclick="@(() => DeleteTasklist(context))"><i class="oi oi-trash"></i></button>
-                    </TemplateColumn>
-                </QuickGrid>
-            </div>
+
+            @if (gridItemsProvider == null)
+            {
+                <p>Loading...</p>
+            }
+            else
+            {
+                <div class="page-size-chooser">
+                    Items per page:
+                    <select @bind="ItemsPerPage">
+                        <option>5</option>
+                        <option>10</option>
+                        <option>20</option>
+                        <option>50</option>
+                    </select>
+                </div>
+
+                <div class="grid">
+                    <QuickGrid ItemsProvider="@gridItemsProvider" Pagination="@pagination">
+                        <PropertyColumn Property="@(p => p.Title)" Title="Title" Sortable="true" />
+                        <PropertyColumn Property="@(p => p.DueDate)" Title="DueDate" Format="yyyy-MM-dd" Sortable="true" />
+                        <PropertyColumn Property="@(p => p.CompletedDate)" Title="Completed Date" Format="yyyy-MM-dd" Sortable="true" />
+                        <PropertyColumn Property="@(p => p.AssignedTo)" Title="Assign To" Sortable="true" />
+                        <TemplateColumn Title="Actions">
+                            <button class="btn btn-success" @onclick="@(() => EditTasklist(context.Id))"><i class="oi oi-pencil"></i> </button>
+                            <button class="btn btn-danger" @onclick="@(() => DeleteTasklist(context))"><i class="oi oi-trash"></i></button>
+                        </TemplateColumn>
+                    </QuickGrid>
+                </div>
+            }
         </div>
         <div class="card-footer">
             <nav role="navigation">
                 @if (pagination.TotalItemCount.HasValue)
                 {
-                    var lastIx = (int)pagination.LastPageIndex;
+                    var lastIx = (int)pagination.LastPageIndex + 1;
 
                     <button class="oi oi-arrow-circle-left" type="button" title="Go to first page" @onclick="@(() => GoToPageAsync(0))"></button>
                     <button class="oi oi-arrow-thick-left" type="button" title="Go to previous page" @onclick="@(() => GoToPageAsync((int)(currentPageIndex-1)))"></button>
@@ -58,6 +67,8 @@
                 }
             </nav>
         </div>
+
+
     </div>
 </div>
 
@@ -69,41 +80,6 @@
     </TaskListModal>
 }
 
-
-@* <div class="page-buttons">
-    Page:
-    @if (pagination.TotalItemCount.HasValue)
-    {
-        for (var pageIndex = 0; pageIndex <= pagination.LastPageIndex; pageIndex++)
-        {
-            var capturedIndex = pageIndex;
-            <button @onclick="@(() => GoToPageAsync(capturedIndex))"
-            class="@PageButtonClass(capturedIndex)"
-            aria-current="@AriaCurrentValue(capturedIndex)"
-            aria-label="Go to page @(pageIndex + 1)">
-                @(pageIndex + 1)
-            </button>
-        }
-    }
-</div>
- *@
-
-@* <div class="page-buttons">
-    Page:
-    @if (pagination.TotalItemCount.HasValue)
-    {
-        for (var pageIndex = 0; pageIndex <= pagination.LastPageIndex; pageIndex++)
-        {
-            var capturedIndex = (int)pagination.LastPageIndex;
-            <button @onclick="@(() => GoToPageAsync(capturedIndex))"
-                    class="@PageButtonClass(capturedIndex)"
-                    aria-current="@AriaCurrentValue(capturedIndex)"
-                    aria-label="Go to page @(pageIndex + 1)">
-                @(pageIndex + 1)
-            </button>
-        }
-    }
-</div> *@
 
 @code {
 
@@ -197,6 +173,7 @@
 
             //lastPageIndex = taskListDtos.TotalPages;
             return GridItemsProviderResult.From(taskListDtos.Items.ToList(), taskListDtos.TotalCount);
+
         };
 
         //StateHasChanged();
@@ -220,7 +197,11 @@
     protected async Task EditTasklist(int Id)
     {
 
-        taskUserList = new List<SelectListItem>() { new SelectListItem() { Value = 1, Text = "uu1" } };
+        taskUserList = new List<SelectListItem>() { 
+            new SelectListItem() { Value = 1, Text = "user 1" },
+            new SelectListItem() { Value = 2, Text = "user 2" },
+            new SelectListItem() { Value = 3, Text = "user 3" }
+        };
 
         if (Id > 0)
         {
@@ -230,7 +211,7 @@
         }
         else
         {
-            taskListFormRequest = new TaskListFormRequest() { Title = "" };
+            taskListFormRequest = new TaskListFormRequest() { Title = "", DueDate = DateOnly.FromDateTime( DateTime.Now.AddDays(1)) };
         }
 
         TaskListModalOpen = true;

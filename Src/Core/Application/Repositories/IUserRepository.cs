@@ -19,4 +19,6 @@ public interface IUserRepository : IRepository<User, int>
 
     Task<RefreshToken> GetRefreshToken(string tokenRequest);
 
+    Task<PagingResponse<UserDto>> GetActiveUsersWithPagination(PagingParameters pagingParameters, CancellationToken cancellationToken);
+
 }

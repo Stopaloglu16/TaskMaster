@@ -5,11 +5,11 @@ namespace WebApp.Services;
 public interface IWebApiService<TRequest, TResponse>
 {
 
-    Task<PagingResponse<TResponse>> GetAllDataAsync(string requestUri);
+    Task<PagingResponse<TResponse>> GetAllDataAsync(string requestUri, bool requiresAuth = false);
 
-    Task<TResponse> GetDataByIdAsync(string requestUri);
+    Task<TResponse> GetDataByIdAsync(string requestUri, bool requiresAuth = false);
 
-    Task<HttpResponseMessage> SaveAsync(string requestUri, TRequest obj);
+    Task<HttpResponseMessage> SaveAsync(string requestUri, TRequest obj, bool requiresAuth = false);
 
     //Task<TResponse> SaveBulkAsync(string requestUri, List<TRequest> obj);
 

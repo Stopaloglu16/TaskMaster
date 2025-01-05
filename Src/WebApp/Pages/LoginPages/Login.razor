@@ -13,35 +13,35 @@
 @inject IJSRuntime jsRunTime
 @inject NavigationManager Navigation
 
-<EditForm Model="@userModel" OnValidSubmit="@ValidateUser">
+<h3>Log in</h3>
+
+<EditForm Model="@userModel" OnValidSubmit="@LoginSubmit">
    <DataAnnotationsValidator/>
     <div class="col-10 row">
-        <input class="form-control col-12" @bind="userModel.Username" placeholder="user name" />
-      
+        <InputText class="form-control col-12" @bind-Value="userModel.Username" placeholder="User name" />
+        &nbsp;<ValidationMessage For="@(() => userModel.Username)" />
     </div>
     <br />
     <div class="col-10 row">
-        <input type="password" class="form-control col-12" @bind="userModel.Password" placeholder="password" />
-        
+        <InputText type="password" class="form-control col-12" @bind-value="userModel.Password" placeholder="Password" />
+        &nbsp;<ValidationMessage For="@(() => userModel.Password)" />
     </div>
     <br />
     <div class="col-5 row">
-        <span class="col-12"></span>
+        <span class="col-8"></span>
         <input type="submit" class="form-control offset-1 col-10 btn btn-primary" value="Login" />
+        <a href="">Forgot password</a>
     </div>
     <br />
     <div class="col-10 row" style="text-align:left; font-weight:bold">
         <span class="col-12">@LoginMesssage</span>
     </div>
-
+    
 </EditForm>
-
 
 
 @code {
 
-
-        //private User user;
     private UserLoginRequest userModel;
     public string LoginMesssage { get; set; }
     ClaimsPrincipal claimsPrincipal;
@@ -62,7 +62,7 @@
 
         // if (claimsPrincipal.Identity.IsAuthenticated)
         // {
-        //     NavigationManager.NavigateTo("/Home", false);
+        //     NavigationManager.NavigateTo("/taskmanager", false);
         // }
         // else
         // {
@@ -75,7 +75,7 @@
 
     }
 
-    private async Task ValidateUser()
+    private async Task LoginSubmit()
     {
 
         var returnedUser = await authService.LoginAsync(userModel);
@@ -87,7 +87,7 @@
 
                await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(returnedUser);
 
-                NavigationManager.NavigateTo("/Home", false);
+                NavigationManager.NavigateTo("/taskmanager", false);
 
             }
             else

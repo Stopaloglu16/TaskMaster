@@ -10,12 +10,14 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
 {
 
     public HttpClient _httpClient { get; }
+    public HttpClient _httpAuthClient { get; }
     public ApiSettingConfig _apiSettingConfig { get; }
     public ILocalStorageService _localStorageService { get; }
 
     public string Apitext { get; set; } = $"/api/v1.0/";
 
-    public WebApiService(HttpClient httpClient,
+    public WebApiService(HttpClient httpClient, 
+                         HttpClient httpAuthClient,
                          IOptions<ApiSettingConfig> apiSettingConfig,
                          ILocalStorageService localStorageService)
     {
@@ -25,17 +27,23 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
         httpClient.BaseAddress = new Uri(_apiSettingConfig.ApiUrl);
         httpClient.DefaultRequestHeaders.Add("User-Agent", "BlazorServer");
 
+        httpAuthClient.BaseAddress = new Uri(_apiSettingConfig.ApiAuthUrl);
+        httpAuthClient.DefaultRequestHeaders.Add("User-Agent", "BlazorServer");
+
         _httpClient = httpClient;
+        _httpAuthClient = httpAuthClient;   
     }
 
-    public async Task<PagingResponse<TResponse>> GetAllDataAsync(string requestUri)
+    public async Task<PagingResponse<TResponse>> GetAllDataAsync(string requestUri, bool requiresAuth = false)
     {
+        var httpClient = requiresAuth ? _httpAuthClient : _httpClient;
+
         var requestMessage = new HttpRequestMessage(HttpMethod.Get, Apitext + requestUri);
 
         var token = await _localStorageService.GetItemAsync<string>("accessToken");
         requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-        var response = await _httpClient.SendAsync(requestMessage);
+        var response = await httpClient.SendAsync(requestMessage);
 
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {
@@ -46,15 +54,17 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
             return null;
     }
 
-    public async Task<TResponse> GetDataByIdAsync(string requestUri)
+    public async Task<TResponse> GetDataByIdAsync(string requestUri, bool requiresAuth = false)
     {
-        var requestMessage = new HttpRequestMessage(HttpMethod.Get, Apitext + requestUri);
+        var httpClient = requiresAuth ? _httpAuthClient : _httpClient;
 
+        var requestMessage = new HttpRequestMessage(HttpMethod.Get, Apitext + requestUri);
+        
         var token = await _localStorageService.GetItemAsync<string>("accessToken");
         requestMessage.Headers.Authorization
             = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-        var response = await _httpClient.SendAsync(requestMessage);
+        var response = await httpClient.SendAsync(requestMessage);
 
         var responseStatusCode = response.StatusCode;
         var responseBody = await response.Content.ReadAsStringAsync();
@@ -62,8 +72,10 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
         return await Task.FromResult(JsonConvert.DeserializeObject<TResponse>(responseBody));
     }
 
-    public async Task<HttpResponseMessage> SaveAsync(string requestUri, TRequest obj)
+    public async Task<HttpResponseMessage> SaveAsync(string requestUri, TRequest obj, bool requiresAuth = false)
     {
+        var httpClient = requiresAuth ? _httpAuthClient : _httpClient;
+
         string serializedUser = JsonConvert.SerializeObject(obj);
 
         var requestMessage = new HttpRequestMessage(HttpMethod.Post, Apitext + requestUri);
@@ -77,20 +89,9 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
         requestMessage.Content.Headers.ContentType
             = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
 
-        var response = await _httpClient.SendAsync(requestMessage);
+        var response = await httpClient.SendAsync(requestMessage);
 
         return response;
-
-        //if (response.StatusCode == System.Net.HttpStatusCode.Created)
-        //{
-        //    var responseBody1 = await response.Content.ReadAsStringAsync();
-        //    return await Task.FromResult(JsonConvert.DeserializeObject<CustomResult>(responseBody1));
-        //}
-
-        //    var responseStatusCode = response.StatusCode;
-        //var responseBody = await response.Content.ReadAsStringAsync();
-
-        //return await Task.FromResult(JsonConvert.DeserializeObject<TResponse>(responseBody));
     }
 
     public async Task<TResponse> SaveBulkAsync(string requestUri, List<TRequest> obj)

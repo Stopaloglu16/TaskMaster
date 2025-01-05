@@ -26,7 +26,7 @@
                         </div>
                         <div class="form-group col-md-3">
                             <label for="inputDueDate" class="col-form-label-sm">Due Date</label>
-                            <InputDate class="form-control" @bind-Value="taskListFormRequest.DueDate" />
+                            <InputDate class="form-control" @bind-Value="taskListFormRequest.DueDate"  />
                             &nbsp;<ValidationMessage For="@(() => taskListFormRequest.DueDate)" />
                         </div>
                         <div class="form-group col-md-6">
@@ -34,7 +34,7 @@
                             <select class="form-control col-md-3" @bind="taskListFormRequest.AssignedToId">
                                 @if (taskUserList != null)
                                 {
-                                    <option value=null>Select user</option>
+                                    <option value=null>Select User</option>
                                     @foreach (var myitem in taskUserList)
                                     {
                                         <option value=@myitem.Value>@myitem.Text</option>
