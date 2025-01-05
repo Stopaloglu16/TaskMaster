@@ -1,6 +1,8 @@
-﻿using Application.Aggregates.UserAuthAggregate;
+﻿using Application.Aggregates.UserAggregate.Queries;
+using Application.Aggregates.UserAuthAggregate;
 using Application.Aggregates.UserAuthAggregate.Token;
 using Application.Common.Models;
+using Azure;
 
 namespace WebApp.Services;
 

@@ -1,0 +1,88 @@
+﻿@using Application.Aggregates.UserAggregate.Commands
+@using Domain.Enums
+
+<div class="modal-backdrop fade show"></div>
+
+<div class="modal show" tabindex="-1" role="dialog" style="display:block">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">User</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="ModalCancel">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <EditForm Model="userFormRequest" OnValidSubmit="ModalOk">
+
+                <DataAnnotationsValidator />
+
+                <div class="modal-body">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="inputDueDate" class="col-form-label-sm">Email</label>
+                            <InputText class="form-control col-6" @bind-Value="userFormRequest.UserEmail" disabled="@IsNewUser" />
+                            &nbsp;<ValidationMessage For="@(() => userFormRequest.UserEmail)" />
+                        </div>
+                        <div class="form-group ">
+                            <label for="inputClient" class="col-sm-6 col-form-label-sm">Name</label>
+                            <InputText class="form-control col-6" @bind-Value="userFormRequest.FullName" placeholder="user name" />
+                            &nbsp;<ValidationMessage For="@(() => userFormRequest.FullName)" />
+                        </div>
+                        <div class="form-group">
+                            <label for="CarModelName" class="col-form-label">User Type</label>
+                            <select class="form-control" @bind="userFormRequest.UserType">
+                                @if (userTypeList != null)
+                                {
+                                    @foreach (var myitem in userTypeList)
+                                    {
+                                        <option value=@myitem >@myitem.ToString() </option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-dismiss="modal" @onclick="() => ModalCancel()">Close</button>
+                    <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                </div>
+
+            </EditForm>
+
+        </div>
+    </div>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public UserFormRequest? userFormRequest { get; set; }
+
+    [Parameter]
+    public EventCallback<UserFormRequest> OnClose { get; set; }
+
+    [Parameter]
+    public List<UserType> userTypeList { get; set; }
+
+    private bool IsNewUser { get; set; }
+
+    protected override void OnInitialized()
+    {
+        IsNewUser = userFormRequest.Id == 0?false:true;
+        base.OnInitialized();
+    }
+
+    private Task ModalCancel()
+    {
+        return OnClose.InvokeAsync(null);
+    }
+
+    private Task ModalOk()
+    {
+        return OnClose.InvokeAsync(userFormRequest);
+    }
+
+}

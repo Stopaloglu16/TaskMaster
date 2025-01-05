@@ -1,6 +1,7 @@
 ﻿using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
 using Application.Aggregates.TaskListAggregate.Queries;
-using Application.Common.Models;
+using Application.Aggregates.UserAggregate.Commands;
+using Application.Aggregates.UserAggregate.Queries;
 using WebApp.Handlers;
 using WebApp.Services;
 
@@ -18,11 +19,12 @@ public static class WebConfiguration
         services.AddHttpClient<IWebApiService<TaskListFormRequest, TaskListFormRequest>, WebApiService<TaskListFormRequest, TaskListFormRequest>>().AddHttpMessageHandler<ValidateHeaderHandler>();
         services.AddHttpClient<IWebApiService<TaskListFormRequest, HttpResponseMessage>, WebApiService<TaskListFormRequest, HttpResponseMessage>>().AddHttpMessageHandler<ValidateHeaderHandler>();
 
+        services.AddHttpClient<IWebApiService<UserDto, UserDto>, WebApiService<UserDto, UserDto>>().AddHttpMessageHandler<ValidateHeaderHandler>();
+        services.AddHttpClient<IWebApiService<UserFormRequest, UserFormRequest>, WebApiService<UserFormRequest, UserFormRequest>>().AddHttpMessageHandler<ValidateHeaderHandler>();
+        services.AddHttpClient<IWebApiService<UserFormRequest, HttpResponseMessage>, WebApiService<UserFormRequest, HttpResponseMessage>>().AddHttpMessageHandler<ValidateHeaderHandler>();
+        services.AddHttpClient<IWebApiService<CreateUserRequest, CreateUserRequest>, WebApiService<CreateUserRequest, CreateUserRequest>>().AddHttpMessageHandler<ValidateHeaderHandler>();
+        services.AddHttpClient<IWebApiService<UpdateUserRequest, UpdateUserRequest>, WebApiService<UpdateUserRequest, UpdateUserRequest>>().AddHttpMessageHandler<ValidateHeaderHandler>();
 
-        //services.AddHttpClient<IWebApiService<CarHireCarDto, CarHireCarDto>, WebApiService<CarHireCarDto, CarHireCarDto>>().AddHttpMessageHandler<ValidateHeaderHandler>();
-        //services.AddHttpClient<IWebApiService<CarHireBookDisplay, CarHireBookDisplay>, WebApiService<CarHireBookDisplay, CarHireBookDisplay>>().AddHttpMessageHandler<ValidateHeaderHandler>();
-
-        //services.AddHttpClient<IWebApiService<SelectListItem, SelectListItem>, WebApiService<SelectListItem, SelectListItem>>().AddHttpMessageHandler<ValidateHeaderHandler>();
 
 
         return services;

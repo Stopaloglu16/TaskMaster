@@ -1,4 +1,5 @@
-﻿using Application.Aggregates.UserAggregate.Queries;
+﻿using Application.Aggregates.TaskListAggregate.Queries;
+using Application.Aggregates.UserAggregate.Queries;
 using Application.Common.Models;
 using Application.Repositories;
 using Domain.Entities;
@@ -42,6 +43,7 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
                                                  .AsNoTracking()
                                                  .Select(ss => new UserDto()
                                                  {
+                                                     Id= ss.Id,
                                                      FullName = ss.FullName,
                                                      UserEmail = ss.UserEmail,
                                                      UserType = (UserType)ss.UserTypeId
@@ -99,4 +101,20 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
         return await _dbContext.RefreshTokens.FirstOrDefaultAsync(t => t.Token == tokenRequest);
     }
 
+
+    public async Task<PagingResponse<UserDto>> GetActiveUsersWithPagination(PagingParameters pagingParameters,
+                                                                                CancellationToken cancellationToken)
+    {
+        var query = _dbContext.Users.AsNoTracking()
+                                      .Where(qq => qq.IsDeleted == 0)
+                                         .Select(ss => new UserDto
+                                         {
+                                             Id = ss.Id,
+                                             FullName = ss.FullName,
+                                             UserEmail = ss.UserEmail,
+                                             UserType = ss.UserTypeId
+                                         });
+
+        return await PagingResponse<UserDto>.CreateAsync(query, pagingParameters);
+    }
 }

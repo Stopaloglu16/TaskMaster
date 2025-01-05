@@ -1,6 +1,9 @@
-﻿using Application.Aggregates.UserAuthAggregate;
+﻿using Application.Aggregates.UserAggregate.Queries;
+using Application.Aggregates.UserAuthAggregate;
 using Application.Aggregates.UserAuthAggregate.Token;
 using Application.Common.Models;
+using Azure;
+using Blazored.LocalStorage;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using WebApp.Config;
@@ -13,6 +16,7 @@ public class AuthService : IAuthService
     public HttpClient _httpClient { get; }
     //public AppSettings _appSettings { get; }
     public ApiSettingConfig _apiSettingConfig { get; }
+    public ILocalStorageService _localStorageService { get; }
 
     private readonly string _apiVersion = "v1.0";
 
@@ -71,8 +75,26 @@ public class AuthService : IAuthService
     }
 
 
-    public Task<CustomResult> RegisterUserAsync(RegisterUserRequest registerUserRequest)
+    public async Task<CustomResult> RegisterUserAsync(RegisterUserRequest registerUserRequest)
     {
-        throw new NotImplementedException();
+        string serializedRefreshRequest = JsonConvert.SerializeObject(registerUserRequest);
+
+        var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"/api/{_apiVersion}/registerusers");
+        requestMessage.Content = new StringContent(serializedRefreshRequest);
+
+        requestMessage.Content.Headers.ContentType
+            = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+
+        var response = await _httpClient.SendAsync(requestMessage);
+
+        if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            return CustomResult.Success();
+
+        var responseBody = await response.Content.ReadAsStringAsync();
+
+        return CustomResult.Failure(responseBody);
     }
+
+
+  
 }
