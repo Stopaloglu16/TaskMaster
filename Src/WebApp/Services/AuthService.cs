@@ -1,9 +1,9 @@
 ﻿using Application.Aggregates.UserAuthAggregate;
 using Application.Aggregates.UserAuthAggregate.Token;
 using Application.Common.Models;
-using Domain.Entities;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using WebApp.Config;
 
 namespace WebApp.Services;
 
@@ -11,16 +11,16 @@ public class AuthService : IAuthService
 {
 
     public HttpClient _httpClient { get; }
-    public AppSettings _appSettings { get; }
+    //public AppSettings _appSettings { get; }
+    public ApiSettingConfig _apiSettingConfig { get; }
 
     private readonly string _apiVersion = "v1.0";
 
-    public AuthService(HttpClient httpClient, IOptions<AppSettings> appSettings)
+    public AuthService(HttpClient httpClient, IOptions<ApiSettingConfig> apiSettingConfig)
     {
-        //_appSettings = appSettings.Value;
+        _apiSettingConfig = apiSettingConfig.Value;
 
-        //httpClient.BaseAddress = new Uri(_appSettings.ApiAddressForDatabase);
-        httpClient.BaseAddress = new Uri("https://localhost:7132");
+        httpClient.BaseAddress = new Uri(_apiSettingConfig.ApiAuthUrl);
         httpClient.DefaultRequestHeaders.Add("User-Agent", "BlazorServer");
 
         _httpClient = httpClient;
@@ -43,7 +43,7 @@ public class AuthService : IAuthService
         var responseStatusCode = response.StatusCode;
         var responseBody = await response.Content.ReadAsStringAsync();
 
-        
+
         var mysign = JsonConvert.DeserializeObject<UserLoginResponse>(responseBody);
 
         return mysign;

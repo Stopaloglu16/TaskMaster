@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Application.Aggregates.TaskListAggregate.Commands.Update;
+namespace Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
 
-public record UpdateTaskListRequest
+public record TaskListFormRequest
 {
     public int Id { get; set; }
 

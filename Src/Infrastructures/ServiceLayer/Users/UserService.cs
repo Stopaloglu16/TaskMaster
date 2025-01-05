@@ -55,9 +55,14 @@ public class UserService : IUserService
         return await _userRepository.GetUserById(Id);
     }
 
-    public async Task<IEnumerable<UserDto>> GetUsers(bool IsActive, int UserTypeId)
+    public async Task<IEnumerable<UserDto>> GetUsers(bool IsActive, UserType UserType)
     {
-        return await _userRepository.GetUsers(IsActive, UserTypeId);
+        return await _userRepository.GetUsers(IsActive, UserType);
+    }
+
+    public async Task<IEnumerable<SelectListItem>> GetTaskUserSelectList()
+    {
+        return await _userRepository.GetTaskUserSelectList();
     }
 
     public async Task<bool> SaveRefreshTokenAsync(RefreshToken refreshToken, int UserId)

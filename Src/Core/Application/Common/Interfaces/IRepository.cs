@@ -12,4 +12,5 @@ public interface IRepository<TEntity, TKey> where TEntity : BaseEntity<TKey>
     Task<CustomResult> AddRangeAsync(IEnumerable<TEntity> entity);
     Task<CustomResult> UpdateAsync(TEntity entity);
     Task<CustomResult> DeleteAsync(TKey id);
+
 }
