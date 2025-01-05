@@ -1,4 +1,5 @@
 ﻿using Application.Aggregates.TaskListAggregate.Queries;
+using Application.Common.Models;
 using SharedTestDataLibrary.TaskDataSample;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -15,6 +16,8 @@ public class TaskListApiTests : BaseIntegrationTest
 
     private string token { get; set; }
     private string apiVersion = "v1.0";
+    const int pageNumber = 1;
+    const int ItemsPerPage = 10;
 
     public TaskListApiTests(IntegrationTestWebAppFactory factory) : base(factory)
     {
@@ -37,10 +40,6 @@ public class TaskListApiTests : BaseIntegrationTest
 
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.Created, response.StatusCode);
-
-        var response1 = await _httpClient.GetAsync($"/api/{apiVersion}/tasklist");
-
-        var personId = await response1.Content.ReadAsStringAsync();
     }
 
 
@@ -62,11 +61,11 @@ public class TaskListApiTests : BaseIntegrationTest
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
 
-        var response1 = await _httpClient.GetAsync($"/api/{apiVersion}/tasklist");
-        var result = await response1.Content.ReadFromJsonAsync<List<TaskListDto>>();
+        var response1 = await _httpClient.GetAsync($"/api/{apiVersion}/tasklist?PageNumber={pageNumber}&PageSize={ItemsPerPage}&OrderBy=Id&IsDescending=false");
+        var result = await response1.Content.ReadFromJsonAsync<PagingResponse<TaskListDto>>();
 
-        Assert.Equal(mockTitle, result[0].Title);
-        Assert.Equal(mockDueDate, result[0].DueDate);
+        Assert.Equal(mockTitle, result.Items.ElementAt(0).Title);
+        Assert.Equal(mockDueDate, result.Items.ElementAt(0).DueDate);
     }
 
 
@@ -83,10 +82,10 @@ public class TaskListApiTests : BaseIntegrationTest
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.NoContent, response.StatusCode);
 
-        var response1 = await _httpClient.GetAsync($"/api/{apiVersion}/tasklist");
-        var result = await response1.Content.ReadFromJsonAsync<List<TaskListDto>>();
+        var response1 = await _httpClient.GetAsync($"/api/{apiVersion}/tasklist?PageNumber={pageNumber}&PageSize={ItemsPerPage}&OrderBy=Id&IsDescending=false");
+        var result = await response1.Content.ReadFromJsonAsync<PagingResponse<TaskListDto>>();
 
-        Assert.Equal(0, result.Count);
+        Assert.Equal(0, result.TotalCount);
     }
 
 }

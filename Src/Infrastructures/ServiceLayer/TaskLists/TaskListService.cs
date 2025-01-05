@@ -1,5 +1,4 @@
-﻿using Application.Aggregates.TaskListAggregate.Commands.Create;
-using Application.Aggregates.TaskListAggregate.Commands.Update;
+﻿using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
 using Application.Aggregates.TaskListAggregate.Queries;
 using Application.Common.Models;
 using Application.Repositories;
@@ -16,11 +15,13 @@ public class TaskListService : ITaskListService
         _taskListRepository = taskListRepository;
     }
 
-    public async Task<CustomResult> CreateTaskList(CreateTaskListRequest createTaskListRequest)
+    #region Crud operations
+
+    public async Task<CustomResult> CreateTaskList(TaskListFormRequest taskListFormRequest)
     {
-        if (createTaskListRequest.AssignedToId > 0)
+        if (taskListFormRequest.AssignedToId > 0)
         {
-            var validation = await CheckMaxTaskListPerUser((int)createTaskListRequest.AssignedToId);
+            var validation = await CheckMaxTaskListPerUser((int)taskListFormRequest.AssignedToId);
 
             if (!validation.IsSuccess) return validation;
         }
@@ -28,9 +29,9 @@ public class TaskListService : ITaskListService
 
         TaskList newTaskList = new TaskList()
         {
-            Title = createTaskListRequest.Title,
-            AssignedToId = createTaskListRequest.AssignedToId,
-            DueDate = createTaskListRequest.DueDate
+            Title = taskListFormRequest.Title,
+            AssignedToId = taskListFormRequest.AssignedToId,
+            DueDate = taskListFormRequest.DueDate
         };
 
         var newTaskListRepo = await _taskListRepository.AddAsync(newTaskList);
@@ -40,20 +41,20 @@ public class TaskListService : ITaskListService
         return CustomResult.Success();
     }
 
-    public async Task<CustomResult> UpdateTaskList(int Id, UpdateTaskListRequest updateTaskListRequest)
+    public async Task<CustomResult> UpdateTaskList(int Id, TaskListFormRequest taskListFormRequest)
     {
-        if (updateTaskListRequest.AssignedToId > 0)
+        if (taskListFormRequest.AssignedToId > 0)
         {
-            var validation = await CheckMaxTaskListPerUser((int)updateTaskListRequest.AssignedToId);
+            var validation = await CheckMaxTaskListPerUser((int)taskListFormRequest.AssignedToId);
 
             if (!validation.IsSuccess) return validation;
         }
 
         var currentTaskList = await _taskListRepository.GetByIdAsync(Id);
 
-        currentTaskList.Title = updateTaskListRequest.Title;
-        currentTaskList.AssignedToId = updateTaskListRequest.AssignedToId;
-        currentTaskList.DueDate = updateTaskListRequest.DueDate;
+        currentTaskList.Title = taskListFormRequest.Title;
+        currentTaskList.AssignedToId = taskListFormRequest.AssignedToId;
+        currentTaskList.DueDate = taskListFormRequest.DueDate;
 
         await _taskListRepository.UpdateAsync(currentTaskList);
 
@@ -65,6 +66,7 @@ public class TaskListService : ITaskListService
         return await _taskListRepository.DeleteAsync(Id);
     }
 
+    #endregion
 
     /// <summary>
     /// Check the user assigned enough task
@@ -82,9 +84,9 @@ public class TaskListService : ITaskListService
     }
 
 
-    public async Task<IEnumerable<TaskListDto>> GetTaskListActive(CancellationToken cancellationToken)
+    public async Task<PagingResponse<TaskListDto>> GetActiveTaskListWithPagination(PagingParameters pagingParameters, CancellationToken cancellationToken)
     {
-        return await _taskListRepository.GetTaskListActive(cancellationToken);
+        return await _taskListRepository.GetActiveTaskListWithPagination(pagingParameters, cancellationToken);
     }
 
     public Task<TaskListDto> GetTaskListId(int Id)
@@ -97,4 +99,13 @@ public class TaskListService : ITaskListService
         throw new NotImplementedException();
     }
 
+    public async Task<CustomResult<TaskListFormRequest>> GetTaskListById(int Id, CancellationToken cancellationToken)
+    {
+        
+        var taskListFormRequest = await _taskListRepository.GetTaskListById(Id, cancellationToken);
+
+        if (taskListFormRequest == null) return CustomResult<TaskListFormRequest>.Failure (new CustomError(false, "Not found"));
+
+        return CustomResult<TaskListFormRequest>.Success(taskListFormRequest);
+    }
 }

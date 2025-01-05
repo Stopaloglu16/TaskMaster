@@ -1,0 +1,36 @@
+@startuml create-new-task-sequence-diagram-c4sequence
+!include ..\.c4s\C4_Sequence.puml
+
+UpdateElementStyle("system", $bgColor=#D4E6F1,$fontColor=#1A5276,$borderColor=#1A5276,$shadowing="false",$shape=RoundedBoxShape(),$borderStyle=SolidLine(),$borderThickness=2)
+UpdateElementStyle("external_system", $bgColor=#F8F9F9,$fontColor=#797D7F,$borderColor=#797D7F,$shadowing="false",$shape=RoundedBoxShape(),$borderStyle=SolidLine(),$borderThickness=1)
+UpdateElementStyle("person", $bgColor=#797D7F,$fontColor=#797D7F,$borderColor=#797D7F,$shadowing="false",$shape=RoundedBoxShape(),$borderStyle=SolidLine(),$borderThickness=2)
+UpdateElementStyle("component", $bgColor=#FAE5D3,$fontColor=#CA6F1E,$borderColor=#CA6F1E,$shadowing="false",$shape=RoundedBoxShape(),$borderStyle=SolidLine(),$borderThickness=2)
+UpdateElementStyle("external_component", $bgColor=#F8F9F9,$fontColor=#797D7F,$borderColor=#797D7F,$shadowing="false",$shape=RoundedBoxShape(),$borderStyle=SolidLine(),$borderThickness=1)
+UpdateElementStyle("container", $bgColor=#EAF2F8,$fontColor=#2E86C1,$borderColor=#2E86C1,$shadowing="false",$shape=RoundedBoxShape(),$borderStyle=SolidLine(),$borderThickness=2)
+UpdateElementStyle("external_container", $bgColor=#F8F9F9,$fontColor=#797D7F,$borderColor=#797D7F,$shadowing="false",$shape=RoundedBoxShape(),$borderStyle=SolidLine(),$borderThickness=1)
+UpdateBoundaryStyle($elementName=system,$bgColor=#F8F9F9,$fontColor=#797D7F,$borderColor=#797D7F,$shadowing="false",$shape=RoundedBoxShape())
+UpdateBoundaryStyle($elementName=container,$bgColor=#F8F9F9,$fontColor=#797D7F,$borderColor=#797D7F,$shadowing="false",$shape=RoundedBoxShape())
+UpdateBoundaryStyle($elementName=enterprise,$bgColor=#F8F9F9,$fontColor=#797D7F,$borderColor=#797D7F,$shadowing="false",$shape=RoundedBoxShape())
+SHOW_PERSON_PORTRAIT()
+
+title Create new Task Sequence diagram
+
+Container(A1, "Web Application", "None:JavaScript and Blazor", "Enter task name ")
+Container(A2, "Web Application", "None:JavaScript and Blazor", "")
+
+Container_Boundary(b, "Web Api")
+    Component(bA, "TaskListApi", "Minimal Api", "CreateTaskList")
+    Component(bB, "Service Layer", "Class Library", "CreateTaskList: ITaskListService")
+    Component(bC, "Service layer", "Class Library", "CheckMaxTaskListPerUser: Check how many assigned to user")
+    Component(bD, "Infrasture layer", "Class Library", "Repository function")
+Boundary_End()
+
+ContainerDb(A4, "Database", "Database:SQL", "Save into db")
+
+Rel(A1, A2, "Enter new task name", "SaveTaskListModel()")
+Rel(A2, bA, "Api Post", "CreateTaskList()")
+Rel(bA, bB, "ITaskListService", "CreateTaskList()")
+Rel(bB, bC, "ITaskListService ", "CheckMaxTaskListPerUser()")
+Rel(bC, bD, "ITaskListRepository", "AddAsync()")
+Rel(bD, A4, "Save")
+@enduml

@@ -43,9 +43,9 @@ public class EmailSender : IEmailSender
                                 ".welcometxt { font-size: x-large; color: #1da5d1 } " +
                                 "</style></head><body>";
 
-            MessageBody = " <table style='width:50%;'><tbody><tr><td> <img  style='width:10%;' src='https://localhost:7056/img/carhire.jpeg'> </td></tr>" +
+            MessageBody = " <table style='width:50%;'><tbody><tr><td> <img  style='width:10%;' src='https://localhost:7081/img/carhire.jpeg'> </td></tr>" +
                             "<tr><td> <h2> <span class='welcometxt'>Welcome to Task Master! 📚</span></h2></td></tr>" +
-                            "<tr><td>Click below to verify your account.</br> <a href='https://localhost:7056/register/" + Username + "/" + Token + "'>here</a></td></tr>" +
+                            "<tr><td>Click below to verify your account.</br> <a href='https://localhost:7081/register/" + Username + "/" + Token + "'>here</a></td></tr>" +
                             "<tr><td>Username: </br>" + Username + "</td></tr>" +
                             "</tbody></table>";
 
@@ -56,8 +56,8 @@ public class EmailSender : IEmailSender
             {
                 Subject = "Welcome to TaskMaster",
                 From = "noreply@carhire.com",  //To email on live system
-                //Text = HtmlBegin + MessageBody + HtmlEnd
-                Text = $"{Username}|{Token}"
+                Text = HtmlBegin + MessageBody + HtmlEnd
+                //Text = $"{Username}|{Token}"
             };
 
             PostMessageRequest postMessageRequest = new PostMessageRequest() { Domain = _mailinatorDomain, Inbox = _mailinatorDomain, Message = messageToPost };

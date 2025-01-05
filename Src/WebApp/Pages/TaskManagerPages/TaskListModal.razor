@@ -1,0 +1,82 @@
+﻿@using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate
+@using Application.Common.Models
+
+<div class="modal-backdrop fade show"></div>
+
+<div class="modal show" tabindex="-1" role="dialog" style="display:block">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">Task List</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="ModalCancel">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <EditForm Model="taskListFormRequest" OnValidSubmit="ModalOk">
+
+                <DataAnnotationsValidator />
+
+                <div class="modal-body">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="inputClient" class="col-md-3 col-sm-6 col-form-label-sm">Name</label>
+                            <InputText class="form-control   col-6" @bind-Value="taskListFormRequest.Title" placeholder="tasklist name" />
+                            &nbsp;<ValidationMessage For="@(() => taskListFormRequest.Title)" />
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="inputDueDate" class="col-form-label-sm">Due Date</label>
+                            <InputDate class="form-control" @bind-Value="taskListFormRequest.DueDate"  />
+                            &nbsp;<ValidationMessage For="@(() => taskListFormRequest.DueDate)" />
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="CarModelName" class="col-form-label">Assigned To</label>
+                            <select class="form-control col-md-3" @bind="taskListFormRequest.AssignedToId">
+                                @if (taskUserList != null)
+                                {
+                                    <option value=null>Select User</option>
+                                    @foreach (var myitem in taskUserList)
+                                    {
+                                        <option value=@myitem.Value>@myitem.Text</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-dismiss="modal" @onclick="() => ModalCancel()">Close</button>
+                    <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                </div>
+
+            </EditForm>
+
+        </div>
+    </div>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public TaskListFormRequest? taskListFormRequest { get; set; }
+
+    [Parameter]
+    public EventCallback<TaskListFormRequest> OnClose { get; set; }
+
+    [Parameter]
+    public List<SelectListItem> taskUserList { get; set; }
+     
+
+    private Task ModalCancel()
+    {
+        return OnClose.InvokeAsync(null);
+    }
+
+    private Task ModalOk()
+    {
+        return OnClose.InvokeAsync(taskListFormRequest);
+    }
+
+}

@@ -1,4 +1,5 @@
-﻿using Application.Aggregates.TaskListAggregate.Commands.Create;
+﻿
+using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
 using SharedUtilityTestMethods;
 using System.ComponentModel.DataAnnotations;
 
@@ -15,7 +16,7 @@ public class TaskListDtoTest
     public void CreateNewTaskListDto_Success()
     {
         //Arrange
-        CreateTaskListRequest createTaskListRequest = new() { Title = MockTitle, DueDate = DateOnly.FromDateTime(new DateTime()) };
+        TaskListFormRequest createTaskListRequest = new() { Title = MockTitle, DueDate = DateOnly.FromDateTime(new DateTime()) };
 
         //Assert
         Assert.NotNull(createTaskListRequest);
@@ -29,7 +30,7 @@ public class TaskListDtoTest
     public void CreateNewTaskListDto_OnlyTitle_Success()
     {
         //Arrange
-        CreateTaskListRequest createTaskListRequest = new() { Title = MockTitle };
+        TaskListFormRequest createTaskListRequest = new() { Title = MockTitle };
 
         //Assert
         Assert.NotNull(createTaskListRequest);
@@ -43,7 +44,7 @@ public class TaskListDtoTest
         var longMockTitle = TextGenerator.RandomString(101);
 
         //Arrange
-        CreateTaskListRequest createTaskListRequest = new() { Title = longMockTitle };
+        TaskListFormRequest createTaskListRequest = new() { Title = longMockTitle };
 
         //Act
         var validateResult = ValidateClass.Validate(createTaskListRequest, out results);

@@ -25,7 +25,7 @@ public class UserService : IUserService
         {
             FullName = createUserRequest.FullName,
             UserEmail = createUserRequest.UserEmail,
-            UserTypeId = (int)UserType.AdminUser,
+            UserTypeId = createUserRequest.UserType,
             RegisterTokenValid = DateTime.UtcNow.AddHours(2)
         };
 
@@ -38,7 +38,31 @@ public class UserService : IUserService
         return CustomResult<Guid>.Success(newUser1.RegisterToken);
     }
 
- 
+    public async Task<CustomResult> UpdateUser(int Id, UpdateUserRequest updateUserRequest)
+    {
+        var currentUser = await _userRepository.GetByIdAsync(Id);
+
+        if (currentUser == null) return CustomResult.Failure("Not found user");
+
+        currentUser.FullName = updateUserRequest.FullName;  
+
+        return await _userRepository.UpdateAsync(currentUser);
+    }
+
+    public async Task<CustomResult<Guid>> RefreshRegisterToken(int Id)
+    {
+        var currentUser = await _userRepository.GetByIdAsync(Id);
+
+        if (currentUser == null) return CustomResult<Guid>.Failure(new CustomError(false, "Not found user"));
+
+        var newGuid = Guid.NewGuid();
+        currentUser.RegisterTokenValid = DateTime.UtcNow.AddHours(2);
+        currentUser.RegisterToken = newGuid;
+
+        await _userRepository.UpdateAsync(currentUser);
+
+        return CustomResult<Guid>.Success(newGuid);
+    }
 
     public Task<CustomResult<UserLoginResponse>> GetUserByAccessTokenAsync(string accessToken)
     {
@@ -55,9 +79,14 @@ public class UserService : IUserService
         return await _userRepository.GetUserById(Id);
     }
 
-    public async Task<IEnumerable<UserDto>> GetUsers(bool IsActive, int UserTypeId)
+    public async Task<IEnumerable<UserDto>> GetUsers(bool IsActive, UserType UserType)
     {
-        return await _userRepository.GetUsers(IsActive, UserTypeId);
+        return await _userRepository.GetUsers(IsActive, UserType);
+    }
+
+    public async Task<IEnumerable<SelectListItem>> GetTaskUserSelectList()
+    {
+        return await _userRepository.GetTaskUserSelectList();
     }
 
     public async Task<bool> SaveRefreshTokenAsync(RefreshToken refreshToken, int UserId)
@@ -69,4 +98,11 @@ public class UserService : IUserService
     {
         return await _userRepository.GetRefreshToken(tokenRequest);
     }
+
+    public async Task<PagingResponse<UserDto>> GetActiveUsersWithPagination(PagingParameters pagingParameters, CancellationToken cancellationToken)
+    {
+        return await _userRepository.GetActiveUsersWithPagination(pagingParameters, cancellationToken);
+    }
+
+   
 }

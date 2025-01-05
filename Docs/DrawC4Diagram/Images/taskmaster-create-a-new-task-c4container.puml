@@ -1,0 +1,27 @@
+@startuml taskmaster-create-a-new-task-c4container
+!include ..\.c4s\C4_Container.puml
+
+UpdateElementStyle("system", $bgColor=#D4E6F1,$fontColor=#1A5276,$borderColor=#1A5276,$shadowing="false",$shape=RoundedBoxShape(),$borderStyle=SolidLine(),$borderThickness=2)
+UpdateElementStyle("external_system", $bgColor=#F8F9F9,$fontColor=#797D7F,$borderColor=#797D7F,$shadowing="false",$shape=RoundedBoxShape(),$borderStyle=SolidLine(),$borderThickness=1)
+UpdateElementStyle("person", $bgColor=#797D7F,$fontColor=#797D7F,$borderColor=#797D7F,$shadowing="false",$shape=RoundedBoxShape(),$borderStyle=SolidLine(),$borderThickness=2)
+UpdateElementStyle("component", $bgColor=#FAE5D3,$fontColor=#CA6F1E,$borderColor=#CA6F1E,$shadowing="false",$shape=RoundedBoxShape(),$borderStyle=SolidLine(),$borderThickness=2)
+UpdateElementStyle("external_component", $bgColor=#F8F9F9,$fontColor=#797D7F,$borderColor=#797D7F,$shadowing="false",$shape=RoundedBoxShape(),$borderStyle=SolidLine(),$borderThickness=1)
+UpdateElementStyle("container", $bgColor=#EAF2F8,$fontColor=#2E86C1,$borderColor=#2E86C1,$shadowing="false",$shape=RoundedBoxShape(),$borderStyle=SolidLine(),$borderThickness=2)
+UpdateElementStyle("external_container", $bgColor=#F8F9F9,$fontColor=#797D7F,$borderColor=#797D7F,$shadowing="false",$shape=RoundedBoxShape(),$borderStyle=SolidLine(),$borderThickness=1)
+UpdateBoundaryStyle($elementName=system,$bgColor=#F8F9F9,$fontColor=#797D7F,$borderColor=#797D7F,$shadowing="false",$shape=RoundedBoxShape())
+UpdateBoundaryStyle($elementName=container,$bgColor=#F8F9F9,$fontColor=#797D7F,$borderColor=#797D7F,$shadowing="false",$shape=RoundedBoxShape())
+UpdateBoundaryStyle($elementName=enterprise,$bgColor=#F8F9F9,$fontColor=#797D7F,$borderColor=#797D7F,$shadowing="false",$shape=RoundedBoxShape())
+SHOW_PERSON_PORTRAIT()
+LAYOUT_LEFT_RIGHT()
+
+title TaskMaster create a new task
+
+Person(AdminUser, "Admin", "Full access")
+System(WebApp, "TaskMaster Web System", "Allows user to manage tasks")
+System(WebApi, "TaskMaster WebApi System", "Allows task to CRUD")
+ContainerDb(TmDb, "Sql Db", "Database:TaskMaster", "")
+
+Rel(AdminUser, WebApp, "Enter task name")
+BiRel(WebApp, WebApi, "Call create task", "Json/HTTPS")
+Rel(WebApi, TmDb, "Save the task")
+@enduml

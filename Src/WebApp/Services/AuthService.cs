@@ -1,9 +1,12 @@
-﻿using Application.Aggregates.UserAuthAggregate;
+﻿using Application.Aggregates.UserAggregate.Queries;
+using Application.Aggregates.UserAuthAggregate;
 using Application.Aggregates.UserAuthAggregate.Token;
 using Application.Common.Models;
-using Domain.Entities;
+using Azure;
+using Blazored.LocalStorage;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using WebApp.Config;
 
 namespace WebApp.Services;
 
@@ -11,16 +14,17 @@ public class AuthService : IAuthService
 {
 
     public HttpClient _httpClient { get; }
-    public AppSettings _appSettings { get; }
+    //public AppSettings _appSettings { get; }
+    public ApiSettingConfig _apiSettingConfig { get; }
+    public ILocalStorageService _localStorageService { get; }
 
     private readonly string _apiVersion = "v1.0";
 
-    public AuthService(HttpClient httpClient, IOptions<AppSettings> appSettings)
+    public AuthService(HttpClient httpClient, IOptions<ApiSettingConfig> apiSettingConfig)
     {
-        //_appSettings = appSettings.Value;
+        _apiSettingConfig = apiSettingConfig.Value;
 
-        //httpClient.BaseAddress = new Uri(_appSettings.ApiAddressForDatabase);
-        httpClient.BaseAddress = new Uri("https://localhost:7132");
+        httpClient.BaseAddress = new Uri(_apiSettingConfig.ApiAuthUrl);
         httpClient.DefaultRequestHeaders.Add("User-Agent", "BlazorServer");
 
         _httpClient = httpClient;
@@ -43,7 +47,7 @@ public class AuthService : IAuthService
         var responseStatusCode = response.StatusCode;
         var responseBody = await response.Content.ReadAsStringAsync();
 
-        
+
         var mysign = JsonConvert.DeserializeObject<UserLoginResponse>(responseBody);
 
         return mysign;
@@ -71,8 +75,26 @@ public class AuthService : IAuthService
     }
 
 
-    public Task<CustomResult> RegisterUserAsync(RegisterUserRequest registerUserRequest)
+    public async Task<CustomResult> RegisterUserAsync(RegisterUserRequest registerUserRequest)
     {
-        throw new NotImplementedException();
+        string serializedRefreshRequest = JsonConvert.SerializeObject(registerUserRequest);
+
+        var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"/api/{_apiVersion}/registerusers");
+        requestMessage.Content = new StringContent(serializedRefreshRequest);
+
+        requestMessage.Content.Headers.ContentType
+            = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+
+        var response = await _httpClient.SendAsync(requestMessage);
+
+        if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            return CustomResult.Success();
+
+        var responseBody = await response.Content.ReadAsStringAsync();
+
+        return CustomResult.Failure(responseBody);
     }
+
+
+  
 }
