@@ -21,6 +21,7 @@ Task will have Due date and Complete date for performance calculation. Each task
 
 - Create main architecture and features
 - API versioning, paging, Blazor pages
+- Created c4Models
 
 ## Phase 2
 
@@ -41,7 +42,7 @@ Task will have Due date and Complete date for performance calculation. Each task
 **[`EF Core`](https://github.com/dotnet/efcore)**
 **[`API swagger`](https://swagger.io)**
 **['Serilogger'](https://serilog.net/)**
-
+**['c4model'](https://c4model.com/)**
 
 # Design Template
 
