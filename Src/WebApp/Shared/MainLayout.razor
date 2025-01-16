@@ -1,10 +1,20 @@
-﻿@using WebApp.Data
+﻿@using TaskMasterRazorClassLibrary.Config
+@using WebApp.Data
+@using TaskMasterRazorClassLibrary
+
 @inherits LayoutComponentBase
 
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
+
 <PageTitle>WebApp</PageTitle>
+
+
+<BlazoredToasts toastposition="ToastPosition.TopRight" Timeout="10" SuccessClass="success-toast-override"
+                SuccessIconClass="oi oi-check"
+                InfoIconClass="oi oi-warning" />
+
 
 <div class="page">
     <div class="sidebar">

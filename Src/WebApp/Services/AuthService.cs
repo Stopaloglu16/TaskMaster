@@ -1,8 +1,6 @@
-﻿using Application.Aggregates.UserAggregate.Queries;
-using Application.Aggregates.UserAuthAggregate;
+﻿using Application.Aggregates.UserAuthAggregate;
 using Application.Aggregates.UserAuthAggregate.Token;
 using Application.Common.Models;
-using Azure;
 using Blazored.LocalStorage;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -31,7 +29,7 @@ public class AuthService : IAuthService
     }
 
 
-    public async Task<UserLoginResponse> LoginAsync(UserLoginRequest loginRequest)
+    public async Task<CustomResult<UserLoginResponse>> LoginAsync(UserLoginRequest loginRequest)
     {
         //loginRequest.Password = await EncryptDecrypt.EncryptAsyc(loginRequest.Password, true, _appSettings.KeyEncrypte);
         string serializedUser = JsonConvert.SerializeObject(loginRequest);
@@ -44,17 +42,24 @@ public class AuthService : IAuthService
 
         var response = await _httpClient.SendAsync(requestMessage);
 
-        var responseStatusCode = response.StatusCode;
-        var responseBody = await response.Content.ReadAsStringAsync();
+        if (response.StatusCode == System.Net.HttpStatusCode.OK)
+        {
+            var responseBody = await response.Content.ReadAsStringAsync();
 
 
-        var mysign = JsonConvert.DeserializeObject<UserLoginResponse>(responseBody);
+            var mysign = JsonConvert.DeserializeObject<UserLoginResponse>(responseBody);
 
-        return mysign;
+            return CustomResult<UserLoginResponse>.Success(mysign);
+        }
+        else
+        {
+            var rtnMessage = await response.Content.ReadAsStringAsync();
+            return CustomResult<UserLoginResponse>.Failure(new CustomError(false, rtnMessage));
+        }
     }
 
 
-    public async Task<UserLoginResponse> GetUserByAccessTokenAsync(TokenRefreshRequest tokenRefreshRequest)
+    public async Task<UserLoginResponse> GetUserByAccessTokenAsync(RefreshTokenRequest tokenRefreshRequest)
     {
         string serializedRefreshRequest = JsonConvert.SerializeObject(tokenRefreshRequest);
 
@@ -96,5 +101,5 @@ public class AuthService : IAuthService
     }
 
 
-  
+
 }

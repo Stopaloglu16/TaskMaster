@@ -44,7 +44,7 @@ namespace WebApiAuth.Controllers
 
 
             DateTime myNow = DateTime.Now;
-            int tt = myNow.Subtract(myUser.Value.RegisterTokenValid).Days;
+            int tt = myNow.Subtract(myUser.Value.RegisterTokenExpieryTime).Days;
 
             if (tt >= 1)
                 return BadRequest("Token has been expired");

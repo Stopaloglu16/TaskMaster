@@ -1,20 +1,21 @@
 ﻿using Application.Aggregates.UserAuthAggregate;
 using Application.Aggregates.UserAuthAggregate.Token;
 using Asp.Versioning;
+using Azure.Core;
 using Domain.Entities;
-using Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json.Linq;
 using ServiceLayer.Users;
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using WebApiAuth.Models;
+using WebApiAuth.Services;
 
 namespace WebApiAuth.Controllers
 {
@@ -31,24 +32,24 @@ namespace WebApiAuth.Controllers
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
 
-        //private readonly AppSettings _appSettings;
-
         private readonly IUserService _userloginservice;
+        private readonly IAuthService _authService;
+
 
         public LoginController(
         UserManager<IdentityUser> userManager,
         SignInManager<IdentityUser> signInManager,
-        //IOptions<AppSettings> appSettings1,
         IConfiguration iConfig,
         IOptions<JwtSettings> jwtsettings,
-        IUserService userloginservice)
+        IUserService userloginservice,
+        IAuthService authService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            //_appSettings = appSettings1.Value;
             _configuration = iConfig;
             _jwtsettings = jwtsettings.Value;
             _userloginservice = userloginservice;
+            _authService = authService;
         }
 
         [MapToApiVersion(1)]
@@ -72,36 +73,26 @@ namespace WebApiAuth.Controllers
                                                                                    lockoutOnFailure: true);
 
                 if (!myResult.Succeeded)
-                    return Unauthorized("Failed to login");
-
-
-                RefreshToken refreshToken = GenerateRefreshToken();
+                    return Unauthorized("Username or password not correct");
 
                 var aspUser = await _userManager.FindByNameAsync(loginRequest.Username);
 
                 var webUser = await _userloginservice.GetUserByAspId(aspUser.Id);
-
                 if (webUser.IsFailure)
                     return BadRequest("Not registered user");
 
 
-                await _userloginservice.SaveRefreshTokenAsync(refreshToken, webUser.Value.Id);
-
-
-                var claims = new List<Claim>
+                UserTokenDto userTokenDto = new UserTokenDto()
                 {
-                    new Claim(ClaimTypes.Name, loginRequest.Username),
-                    new Claim(ClaimTypes.Role, webUser.Value.UserType.ToString())
+                    UserGuidId = webUser.Value.UserGuidId,
+                    UserId = webUser.Value.Id,
+                    Role = webUser.Value.UserType.ToString(),
+                    Username = webUser.Value.UserEmail
                 };
 
-                var LoginResponse = new UserLoginResponse();
+                var loginResponse = await _authService.LoginAsync(userTokenDto);
 
-                LoginResponse.RefreshToken = refreshToken.Token;
-                LoginResponse.AccessToken = GenerateAccessToken(claims);
-                LoginResponse.UserName = loginRequest.Username;
-
-
-                return Ok(LoginResponse);
+                return Ok(loginResponse);
             }
             catch (Exception ex)
             {
@@ -109,64 +100,7 @@ namespace WebApiAuth.Controllers
             }
         }
 
-        private RefreshToken GenerateRefreshToken()
-        {
-            RefreshToken refreshToken = new RefreshToken();
-
-            var randomNumber = new byte[32];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(randomNumber);
-                refreshToken.Token = Convert.ToBase64String(randomNumber);
-            }
-            refreshToken.ExpiryDate = DateTime.UtcNow.AddDays(7);
-
-            return refreshToken;
-        }
-
-        //private string GenerateAccessToken(string userId, string userName, UserType userType)
-        //{
-        //    var tokenHandler = new JwtSecurityTokenHandler();
-        //    var key = Encoding.ASCII.GetBytes(_jwtsettings.SecretKey);
-
-        //    var mylist = new List<Claim>();
-
-        //    //mylist.Add(new Claim(ClaimTypes.Name, userId));
-
-        //    mylist.Add(new Claim(ClaimTypes.NameIdentifier, userId));
-        //    mylist.Add(new Claim(ClaimTypes.GivenName, userName));
-        //    mylist.Add(new Claim(ClaimTypes.Role, userType.ToString()));
-
-
-        //    var tokenDescriptor = new SecurityTokenDescriptor
-        //    {
-        //        Subject = new ClaimsIdentity(mylist),
-        //        Expires = DateTime.UtcNow.AddDays(1),
-        //        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
-        //        SecurityAlgorithms.HmacSha256Signature)
-        //    };
-
-
-        //    var token = tokenHandler.CreateToken(tokenDescriptor);
-        //    return tokenHandler.WriteToken(token);
-        //}
-
-
-        private string GenerateAccessToken(IEnumerable<Claim> claims)
-        {
-            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtsettings.SecretKey));
-            var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
-
-            var tokeOptions = new JwtSecurityToken(
-                issuer: "https://localhost:5001",
-                audience: "https://localhost:5001",
-                claims: claims,
-                expires: DateTime.Now.AddMinutes(5),
-                signingCredentials: signinCredentials
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(tokeOptions);
-        }
+      
 
 
         [MapToApiVersion(1)]
@@ -175,54 +109,48 @@ namespace WebApiAuth.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetRefreshToken([FromBody] TokenRefreshRequest tokenRefreshRequest)
+        public async Task<IActionResult> GetRefreshToken([FromBody] RefreshTokenRequest tokenRefreshRequest)
         {
             try
             {
-                var refreshToken = await _userloginservice.GetRefreshToken(tokenRefreshRequest.RefreshToken);
+                if (tokenRefreshRequest is null)
+                    return BadRequest("Invalid client request");
 
-                if (refreshToken == null || refreshToken.IsUsed || refreshToken.IsRevoked || refreshToken.ExpiryDate <= DateTime.UtcNow)
-                    return Unauthorized("Invalid refresh token");
+                string accessToken = tokenRefreshRequest.AccessToken;
+                string refreshToken = tokenRefreshRequest.RefreshToken;
+                
+                var principal = _authService.GetPrincipalFromExpiredToken(tokenRefreshRequest.AccessToken);
 
-                var tokenValidationParameters = new TokenValidationParameters
+                var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
+                var userGuidIdClaim = userIdClaim?.Value;
+
+                if (string.IsNullOrEmpty(userGuidIdClaim))
                 {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtsettings.SecretKey)),
-                    ValidateIssuer = false,
-                    ValidateAudience = false //the token's expiration date not important
+                    return Unauthorized("User ID not found in token claims");
+                }
+
+
+                var userGuidId = Guid.Parse(userGuidIdClaim); 
+                var user = await _userloginservice.CheckRefreshTokenOfUser(userGuidId, refreshToken);
+
+                if (!user.isSuccess)
+                    return BadRequest(user.error);
+                
+                
+                var webUser = await _userloginservice.GetUserByUserGuidId(userGuidId);
+
+                UserTokenDto userTokenDto = new UserTokenDto()
+                {
+                    UserGuidId = userGuidId,
+                    UserId = webUser.Value.Id,
+                    Role = webUser.Value.UserType.ToString(),
+                    Username = webUser.Value.UserEmail
                 };
 
 
-                var tokenHandler = new JwtSecurityTokenHandler();
-                SecurityToken securityToken;
-                var principal = tokenHandler.ValidateToken(tokenRefreshRequest.AccessToken, tokenValidationParameters, out securityToken);
-                var jwtSecurityToken = securityToken as JwtSecurityToken;
-                if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-                    return Unauthorized("Invalid token");
+                var loginResponse = await _authService.LoginAsync(userTokenDto);
 
-
-                var username = principal.Identity.Name; //this is mapped to the Name claim by default
-
-                
-                var newAccessToken = GenerateAccessToken(principal.Claims);
-                var newRefreshToken = GenerateRefreshToken();
-
-                var aspUser = await _userManager.FindByNameAsync(username);
-                var webUser = await _userloginservice.GetUserByAspId(aspUser.Id);
-
-                if (webUser.IsFailure)
-                    return BadRequest("Not registered user");
-
-
-                await _userloginservice.SaveRefreshTokenAsync(newRefreshToken, webUser.Value.Id);
-
-                var LoginResponse = new UserLoginResponse();
-
-                LoginResponse.RefreshToken = newRefreshToken.Token;
-                LoginResponse.AccessToken = newAccessToken;
-                LoginResponse.UserName = aspUser.UserName;
-
-                return Ok(LoginResponse);
+                return Ok(loginResponse);
 
             }
             catch (Exception ex)

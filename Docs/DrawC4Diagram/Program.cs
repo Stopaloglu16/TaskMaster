@@ -1,7 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
+using C4Sharp.Diagrams;
 using C4Sharp.Diagrams.Plantuml;
 using C4Sharp.Diagrams.Themes;
-using C4Sharp.Diagrams;
 using DrawC4Diagram.Diagrams;
 
 Console.WriteLine("Star to draw");
@@ -24,5 +24,5 @@ var path = Path.Combine(projectDirectory1, "Images");
 
 new PlantumlContext()
     .UseDiagramImageBuilder()
-  //.UseDiagramSvgImageBuilder()
+    //.UseDiagramSvgImageBuilder()
     .Export(path, diagrams, new ParadisoTheme());

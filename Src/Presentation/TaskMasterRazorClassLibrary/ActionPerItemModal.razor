@@ -1,0 +1,52 @@
+﻿
+<div class="modal-backdrop fade show"></div>
+
+<div class="modal show" tabindex="-1" role="dialog" style="display:block">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">Question</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="ModalCancel">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                Do you want to @ActionText <strong>@ActionItemText</strong> ?
+            </div>
+
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-sm btn-danger" @onclick="@ModalOk">Yes</button>
+                <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" @onclick="@ModalCancel">Close</button>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public string ActionItemText { get; set; }
+
+    [Parameter]
+    public string ActionText { get; set; } //remove, restore
+
+    [Parameter]
+    public EventCallback<bool> OnCloseModal { get; set; }
+
+
+    private Task ModalCancel()
+    {
+        return OnCloseModal.InvokeAsync(false);
+    }
+
+    private Task ModalOk()
+    {
+        return OnCloseModal.InvokeAsync(true);
+    }
+
+}
+

@@ -1,13 +1,9 @@
 ﻿using Application.Aggregates.UserAuthAggregate;
 using Application.Aggregates.UserAuthAggregate.Token;
-using Azure.Core;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
-
-using ServiceLayer.Users;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text.Json;
 using WebApp.Services;
 
 namespace WebApp.Data;
@@ -43,7 +39,7 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
             }
             else
             {
-                TokenRefreshRequest tokenRefreshRequest = new TokenRefreshRequest() { AccessToken = accessToken, RefreshToken = refreshToken };
+                RefreshTokenRequest tokenRefreshRequest = new RefreshTokenRequest() { RefreshToken = refreshToken, AccessToken = accessToken };
 
                 var user = await _authService.GetUserByAccessTokenAsync(tokenRefreshRequest);
 
@@ -91,7 +87,7 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
 
     private IEnumerable<Claim> GetClaimsIdentity(UserLoginResponse user)
     {
-       var claimsIdentity = new ClaimsIdentity();
+        var claimsIdentity = new ClaimsIdentity();
 
         if (!String.IsNullOrEmpty(user.UserName))
         {
@@ -124,7 +120,7 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
             var jwtToken = handler.ReadJwtToken(accessToken);
 
             // Extract claims
-           // var claims = jwtToken.Claims.ToDictionary(claim => claim.Type, claim => claim.Value);
+            // var claims = jwtToken.Claims.ToDictionary(claim => claim.Type, claim => claim.Value);
 
 
             var mappedClaims = jwtToken.Claims.ToDictionary(

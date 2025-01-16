@@ -1,5 +1,6 @@
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
+using TaskMasterRazorClassLibrary.Services;
 using WebApp.Config;
 using WebApp.Data;
 using WebApp.Handlers;
@@ -24,6 +25,8 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
 builder.Services.AddScoped<IAuthService, AuthService>(); // Authentication service
+
+builder.Services.AddScoped<IToastService, ToastService>();
 
 builder.Services.AddBlazorServices();
 

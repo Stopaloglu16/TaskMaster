@@ -141,7 +141,7 @@ namespace WebApiAuth.Controllers
         [HttpGet("userlist")]
         [ProducesResponseType(typeof(Ok), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(BadRequestResult), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> GetUserList([FromQuery]PagingParameters pagingParameters, CancellationToken cancellationToken)
+        public async Task<ActionResult> GetUserList([FromQuery] PagingParameters pagingParameters, CancellationToken cancellationToken)
         {
             var userList = await _userService.GetActiveUsersWithPagination(pagingParameters, cancellationToken);
 

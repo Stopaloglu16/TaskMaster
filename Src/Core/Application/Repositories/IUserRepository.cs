@@ -14,10 +14,11 @@ public interface IUserRepository : IRepository<User, int>
     Task<CustomResult<UserDto>> GetUserById(int Id);
 
     Task<CustomResult<UserDto>> GetUserByAspId(string AspId);
+    Task<CustomResult<UserDto>> GetUserByUserGuidId(Guid UserGuidId);
 
-    Task<bool> SaveRefreshTokenAsync(RefreshToken refreshToken, int UserId);
+    Task<bool> UpdateRefreshTokenAsync(int UserId, string refreshToken, DateTime refreshTokenExpiery);
 
-    Task<RefreshToken> GetRefreshToken(string tokenRequest);
+    Task<CustomError> CheckRefreshTokenOfUser(Guid userGuidId, string refreshToken);
 
     Task<PagingResponse<UserDto>> GetActiveUsersWithPagination(PagingParameters pagingParameters, CancellationToken cancellationToken);
 

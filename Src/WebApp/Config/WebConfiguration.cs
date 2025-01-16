@@ -2,6 +2,7 @@
 using Application.Aggregates.TaskListAggregate.Queries;
 using Application.Aggregates.UserAggregate.Commands;
 using Application.Aggregates.UserAggregate.Queries;
+using Application.Common.Models;
 using WebApp.Handlers;
 using WebApp.Services;
 
@@ -25,7 +26,7 @@ public static class WebConfiguration
         services.AddHttpClient<IWebApiService<CreateUserRequest, CreateUserRequest>, WebApiService<CreateUserRequest, CreateUserRequest>>().AddHttpMessageHandler<ValidateHeaderHandler>();
         services.AddHttpClient<IWebApiService<UpdateUserRequest, UpdateUserRequest>, WebApiService<UpdateUserRequest, UpdateUserRequest>>().AddHttpMessageHandler<ValidateHeaderHandler>();
 
-
+        services.AddHttpClient<IWebApiService<SelectListItem, SelectListItem>, WebApiService<SelectListItem, SelectListItem>>().AddHttpMessageHandler<ValidateHeaderHandler>();
 
         return services;
     }

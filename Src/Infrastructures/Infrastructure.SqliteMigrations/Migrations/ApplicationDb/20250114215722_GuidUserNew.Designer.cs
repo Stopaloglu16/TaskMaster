@@ -8,46 +8,17 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Infrastructure.SqliteMigrations.Migrations
+namespace Infrastructure.SqliteMigrations.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241119102747_UpdateRefreshToken")]
-    partial class UpdateRefreshToken
+    [Migration("20250114215722_GuidUserNew")]
+    partial class GuidUserNew
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
-
-            modelBuilder.Entity("Domain.Entities.RefreshToken", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("ExpiryDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsRevoked")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsUsed")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("RefreshTokens");
-                });
 
             modelBuilder.Entity("Domain.Entities.TaskItem", b =>
                 {
@@ -154,15 +125,24 @@ namespace Infrastructure.SqliteMigrations.Migrations
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("RefreshTokenExpiryTime")
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid>("RegisterToken")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("RegisterTokenValid")
+                    b.Property<DateTime>("RegisterTokenExpieryTime")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("UserEmail")
                         .IsRequired()
                         .HasColumnType("varchar(250)");
+
+                    b.Property<Guid>("UserGuidId")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("UserTypeId")
                         .HasColumnType("INTEGER");
@@ -178,22 +158,13 @@ namespace Infrastructure.SqliteMigrations.Migrations
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             FullName = "taskmaster@hotmail.co.uk",
                             IsDeleted = (byte)0,
-                            RegisterToken = new Guid("3f4efa76-c3b2-4f03-8903-e6abeb7ae673"),
-                            RegisterTokenValid = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            RefreshTokenExpiryTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            RegisterToken = new Guid("07fc6358-3978-4c38-8747-535a8faf3319"),
+                            RegisterTokenExpieryTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             UserEmail = "taskmaster@hotmail.co.uk",
+                            UserGuidId = new Guid("11e998be-9d1b-4c6b-acd6-a75752a2c47c"),
                             UserTypeId = 0
                         });
-                });
-
-            modelBuilder.Entity("Domain.Entities.RefreshToken", b =>
-                {
-                    b.HasOne("Domain.Entities.User", "User")
-                        .WithMany("RefreshTokens")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.Entities.TaskItem", b =>
@@ -223,8 +194,6 @@ namespace Infrastructure.SqliteMigrations.Migrations
 
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
-                    b.Navigation("RefreshTokens");
-
                     b.Navigation("TaskLists");
                 });
 #pragma warning restore 612, 618

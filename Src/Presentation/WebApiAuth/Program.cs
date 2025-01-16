@@ -53,6 +53,7 @@ builder.Services.AddScoped(typeof(IRepository<,>), typeof(EfCoreRepository<,>));
 builder.Services.AddUserServices();
 
 
+
 var appSettings = new AppSettings();
 builder.Configuration.Bind(nameof(AppSettings), appSettings);
 

@@ -8,9 +8,9 @@ using SharedUtilityTestMethods;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace WebApiAuth.FunctionalTests.ApiEndPoints;
-
 
 public class RegisterTests : BaseIntegrationTest
 {
@@ -80,12 +80,15 @@ public class RegisterTests : BaseIntegrationTest
             var request = new FetchMessageRequest() { Domain = MailinatorDomain, MessageId = mailId };
             var responseFetch = await mailinatorClient.MessagesClient.FetchMessageAsync(request);
 
-            var textArray = responseFetch.Text.Split('|');
+            string urlPattern = @"<a href='([^']*)'>"; 
+            Match match = Regex.Match(responseFetch.Text.ToString(), urlPattern); 
+            
+            var textArray = match.Groups[1].Value.Split('/');
 
-            if (createUserRequest.UserEmail == textArray[0].ToString())
+            if (createUserRequest.UserEmail == textArray[4].ToString())
             {
-                mockRegisterUserEmail = textArray[0].ToString();
-                mockRegisterUserToken = textArray[1].ToString();
+                mockRegisterUserEmail = textArray[4].ToString();
+                mockRegisterUserToken = textArray[5].ToString();
 
                 break;
             }

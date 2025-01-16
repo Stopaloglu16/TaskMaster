@@ -36,13 +36,13 @@ public class TaskListRepository : EfCoreRepository<TaskList, int>, ITaskListRepo
                                              Id = ss.Id,
                                              Title = ss.Title,
                                              DueDate = ss.DueDate,
-                                             AssignedToId= ss.AssignedToId
+                                             AssignedToId = ss.AssignedToId
                                          })
                                          .FirstOrDefaultAsync(qq => qq.Id == Id, cancellationToken);
     }
 
 
-    public async Task<PagingResponse<TaskListDto>> GetActiveTaskListWithPagination(PagingParameters pagingParameters, 
+    public async Task<PagingResponse<TaskListDto>> GetActiveTaskListWithPagination(PagingParameters pagingParameters,
                                                                                    CancellationToken cancellationToken)
     {
 
@@ -61,6 +61,6 @@ public class TaskListRepository : EfCoreRepository<TaskList, int>, ITaskListRepo
                                          });
 
         return await PagingResponse<TaskListDto>.CreateAsync(query, pagingParameters);
-        
+
     }
 }

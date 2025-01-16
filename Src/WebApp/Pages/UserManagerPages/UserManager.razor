@@ -165,7 +165,7 @@
 
         gridItemsProvider = async req =>
         {
-            var userListDtos = await _userService.GetAllDataAsync(
+            var userListDtos = await _userService.GetPagingDataAsync(
             $"Users/userlist?PageNumber={pageNumber}&PageSize={ItemsPerPage}&OrderBy=Id&IsDescending=false", true);
 
             return GridItemsProviderResult.From(userListDtos.Items.ToList(), userListDtos.TotalCount);

@@ -22,37 +22,6 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Domain.Entities.RefreshToken", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("ExpiryDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsRevoked")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsUsed")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("RefreshTokens");
-                });
-
             modelBuilder.Entity("Domain.Entities.TaskItem", b =>
                 {
                     b.Property<int>("Id")
@@ -164,15 +133,24 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("RefreshTokenExpiryTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<Guid>("RegisterToken")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("RegisterTokenValid")
+                    b.Property<DateTime>("RegisterTokenExpieryTime")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("UserEmail")
                         .IsRequired()
                         .HasColumnType("varchar(250)");
+
+                    b.Property<Guid>("UserGuidId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("UserTypeId")
                         .HasColumnType("int");
@@ -188,22 +166,13 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                             Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             FullName = "taskmaster@hotmail.co.uk",
                             IsDeleted = (byte)0,
-                            RegisterToken = new Guid("e8d68ac1-5726-4384-9c0a-7e48e490cca8"),
-                            RegisterTokenValid = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            RefreshTokenExpiryTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            RegisterToken = new Guid("c086da9e-60ad-4e44-8186-04c381ef9b68"),
+                            RegisterTokenExpieryTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             UserEmail = "taskmaster@hotmail.co.uk",
+                            UserGuidId = new Guid("845dde4f-6cde-41c4-ac07-36fa3a805fed"),
                             UserTypeId = 0
                         });
-                });
-
-            modelBuilder.Entity("Domain.Entities.RefreshToken", b =>
-                {
-                    b.HasOne("Domain.Entities.User", "User")
-                        .WithMany("RefreshTokens")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.Entities.TaskItem", b =>
@@ -233,8 +202,6 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
 
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
-                    b.Navigation("RefreshTokens");
-
                     b.Navigation("TaskLists");
                 });
 #pragma warning restore 612, 618

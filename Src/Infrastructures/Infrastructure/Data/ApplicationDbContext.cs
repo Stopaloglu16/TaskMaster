@@ -19,7 +19,6 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<TaskList> TaskLists { get; set; }
     public DbSet<TaskItem> TaskItems { get; set; }
     public DbSet<User> Users { get; set; }
-    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -33,8 +32,6 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     {
         try
         {
-            //Console.WriteLine( _currentUserService.UserName );
-
             if (_currentUserService != null)
             {
                 if (!String.IsNullOrEmpty(_currentUserService.UserId) && !String.IsNullOrEmpty(_currentUserService.UserName))
@@ -66,7 +63,6 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
         {
             throw new Exception($"SaveChangesAsync {ex.Message}");
         }
-
     }
 
 

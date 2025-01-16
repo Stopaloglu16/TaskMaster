@@ -15,7 +15,7 @@ public class LoginTests : BaseIntegrationTest
     }
 
     [Fact]
-    public async Task Create_ShouldCreateUser()
+    public async Task CreateLoginRequest_Valid_Success()
     {
 
         var identityUserMock = await _factory.RegisterUser();
