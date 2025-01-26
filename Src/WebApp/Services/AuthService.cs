@@ -71,12 +71,19 @@ public class AuthService : IAuthService
 
         var response = await _httpClient.SendAsync(requestMessage);
 
-        var responseStatusCode = response.StatusCode;
-        var responseBody = await response.Content.ReadAsStringAsync();
+        if (response.StatusCode == System.Net.HttpStatusCode.OK)
+        {
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var returnedUser = JsonConvert.DeserializeObject<UserLoginResponse>(responseBody);
 
-        var returnedUser = JsonConvert.DeserializeObject<UserLoginResponse>(responseBody);
-
-        return await Task.FromResult(returnedUser);
+            return await Task.FromResult(returnedUser);
+        }
+        else
+        {
+            // TODO need invalid token issue, Changed access token 5 mins
+            var responseBody = await response.Content.ReadAsStringAsync();
+            return null; // await Task.FromResult(responseBody);
+        }
     }
 
 

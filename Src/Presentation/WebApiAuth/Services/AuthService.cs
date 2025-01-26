@@ -85,8 +85,9 @@ public class AuthService : IAuthService
         var tokeOptions = new JwtSecurityToken(
             issuer: _jwtsettings.Issuer,
             audience: _jwtsettings.Audience,
-            claims: claims,
-            expires: DateTime.Now.AddHours(1),
+            claims: claims, 
+            notBefore:DateTime.Now,
+            expires: DateTime.Now.AddMinutes(15),
             signingCredentials: signinCredentials
         );
 

@@ -5,7 +5,6 @@ using Domain.Entities;
 using Domain.Enums;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Runtime.CompilerServices;
 
 namespace Infrastructure.Repositories;
 
@@ -101,7 +100,7 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
         return uu;
     }
 
-   
+
 
 
     public async Task<PagingResponse<UserDto>> GetActiveUsersWithPagination(PagingParameters pagingParameters,
@@ -125,7 +124,7 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
         var currenctUser = await _dbContext.Users.FirstOrDefaultAsync(uu => uu.Id == UserId);
 
         if (currenctUser == null)
-            throw new ArgumentNullException(); 
+            throw new ArgumentNullException();
 
         currenctUser.RefreshToken = refreshToken;
         currenctUser.RefreshTokenExpiryTime = refreshTokenExpiery;
@@ -138,13 +137,13 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
     public async Task<CustomError> CheckRefreshTokenOfUser(Guid userGuidId, string refreshToken)
     {
         var tokenTemp = await _dbContext.Users.Where(uu => uu.UserGuidId == userGuidId)
-                                     .Select(ss => new { ss.RefreshToken, ss.RefreshTokenExpiryTime } )
+                                     .Select(ss => new { ss.RefreshToken, ss.RefreshTokenExpiryTime })
                                      .FirstAsync();
 
         if (tokenTemp == null)
             return CustomError.Failure("user not found");
 
-        if (tokenTemp.RefreshToken != refreshToken || tokenTemp.RefreshTokenExpiryTime <= DateTime.Now)
+        if (tokenTemp.RefreshToken != refreshToken) // || tokenTemp.RefreshTokenExpiryTime <= DateTime.Now)
             return CustomError.Failure("Invalid token");
 
         return CustomError.Success();

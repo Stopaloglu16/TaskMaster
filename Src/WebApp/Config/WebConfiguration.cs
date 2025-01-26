@@ -14,8 +14,6 @@ public static class WebConfiguration
     public static IServiceCollection AddBlazorServices(this IServiceCollection services)
     {
 
-        //services.AddHttpClient<IWebApiService<User, User>, WebApiService<User, User>>().AddHttpMessageHandler<ValidateHeaderHandler>();
-
         services.AddHttpClient<IWebApiService<TaskListDto, TaskListDto>, WebApiService<TaskListDto, TaskListDto>>().AddHttpMessageHandler<ValidateHeaderHandler>();
         services.AddHttpClient<IWebApiService<TaskListFormRequest, TaskListFormRequest>, WebApiService<TaskListFormRequest, TaskListFormRequest>>().AddHttpMessageHandler<ValidateHeaderHandler>();
         services.AddHttpClient<IWebApiService<TaskListFormRequest, HttpResponseMessage>, WebApiService<TaskListFormRequest, HttpResponseMessage>>().AddHttpMessageHandler<ValidateHeaderHandler>();

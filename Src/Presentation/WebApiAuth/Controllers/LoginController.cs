@@ -133,6 +133,8 @@ namespace WebApiAuth.Controllers
                 var userGuidId = Guid.Parse(userGuidIdClaim); 
                 var user = await _userloginservice.CheckRefreshTokenOfUser(userGuidId, refreshToken);
 
+                // TODO invalid token???
+
                 if (!user.isSuccess)
                     return BadRequest(user.error);
                 

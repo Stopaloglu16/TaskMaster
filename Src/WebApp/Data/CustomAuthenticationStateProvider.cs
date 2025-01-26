@@ -1,5 +1,6 @@
 ﻿using Application.Aggregates.UserAuthAggregate;
 using Application.Aggregates.UserAuthAggregate.Token;
+using Azure.Core;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.IdentityModel.Tokens.Jwt;
@@ -31,8 +32,24 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
             var accessToken = await _localStorageService.GetItemAsync<string>("accessToken");
             var refreshToken = await _localStorageService.GetItemAsync<string>("refreshToken");
 
-            ClaimsIdentity identity;
 
+            var claimsPrincipal = await AuthenticateUser(accessToken, refreshToken);
+
+            return await Task.FromResult(new AuthenticationState(claimsPrincipal));
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
+
+
+    public async Task<ClaimsPrincipal> AuthenticateUser(string accessToken, string refreshToken)
+    {
+        ClaimsIdentity identity;
+
+        try
+        {
             if (String.IsNullOrEmpty(accessToken) && String.IsNullOrEmpty(refreshToken))
             {
                 identity = new ClaimsIdentity();
@@ -46,32 +63,25 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
                 identity = new ClaimsIdentity(GetClaimsIdentity(user), "testAuthType");
             }
 
-            //var myrr = GetClaimsFromAccessToken(accessToken);
-
             var claimsPrincipal = new ClaimsPrincipal(identity);
 
-            return await Task.FromResult(new AuthenticationState(claimsPrincipal));
+            return claimsPrincipal;
         }
         catch (Exception ex)
         {
-            throw;
+            return default;
         }
-
     }
 
     public async Task MarkUserAsAuthenticated(UserLoginResponse user)
     {
-
         await _localStorageService.SetItemAsync("accessToken", user.AccessToken);
         await _localStorageService.SetItemAsync("refreshToken", user.RefreshToken);
 
-
         var identity = new ClaimsIdentity(GetClaimsIdentity(user), "testAuthType");
-
 
         var myuser = new ClaimsPrincipal(identity);
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(myuser)));
-
     }
 
     public async Task MarkUserAsLoggedOut()
@@ -89,27 +99,45 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
     {
         var claimsIdentity = new ClaimsIdentity();
 
-        if (!String.IsNullOrEmpty(user.UserName))
+        if (user != null )
         {
-
-            var handler = new JwtSecurityTokenHandler();
-
-            if (handler.CanReadToken(user.AccessToken))
+            if (!String.IsNullOrEmpty(user.UserName))
             {
-                var jwtToken = handler.ReadJwtToken(user.AccessToken);
-                return jwtToken.Claims.ToList();
-            }
+                var handler = new JwtSecurityTokenHandler();
 
-            //claimsIdentity = new ClaimsIdentity(new[]
-            //                {
-            //                        new Claim(ClaimTypes.Name, user.UserName)
-            //                    }, "apiauth_type");
+                if (handler.CanReadToken(user.AccessToken))
+                {
+                    var jwtToken = handler.ReadJwtToken(user.AccessToken);
+                    //jwtToken.ValidTo
+                    return jwtToken.Claims.ToList();
+                }
+
+                //claimsIdentity = new ClaimsIdentity(new[]
+                //                {
+                //                        new Claim(ClaimTypes.Name, user.UserName)
+                //                    }, "apiauth_type");
+            }
         }
 
 
         return new List<Claim>();
     }
 
+
+    public async Task GetTokenExpieryDateTime()
+    {
+        var handler = new JwtSecurityTokenHandler();
+
+        var accessToken = await _localStorageService.GetItemAsync<string>("accessToken");
+
+        var jwtToken = handler.ReadJwtToken(accessToken);
+
+        if (jwtToken.ValidTo < DateTime.Now.AddMinutes(-1))
+        {
+            var refreshToken = await _localStorageService.GetItemAsync<string>("refreshToken");
+            await AuthenticateUser(accessToken, refreshToken);
+        }
+    }
 
     public IDictionary<string, string> GetClaimsFromAccessToken(string accessToken)
     {

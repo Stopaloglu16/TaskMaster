@@ -24,6 +24,22 @@ builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
+// Register WebApiService with two HttpClient instances
+builder.Services.AddHttpClient("DefaultClient", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["AppSettings:ApiUrl"]);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+
+builder.Services.AddHttpClient("AuthClient", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["AppSettings:ApiAuthUrl"]);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+
+
+builder.Services.AddScoped(typeof(IWebApiService<,>), typeof(WebApiService<,>));
+
 builder.Services.AddScoped<IAuthService, AuthService>(); // Authentication service
 
 builder.Services.AddScoped<IToastService, ToastService>();

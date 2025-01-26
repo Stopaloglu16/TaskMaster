@@ -1,49 +1,96 @@
 ﻿using Application.Common.Models;
 using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using System.Net.Http;
 using WebApp.Config;
+using WebApp.Data;
 
 namespace WebApp.Services;
 
 public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResponse>
 {
-
     public HttpClient _httpClient { get; }
     public HttpClient _httpAuthClient { get; }
+
+    private readonly IHttpClientFactory _httpClientFactory;
     public ApiSettingConfig _apiSettingConfig { get; }
     public ILocalStorageService _localStorageService { get; }
+    public AuthenticationStateProvider _authStateProvider { get; }
 
     public string Apitext { get; set; } = $"/api/v1.0/";
 
-    public WebApiService(HttpClient httpClient,
-                         HttpClient httpAuthClient,
+    public WebApiService(IHttpClientFactory httpClientFactory,
                          IOptions<ApiSettingConfig> apiSettingConfig,
-                         ILocalStorageService localStorageService)
+                         ILocalStorageService localStorageService,
+                         AuthenticationStateProvider authStateProvider,
+                         HttpClient httpClient,
+                         HttpClient httpAuthClient)
     {
         _apiSettingConfig = apiSettingConfig.Value;
         _localStorageService = localStorageService;
 
-        httpClient.BaseAddress = new Uri(_apiSettingConfig.ApiUrl);
-        httpClient.DefaultRequestHeaders.Add("User-Agent", "BlazorServer");
+        _authStateProvider = authStateProvider as CustomAuthenticationStateProvider
+                             ?? throw new InvalidOperationException("AuthenticationStateProvider must be of type CustomAuthenticationStateProvider.");
+        
+        _httpClientFactory = httpClientFactory;
 
-        httpAuthClient.BaseAddress = new Uri(_apiSettingConfig.ApiAuthUrl);
-        httpAuthClient.DefaultRequestHeaders.Add("User-Agent", "BlazorServer");
 
         _httpClient = httpClient;
         _httpAuthClient = httpAuthClient;
+        //httpClient.BaseAddress = new Uri(_apiSettingConfig.ApiUrl);
+        //httpClient.DefaultRequestHeaders.Add("User-Agent", "BlazorServer");
+
+        //httpAuthClient.BaseAddress = new Uri(_apiSettingConfig.ApiAuthUrl);
+        //httpAuthClient.DefaultRequestHeaders.Add("User-Agent", "BlazorServer");
+
+        //_httpClient = httpClient;
+        //_httpAuthClient = httpAuthClient;
     }
+
+    /// <summary>
+    /// Gets an instance of the default HTTP client.
+    /// </summary>
+    private HttpClient GetDefaultClient()
+    {
+        return _httpClientFactory.CreateClient("DefaultClient");
+    }
+
+    /// <summary>
+    /// Gets an instance of the authentication HTTP client.
+    /// </summary>
+    private HttpClient GetAuthClient()
+    {
+        return _httpClientFactory.CreateClient("AuthClient");
+    }
+
+    public async Task SetAuthorizeHeader(HttpClient client)
+    {
+        // Fetch the token expiry and refresh token if needed (optional logic)
+        await ((CustomAuthenticationStateProvider)_authStateProvider).GetTokenExpieryDateTime();
+
+        // Retrieve the token from local storage
+        var token = await _localStorageService.GetItemAsync<string>("accessToken");
+
+        // Set the Authorization header
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+
+        //https://github.com/hieudose/BlazorApp.git
+        //C:\Users\stopaloglu\source\demoRepos\BlazorApp
+    }
+
+
 
     public async Task<PagingResponse<TResponse>> GetPagingDataAsync(string requestUri, bool requiresAuth = false)
     {
-        var httpClient = requiresAuth ? _httpAuthClient : _httpClient;
-
         var requestMessage = new HttpRequestMessage(HttpMethod.Get, Apitext + requestUri);
+        var client = requiresAuth ? GetAuthClient() : GetDefaultClient();
 
-        var token = await _localStorageService.GetItemAsync<string>("accessToken");
-        requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        await SetAuthorizeHeader(client);
 
-        var response = await httpClient.SendAsync(requestMessage);
+        var response = await client.SendAsync(requestMessage);
 
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {
@@ -51,7 +98,7 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
             return await Task.FromResult(JsonConvert.DeserializeObject<PagingResponse<TResponse>>(responseBody));
         }
         else
-            return null;
+            return default;
     }
 
     public async Task<List<TResponse>> GetAllDataAsync(string requestUri, bool requiresAuth = false)
@@ -170,7 +217,7 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
     }
 
 
-    public async Task<HttpResponseMessage> DeleteAsync(string requestUri,int Id, bool requiresAuth = false)
+    public async Task<HttpResponseMessage> DeleteAsync(string requestUri, int Id, bool requiresAuth = false)
     {
         var httpClient = requiresAuth ? _httpAuthClient : _httpClient;
 

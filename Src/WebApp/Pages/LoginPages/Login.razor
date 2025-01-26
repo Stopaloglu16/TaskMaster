@@ -46,8 +46,8 @@
     public string LoginMesssage { get; set; }
     ClaimsPrincipal claimsPrincipal;
 
-    [CascadingParameter]
-    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    // [CascadingParameter]
+    // private Task<AuthenticationState> authenticationStateTask { get; set; }
 
     protected async override Task OnInitializedAsync()
     {
