@@ -46,8 +46,8 @@
     public string LoginMesssage { get; set; }
     ClaimsPrincipal claimsPrincipal;
 
-    [CascadingParameter]
-    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    // [CascadingParameter]
+    // private Task<AuthenticationState> authenticationStateTask { get; set; }
 
     protected async override Task OnInitializedAsync()
     {
@@ -55,7 +55,7 @@
         //user = new User();
         userModel = new UserLoginRequest() { Username = "", Password = "" };
 
-        userModel.Username = "AdminUser@hotmail.co.uk";
+        userModel.Username = "taskmaster@hotmail.co.uk";
         userModel.Password = "SuperStrongPassword+123"; 
 
         //claimsPrincipal = (await authenticationStateTask).User;
@@ -82,26 +82,22 @@
 
         try
         {
-            if (returnedUser.UserName != null)
+            if (returnedUser.IsSuccess)
             {
 
-               await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(returnedUser);
+               await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(returnedUser.Value);
 
                 NavigationManager.NavigateTo("/taskmanager", false);
 
             }
             else
             {
-                LoginMesssage = "Invalid username or password";
+                LoginMesssage = returnedUser.CustomError.error;
             }
         }
         catch (Exception ex)
         {
-
             LoginMesssage = ex.Message;
         }
-
-
-        // return await Task.FromResult(true);
     }
 }

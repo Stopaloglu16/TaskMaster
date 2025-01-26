@@ -59,6 +59,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp", "Src\WebApp\WebApp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrawC4Diagram", "Docs\DrawC4Diagram\DrawC4Diagram.csproj", "{43F8531C-45E9-4E63-9571-71630597E219}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskMasterRazorClassLibrary", "Src\Presentation\TaskMasterRazorClassLibrary\TaskMasterRazorClassLibrary.csproj", "{375C73E5-A914-48CD-B2A6-0BB88C3BF057}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -147,6 +149,10 @@ Global
 		{43F8531C-45E9-4E63-9571-71630597E219}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43F8531C-45E9-4E63-9571-71630597E219}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43F8531C-45E9-4E63-9571-71630597E219}.Release|Any CPU.Build.0 = Release|Any CPU
+		{375C73E5-A914-48CD-B2A6-0BB88C3BF057}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{375C73E5-A914-48CD-B2A6-0BB88C3BF057}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{375C73E5-A914-48CD-B2A6-0BB88C3BF057}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{375C73E5-A914-48CD-B2A6-0BB88C3BF057}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -175,6 +181,7 @@ Global
 		{E5A904BC-831B-46F4-8EF1-0390E8CEB99A} = {AC84E431-EC65-415A-B649-736F0A044467}
 		{7C4487EC-7282-4695-A3DF-8D5E2C33680E} = {D1071BB3-2C6B-45C2-B538-707D462B9F5C}
 		{43F8531C-45E9-4E63-9571-71630597E219} = {99F97F37-B2BB-4D45-899F-190F5CA61CC6}
+		{375C73E5-A914-48CD-B2A6-0BB88C3BF057} = {D1071BB3-2C6B-45C2-B538-707D462B9F5C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5B8B3F2C-AE0B-4C1D-824D-9EC8F8E6C8C5}

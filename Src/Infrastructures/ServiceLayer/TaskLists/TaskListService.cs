@@ -101,10 +101,10 @@ public class TaskListService : ITaskListService
 
     public async Task<CustomResult<TaskListFormRequest>> GetTaskListById(int Id, CancellationToken cancellationToken)
     {
-        
+
         var taskListFormRequest = await _taskListRepository.GetTaskListById(Id, cancellationToken);
 
-        if (taskListFormRequest == null) return CustomResult<TaskListFormRequest>.Failure (new CustomError(false, "Not found"));
+        if (taskListFormRequest == null) return CustomResult<TaskListFormRequest>.Failure(new CustomError(false, "Not found"));
 
         return CustomResult<TaskListFormRequest>.Success(taskListFormRequest);
     }

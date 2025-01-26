@@ -32,6 +32,8 @@ public static class AuthenticationExtensions
             x.SaveToken = true;
             x.TokenValidationParameters = new TokenValidationParameters
             {
+                // TODO validate issuer
+
                 ValidateIssuerSigningKey = false,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettingsSection.GetRequiredValue("SecretKey"))),
                 ValidateIssuer = false,

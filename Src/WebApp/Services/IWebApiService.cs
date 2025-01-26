@@ -5,7 +5,8 @@ namespace WebApp.Services;
 public interface IWebApiService<TRequest, TResponse>
 {
 
-    Task<PagingResponse<TResponse>> GetAllDataAsync(string requestUri, bool requiresAuth = false);
+    Task<PagingResponse<TResponse>> GetPagingDataAsync(string requestUri, bool requiresAuth = false);
+    Task<List<TResponse>> GetAllDataAsync(string requestUri, bool requiresAuth = false);
 
     Task<TResponse> GetDataByIdAsync(string requestUri, bool requiresAuth = false);
 
@@ -13,8 +14,8 @@ public interface IWebApiService<TRequest, TResponse>
 
     //Task<TResponse> SaveBulkAsync(string requestUri, List<TRequest> obj);
 
-    Task<TResponse> UpdateAsync(string requestUri, int Id, TRequest obj);
+    Task<HttpResponseMessage> UpdateAsync(string requestUri, int Id, TRequest obj, bool requiresAuth = false);
 
-    Task<TResponse> DeleteAsync(string requestUri);
+    Task<HttpResponseMessage> DeleteAsync(string requestUri, int Id, bool requiresAuth = false);
 
 }

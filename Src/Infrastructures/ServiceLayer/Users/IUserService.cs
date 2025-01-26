@@ -1,5 +1,4 @@
-﻿using Application.Aggregates.TaskListAggregate.Queries;
-using Application.Aggregates.UserAggregate.Commands;
+﻿using Application.Aggregates.UserAggregate.Commands;
 using Application.Aggregates.UserAggregate.Queries;
 using Application.Aggregates.UserAuthAggregate;
 using Application.Common.Models;
@@ -15,6 +14,7 @@ public interface IUserService
     Task<CustomResult<UserDto>> GetUserById(int Id);
 
     Task<CustomResult<UserDto>> GetUserByAspId(string AspId);
+    Task<CustomResult<UserDto>> GetUserByUserGuidId(Guid UserGuidId);
 
     public Task<CustomResult<UserLoginResponse>> GetUserByAccessTokenAsync(string accessToken);
 
@@ -24,9 +24,9 @@ public interface IUserService
 
     Task<CustomResult<Guid>> RefreshRegisterToken(int Id);
 
-    Task<bool> SaveRefreshTokenAsync(RefreshToken refreshToken, int UserId);
+    Task<bool> UpdateRefreshTokenAsync(int UserId, string refreshToken, DateTime refreshTokenExpiery);
 
-    Task<RefreshToken> GetRefreshToken(string tokenRequest);
+    Task<CustomError> CheckRefreshTokenOfUser(Guid userGuidId, string refreshToken);
 
     Task<PagingResponse<UserDto>> GetActiveUsersWithPagination(PagingParameters pagingParameters, CancellationToken cancellationToken);
 

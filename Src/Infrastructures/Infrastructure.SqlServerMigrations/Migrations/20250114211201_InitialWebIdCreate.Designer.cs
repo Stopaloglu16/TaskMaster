@@ -3,45 +3,51 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Infrastructure.SqliteMigrations.Migrations.WebIdentity
+namespace Infrastructure.SqlServerMigrations.Migrations
 {
     [DbContext(typeof(WebIdentityContext))]
-    [Migration("20241019185704_InitialWebIdCreate")]
+    [Migration("20250114211201_InitialWebIdCreate")]
     partial class InitialWebIdCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "8.0.8")
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedName")
                         .IsUnique()
-                        .HasDatabaseName("RoleNameIndex");
+                        .HasDatabaseName("RoleNameIndex")
+                        .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
                 });
@@ -50,17 +56,19 @@ namespace Infrastructure.SqliteMigrations.Migrations.WebIdentity
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RoleId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
@@ -72,54 +80,54 @@ namespace Infrastructure.SqliteMigrations.Migrations.WebIdentity
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("AccessFailedCount")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<string>("SecurityStamp")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
 
@@ -128,58 +136,59 @@ namespace Infrastructure.SqliteMigrations.Migrations.WebIdentity
 
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
-                        .HasDatabaseName("UserNameIndex");
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
 
                     b.HasData(
                         new
                         {
-                            Id = "6261c006-5c50-4a1a-b6c7-e2685739714e",
+                            Id = "5cdef780-f605-41b5-af69-7f2f8fa89edf",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "2288ca60-a266-4b68-9062-2e2ab3731d0d",
+                            ConcurrencyStamp = "dcef0d62-6466-4ded-81c8-7825fa55161f",
                             Email = "AdminUser@hotmail.co.uk",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMINUSER@HOTMAIL.CO.UK",
                             NormalizedUserName = "ADMINUSER@HOTMAIL.CO.UK",
-                            PasswordHash = "AQAAAAIAAYagAAAAEORuo7J8Dak2QIPYgJ5IiMu1FhCo8WYk/GUjI5LKXRwzhkLIKQXdBpo3ossf3bEZcA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEH6jgMAYvuW0UAsiNTQQLpkKajlTkBd4uXUCKJCRUwrNNC+qq0amZKE/NlK7le67tw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "84f896a1-a262-4922-8bdb-244817f2c6c7",
+                            SecurityStamp = "656b4478-f2b2-4657-b1b0-5ba97234d547",
                             TwoFactorEnabled = false,
-                            UserName = "AdminUser@hotmail.co.uk"
+                            UserName = "AdminUser"
                         },
                         new
                         {
-                            Id = "0772ec8e-ca1c-440d-a953-0ad6a4c85f5f",
+                            Id = "56580504-eea9-41ee-bd34-d2330c5056bb",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "b1e9731c-a431-4773-b99b-217999fa1037",
+                            ConcurrencyStamp = "0be9843a-beef-44e6-a54d-8e1fa9e0ac7f",
                             Email = "TaskUser@hotmail.co.uk",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "TASKUSER@HOTMAIL.CO.UK",
                             NormalizedUserName = "TASKUSER@HOTMAIL.CO.UK",
-                            PasswordHash = "AQAAAAIAAYagAAAAEA35pbciYqbaQDIJmVaorIQKO5Uem+Kljh3DzM6hG9pLvTg6nC1cudQDvEVyk8fv9g==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKXo0oHucu36CG07nzX5RBwAhkjObhsM3Nk+l9vRyzAGMF4/l/qpg9F9zMzo5z2WQA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "57232926-b3e0-4765-9c86-465faccdb17e",
+                            SecurityStamp = "563755b4-0a24-4d6d-a574-8e7f5c6c2350",
                             TwoFactorEnabled = false,
-                            UserName = "TaskUser@hotmail.co.uk"
+                            UserName = "TaskUser"
                         },
                         new
                         {
-                            Id = "fec064ae-0fbe-4132-8f81-c87a3b74ae95",
+                            Id = "82305145-05c0-4f44-bc7b-43bacd016008",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "fcedcf82-0066-4e1b-83e4-7981fa4a67b0",
+                            ConcurrencyStamp = "3590705a-ad3a-42c0-a45a-4f61d5c4d927",
                             Email = "ReadOnly@hotmail.co.uk",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "READONLY@HOTMAIL.CO.UK",
                             NormalizedUserName = "READONLY@HOTMAIL.CO.UK",
-                            PasswordHash = "AQAAAAIAAYagAAAAEEzY+fEZeGuNULP5XcDSbGtiNafYBI34KGuRRHwm9+B7nEAS61+mQ19rgq0G7CCAZQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJ04+7iHqebuVEk4kWtuHTauOfG3OnxEvl9TZt7DdfK0zt7s+Vz6+ikifw55dHj3Fg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "45a65c3c-23da-45d0-9a86-ad06000d011e",
+                            SecurityStamp = "6616be9c-b6f3-4927-8842-0d085cb75384",
                             TwoFactorEnabled = false,
-                            UserName = "ReadOnly@hotmail.co.uk"
+                            UserName = "ReadOnly"
                         });
                 });
 
@@ -187,17 +196,19 @@ namespace Infrastructure.SqliteMigrations.Migrations.WebIdentity
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
@@ -209,17 +220,17 @@ namespace Infrastructure.SqliteMigrations.Migrations.WebIdentity
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderDisplayName")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("LoginProvider", "ProviderKey");
 
@@ -231,10 +242,10 @@ namespace Infrastructure.SqliteMigrations.Migrations.WebIdentity
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("RoleId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("UserId", "RoleId");
 
@@ -246,16 +257,16 @@ namespace Infrastructure.SqliteMigrations.Migrations.WebIdentity
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Value")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 

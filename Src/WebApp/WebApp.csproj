@@ -17,6 +17,7 @@
     <ProjectReference Include="..\Core\Application\Application.csproj" />
     <ProjectReference Include="..\Infrastructures\ServiceLayer\ServiceLayer.csproj" />
     <ProjectReference Include="..\Presentation\TaskMaster.ServiceDefaults\TaskMaster.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Presentation\TaskMasterRazorClassLibrary\TaskMasterRazorClassLibrary.csproj" />
   </ItemGroup>
 
 </Project>
