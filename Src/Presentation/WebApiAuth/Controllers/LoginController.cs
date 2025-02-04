@@ -1,19 +1,11 @@
 ﻿using Application.Aggregates.UserAuthAggregate;
 using Application.Aggregates.UserAuthAggregate.Token;
 using Asp.Versioning;
-using Azure.Core;
-using Domain.Entities;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using ServiceLayer.Users;
-using System;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
 using WebApiAuth.Models;
 using WebApiAuth.Services;
 
@@ -100,7 +92,7 @@ namespace WebApiAuth.Controllers
             }
         }
 
-      
+
 
 
         [MapToApiVersion(1)]
@@ -118,7 +110,7 @@ namespace WebApiAuth.Controllers
 
                 string accessToken = tokenRefreshRequest.AccessToken;
                 string refreshToken = tokenRefreshRequest.RefreshToken;
-                
+
                 var principal = _authService.GetPrincipalFromExpiredToken(tokenRefreshRequest.AccessToken);
 
                 var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
@@ -130,15 +122,13 @@ namespace WebApiAuth.Controllers
                 }
 
 
-                var userGuidId = Guid.Parse(userGuidIdClaim); 
+                var userGuidId = Guid.Parse(userGuidIdClaim);
                 var user = await _userloginservice.CheckRefreshTokenOfUser(userGuidId, refreshToken);
-
-                // TODO invalid token???
 
                 if (!user.isSuccess)
                     return BadRequest(user.error);
-                
-                
+
+
                 var webUser = await _userloginservice.GetUserByUserGuidId(userGuidId);
 
                 UserTokenDto userTokenDto = new UserTokenDto()
@@ -150,7 +140,8 @@ namespace WebApiAuth.Controllers
                 };
 
 
-                var loginResponse = await _authService.LoginAsync(userTokenDto);
+                //var loginResponse = await _authService.LoginAsync(userTokenDto);
+                var loginResponse = _authService.RefreshTokensAsync(userTokenDto);
 
                 return Ok(loginResponse);
 

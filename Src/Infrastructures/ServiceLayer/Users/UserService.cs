@@ -97,7 +97,7 @@ public class UserService : IUserService
 
     public async Task<bool> UpdateRefreshTokenAsync(int UserId, string refreshToken, DateTime refreshTokenExpiery)
     {
-        return await _userRepository.UpdateRefreshTokenAsync(UserId,refreshToken,refreshTokenExpiery);
+        return await _userRepository.UpdateRefreshTokenAsync(UserId, refreshToken, refreshTokenExpiery);
     }
 
     public async Task<CustomError> CheckRefreshTokenOfUser(Guid userGuidId, string refreshToken)

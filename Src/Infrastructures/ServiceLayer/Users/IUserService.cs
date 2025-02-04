@@ -2,7 +2,6 @@
 using Application.Aggregates.UserAggregate.Queries;
 using Application.Aggregates.UserAuthAggregate;
 using Application.Common.Models;
-using Domain.Entities;
 using Domain.Enums;
 
 namespace ServiceLayer.Users;

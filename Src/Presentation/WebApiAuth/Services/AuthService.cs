@@ -37,20 +37,18 @@ public class AuthService : IAuthService
         return LoginResponse;
     }
 
-    public async Task<UserLoginResponse?> RefreshTokensAsync(UserTokenDto userTokenDto)
+    public UserLoginResponse? RefreshTokensAsync(UserTokenDto userTokenDto)
     {
-        var refreshToken = await GenerateAndSaveRefreshTokenAsync(userTokenDto.UserId);
+        //var refreshToken = await GenerateAndSaveRefreshTokenAsync(userTokenDto.UserId);
 
         var LoginResponse = new UserLoginResponse();
 
-        LoginResponse.RefreshToken = refreshToken;
+        LoginResponse.RefreshToken = "refreshToken";
         LoginResponse.AccessToken = GenerateAccessToken(userTokenDto.Username, userTokenDto.UserGuidId.ToString(), userTokenDto.Role);
         LoginResponse.UserName = userTokenDto.Username;
 
         return LoginResponse;
     }
-
-
 
     private async Task<string> GenerateAndSaveRefreshTokenAsync(int userId)
     {
@@ -85,9 +83,9 @@ public class AuthService : IAuthService
         var tokeOptions = new JwtSecurityToken(
             issuer: _jwtsettings.Issuer,
             audience: _jwtsettings.Audience,
-            claims: claims, 
-            notBefore:DateTime.Now,
-            expires: DateTime.Now.AddMinutes(15),
+            claims: claims,
+            notBefore: DateTime.Now,
+            expires: DateTime.Now.AddMinutes(5),
             signingCredentials: signinCredentials
         );
 

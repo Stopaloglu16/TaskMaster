@@ -44,7 +44,7 @@ public class RefreshRequestTests : BaseIntegrationTest
             AccessToken = apiLoginResponse.AccessToken
         };
 
-        await Task.Delay(6000);
+        await Task.Delay(65000);
 
         //Act
         var refreshRequestApi = await _httpClient.PostAsJsonAsync($"/api/v1.0/Login/refresh-token", refreshTokenRequest);

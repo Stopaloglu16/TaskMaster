@@ -80,9 +80,9 @@ public class RegisterTests : BaseIntegrationTest
             var request = new FetchMessageRequest() { Domain = MailinatorDomain, MessageId = mailId };
             var responseFetch = await mailinatorClient.MessagesClient.FetchMessageAsync(request);
 
-            string urlPattern = @"<a href='([^']*)'>"; 
-            Match match = Regex.Match(responseFetch.Text.ToString(), urlPattern); 
-            
+            string urlPattern = @"<a href='([^']*)'>";
+            Match match = Regex.Match(responseFetch.Text.ToString(), urlPattern);
+
             var textArray = match.Groups[1].Value.Split('/');
 
             if (createUserRequest.UserEmail == textArray[4].ToString())

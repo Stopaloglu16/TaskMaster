@@ -1,0 +1,109 @@
+﻿@page "/register/{username}/{token}"
+@using Application.Aggregates.UserAuthAggregate
+@using WebsiteApp.Services
+
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService localStorageService
+@inject IAuthService authService
+@inject IJSRuntime jsRunTime
+@inject NavigationManager Navigation
+
+<h3>Register</h3>
+<p>@returnMessage</p>
+
+<EditForm Model="@registerUserRequest" OnValidSubmit="@RegisterSubmit">
+    <DataAnnotationsValidator />
+    <div class="col-10 row">
+        <input class="form-control col-12" @bind="registerUserRequest.Username" placeholder="User name" />
+        &nbsp;<ValidationMessage For="@(() => registerUserRequest.Username)" />
+    </div>
+    <br />
+    <div class="col-10 row">
+        <input type="password" class="form-control col-12" @bind="registerUserRequest.Password" placeholder="Password" />
+        &nbsp;<ValidationMessage For="@(() => registerUserRequest.Password)" />
+    </div>
+    <br />
+    <div class="col-10 row">
+        <input type="password" class="form-control col-12" @bind="registerUserRequest.ConfirmPassword" placeholder="Confirm password" />
+        &nbsp;<ValidationMessage For="@(() => registerUserRequest.ConfirmPassword)" />
+    </div>
+    <br />
+    <div class="col-5 row">
+        <span class="col-12"></span>
+        <input type="submit" class="form-control offset-1 col-10 btn btn-primary" value="Save" />
+    </div>
+    <br />
+    <div class="col-10 row" style="text-align:left; font-weight:bold">
+        <span class="col-12">@RegisterMesssage</span>
+    </div>
+
+</EditForm>
+
+@code {
+
+    [Parameter]
+    public string username { get; init; }
+
+    [Parameter]
+    public string token { get; init; }
+
+    private string returnMessage { get; set; }
+
+
+    public RegisterUserRequest registerUserRequest { get; set; }
+    private string RegisterMesssage { get; set; }
+
+
+    protected async override Task OnInitializedAsync()
+    {
+
+        //user = new User();
+        await base.OnInitializedAsync();
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    protected async override Task OnParametersSetAsync()
+    {
+        registerUserRequest = new RegisterUserRequest() { Username = username };
+        await base.OnParametersSetAsync();
+
+    }
+
+
+    private async Task RegisterSubmit()
+    {
+        try
+        {
+            registerUserRequest.TokenConfirm = token;
+            var returnedUser = await authService.RegisterUserAsync(registerUserRequest);
+
+            if (returnedUser.IsSuccess)
+            {
+                NavigationManager.NavigateTo("/login", false);
+            }
+            else
+            {
+                returnMessage = returnedUser.Error;
+            }
+        }
+        catch (Exception ex)
+        {
+            returnMessage = ex.Message;
+        }
+
+        StateHasChanged();
+    }
+}

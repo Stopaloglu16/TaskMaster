@@ -1,0 +1,102 @@
+﻿@page "/"
+@page "/login"
+@using Application.Aggregates.UserAuthAggregate
+@using Newtonsoft.Json
+@using System.Security.Claims
+@using WebsiteApp.Data
+@using WebsiteApp.Services
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService localStorageService
+@inject IAuthService authService
+@inject IJSRuntime jsRunTime
+
+
+<h3>Log in</h3>
+
+<EditForm FormName="LoginForm" Model="@userModel" OnValidSubmit="@LoginSubmit">
+    <DataAnnotationsValidator/>
+    <div class="col-10 row">
+        <InputText class="form-control col-12" @bind-Value="userModel.Username" placeholder="User name" />
+        &nbsp;<ValidationMessage For="@(() => userModel.Username)" />
+    </div>
+    <br />
+    <div class="col-10 row">
+        <InputText type="password" class="form-control col-12" @bind-value="userModel.Password" placeholder="Password" />
+        &nbsp;<ValidationMessage For="@(() => userModel.Password)" />
+    </div>
+    <br />
+    <div class="col-5 row">
+        <span class="col-8"></span>
+        <input type="submit" class="form-control offset-1 col-10 btn btn-primary" value="Login" />
+        <a href="">Forgot password</a>
+    </div>
+    <br />
+    <div class="col-10 row" style="text-align:left; font-weight:bold">
+        <span class="col-12">@LoginMesssage</span>
+    </div>
+
+</EditForm>
+
+
+@code {
+
+    private UserLoginRequest userModel;
+    public string LoginMesssage { get; set; }
+    ClaimsPrincipal claimsPrincipal;
+
+    // [CascadingParameter]
+    // private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+
+        //user = new User();
+        userModel = new UserLoginRequest() { Username = "", Password = "" };
+
+        userModel.Username = "taskmaster@hotmail.co.uk";
+        userModel.Password = "SuperStrongPassword+123";
+
+        //claimsPrincipal = (await authenticationStateTask).User;
+
+        // if (claimsPrincipal.Identity.IsAuthenticated)
+        // {
+        //     NavigationManager.NavigateTo("/taskmanager", false);
+        // }
+        // else
+        // {
+
+        //     userModel = new UserLoginRequest() { Username = "Sertac01", Password = "Password@123" };
+
+        //     //userModel.Username = "";
+        //     //userModel.Password = "";
+        // }
+
+        
+    }
+
+
+    private async Task LoginSubmit()
+    {
+        var returnedUser = await authService.LoginAsync(userModel);
+
+        try
+        {
+            if (returnedUser.IsSuccess)
+            {
+               await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(returnedUser.Value);
+
+               NavigationManager.NavigateTo("/taskmanagerdemo", false);
+            }
+            else
+            {
+                LoginMesssage = returnedUser.CustomError.error;
+            }
+        }
+        catch (Exception ex)
+        {
+            LoginMesssage = ex.Message;
+        }
+    }
+}

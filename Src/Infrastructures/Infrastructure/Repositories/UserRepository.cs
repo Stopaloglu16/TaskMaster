@@ -143,7 +143,7 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
         if (tokenTemp == null)
             return CustomError.Failure("user not found");
 
-        if (tokenTemp.RefreshToken != refreshToken) // || tokenTemp.RefreshTokenExpiryTime <= DateTime.Now)
+        if (tokenTemp.RefreshToken != refreshToken || tokenTemp.RefreshTokenExpiryTime <= DateTime.Now)
             return CustomError.Failure("Invalid token");
 
         return CustomError.Success();

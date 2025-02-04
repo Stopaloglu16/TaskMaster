@@ -1,0 +1,119 @@
+﻿@page "/taskmanagerdemo"
+
+@using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate
+@using Application.Aggregates.TaskListAggregate.Queries
+@using Application.Common.Models
+@using Domain.Enums
+@using WebsiteApp.Services
+﻿@using Microsoft.AspNetCore.Components.QuickGrid
+@using TaskMasterRazorClassLibrary
+
+@inject IWebApiService<TaskListDto, TaskListDto> _taskListService
+@inject IWebApiService<TaskListFormRequest, TaskListFormRequest> _taskListFormService
+@inject IWebApiService<SelectListItem, SelectListItem> _taskListSelectService
+@inject IWebApiService<TaskListFormRequest, HttpResponseMessage> _taskListFormCrudService
+@inject NavigationManager NavigationManager
+
+
+@rendermode InteractiveServer
+
+<div class="container mt-3">
+    <h2>Task Manager Demo</h2>
+    <div class="card">
+        <div class="card-header">
+            <button class="btn btn-primary" type="button" @onclick="@(() => HandleSomeEvent())">Refreh</button>
+        </div>
+        <div class="card-body">
+
+            @if (gridItemsProvider == null)
+            {
+                <p>Loading...</p>
+            }
+            else
+            {
+                <div class="grid">
+                    <QuickGrid ItemsProvider="@gridItemsProvider" @ref="myGrid">
+                        <PropertyColumn Property="@(p => p.Title)" Title="Title" Sortable="true" />
+                        <PropertyColumn Property="@(p => p.DueDate)" Title="DueDate" Format="yyyy-MM-dd" Sortable="true" />
+                        <PropertyColumn Property="@(p => p.CompletedDate)" Title="Completed Date" Format="yyyy-MM-dd" Sortable="true" />
+                        <PropertyColumn Property="@(p => p.AssignedTo)" Title="Assign To" Sortable="true" />
+                    </QuickGrid>
+                </div>
+
+            }
+        </div>
+        <div class="card-footer">
+        </div>
+
+
+    </div>
+</div>
+
+
+@code {
+
+
+    public GridItemsProvider<TaskListDto>? gridItemsProvider;
+    private int totalItemCount = 0; // Manages total items across all pages
+
+
+    public bool IsSuccess = false;
+
+    QuickGrid<TaskListDto> myGrid; 
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
+
+    protected async override Task OnInitializedAsync()
+    {
+        var authState = await authenticationState;
+        var user = authState.User;
+        if (!user.Identity.IsAuthenticated)
+            NavigationManager.NavigateTo("/", true);
+
+
+        gridItemsProvider = async req =>
+     {
+         var response = await _taskListService.GetPagingDataAsync(
+         $"tasklist?PageNumber={1}&PageSize={10}&OrderBy=Id&IsDescending=false");
+
+         if (response != null)
+         {
+             // Update total item count for pagination
+             totalItemCount = response.TotalCount;
+
+             // Return the grid data
+             return GridItemsProviderResult.From(response.Items.ToList(), response.TotalCount);
+         }
+         else
+         {
+             // Log or handle the null response scenario
+             Console.Error.WriteLine("Failed to load task list data. API returned null.");
+             return GridItemsProviderResult.From<TaskListDto>((ICollection<TaskListDto>)Enumerable.Empty<TaskListDto>().ToList(), 0);
+         }
+
+     };
+
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public async Task HandleSomeEvent()
+    {
+        if (myGrid != null)
+        {
+            await myGrid.RefreshDataAsync();
+        }
+    }
+
+}

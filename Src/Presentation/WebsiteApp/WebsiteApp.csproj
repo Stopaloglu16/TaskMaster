@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>e716c010-0862-44aa-89d9-ac1e74a89800</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="9.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Infrastructures\ServiceLayer\ServiceLayer.csproj" />
+    <ProjectReference Include="..\TaskMaster.ServiceDefaults\TaskMaster.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\TaskMasterRazorClassLibrary\TaskMasterRazorClassLibrary.csproj" />
+  </ItemGroup>
+
+</Project>
