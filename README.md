@@ -11,7 +11,7 @@ Task will have Due date and Complete date for performance calculation. Each task
 
 | Id | Phases   | Status |
 | -- | --------------- | - |
-| 1  | Phase 1 | ![60](https://geps.dev/progress/60)|
+| 1  | Phase 1 | ![80](https://geps.dev/progress/60)|
 | 2  | Phase 2 | ![20](https://geps.dev/progress/20)|
 | 3  | Phase 3 | ![0](https://geps.dev/progress/0)|
 | 4  | Phase 4 | ![0](https://geps.dev/progress/0)|
