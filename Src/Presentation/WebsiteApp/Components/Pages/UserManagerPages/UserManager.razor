@@ -1,6 +1,5 @@
 ﻿@page "/usermanager"
 
-
 @using Application.Aggregates.UserAggregate.Commands
 @using Application.Aggregates.UserAggregate.Queries
 @using Application.Common.Models
@@ -11,35 +10,54 @@
 @inject IWebApiService<UserDto, UserDto> _userService
 @inject IWebApiService<CreateUserRequest, CreateUserRequest> _createUserService
 @inject IWebApiService<UpdateUserRequest, UpdateUserRequest> _updateUserService
+@inject NavigationManager NavigationManager
 
 <div class="container mt-3">
     <h2>User Manager</h2>
     <div class="card">
         <div class="card-header">
-            <button class="btn btn-primary" type="button" @onclick="@(() => EditTasklist(0))">New</button>
+            <button class="btn btn-primary" type="button" @onclick="@(() => EditUser(0))">New</button>
         </div>
         <div class="card-body">
-            <div class="page-size-chooser">
-                Items per page:
-                <select @bind="ItemsPerPage">
-                    <option>5</option>
-                    <option>10</option>
-                    <option>20</option>
-                    <option>50</option>
-                </select>
-            </div>
 
-            <div class="grid">
-                <QuickGrid ItemsProvider="@gridItemsProvider" Pagination="@pagination">
-                    <PropertyColumn Property="@(p => p.FullName)" Title="Full name" Sortable="true" />
-                    <PropertyColumn Property="@(p => p.UserEmail)" Title="Email" Sortable="true" />
-                    <PropertyColumn Property="@(p => p.UserType)" Title="User Type" Sortable="true" />
-                    <TemplateColumn Title="Actions">
-                        <button class="btn btn-success" @onclick="@(() => EditTasklist(context.Id))"><i class="oi oi-pencil"></i> </button>
-                        <button class="btn btn-danger" @onclick="@(() => DeleteTasklist(context))"><i class="oi oi-trash"></i></button>
-                    </TemplateColumn>
-                </QuickGrid>
-            </div>
+
+            @if (gridItemsProvider == null)
+            {
+                <p>Loading...</p>
+            }
+            else
+            {
+                @if (pagination.TotalItemCount == 0)
+                {
+                    <p>No item found! ⚠️</p>
+                }
+                else
+                {
+
+                    <div class="page-size-chooser">
+                        Items per page:
+                        <select @bind="ItemsPerPage">
+                            <option>5</option>
+                            <option>10</option>
+                            <option>20</option>
+                            <option>50</option>
+                        </select>
+                    </div>
+
+                    <div class="grid">
+                        <QuickGrid ItemsProvider="@gridItemsProvider" Pagination="@pagination" @ref="userListDtoGrid">
+                            <PropertyColumn Property="@(p => p.FullName)" Title="Full name" Sortable="true" />
+                            <PropertyColumn Property="@(p => p.UserEmail)" Title="Email" Sortable="true" />
+                            <PropertyColumn Property="@(p => p.UserType)" Title="User Type" Sortable="true" />
+                            <TemplateColumn Title="Actions">
+                                <button class="btn btn-success" @onclick="@(() => EditUser(context.Id))"><span class="bi bi-pencil"></span> </button>
+                                <button class="btn btn-danger" @onclick="@(() => DeleteTasklist(context))"><span class="bi bi-trash"></span></button>
+                            </TemplateColumn>
+                        </QuickGrid>
+                    </div>
+                }
+            }
+
         </div>
         <div class="card-footer">
             <nav role="navigation">
@@ -47,14 +65,22 @@
                 {
                     var lastIx = (int)pagination.LastPageIndex + 1;
 
-                    <button class="oi oi-arrow-circle-left" type="button" title="Go to first page" @onclick="@(() => GoToPageAsync(0))"></button>
-                    <button class="oi oi-arrow-thick-left" type="button" title="Go to previous page" @onclick="@(() => GoToPageAsync((int)(currentPageIndex-1)))"></button>
+                    <button class="btn btn-default" type="button" title="Go to first page" @onclick="@(() => GoToPageAsync(0))">
+                        <span class="bi bi-caret-left-square-fill"></span>
+                    </button>
+                    <button class="btn btn-light" type="button" title="Go to previous page" @onclick="@(() => GoToPageAsync((int)(currentPageIndex-1)))">
+                        <span class="bi bi-caret-left-fill"></span>
+                    </button>
                     <div class="pagination-text">
                         Page <strong b-3qssc0bm46="">@((int)currentPageIndex + 1)</strong>
                         of <strong b-3qssc0bm46=""> @lastIx</strong>
                     </div>
-                    <button class="oi oi-arrow-thick-right" type="button" title="Go to next page" @onclick="@(() => GoToPageAsync((int)(currentPageIndex+1)))"></button>
-                    <button class="oi oi-arrow-circle-right" type="button" title="Go to last page" @onclick="@(() => GoToPageAsync((int)pagination.LastPageIndex))"></button>
+                    <button class="btn btn-light" type="button" title="Go to next page" @onclick="@(() => GoToPageAsync((int)(currentPageIndex+1)))">
+                        <span class="bi bi-caret-right-fill"></span>
+                    </button>
+                    <button class="btn btn-light" type="button" title="Go to last page" @onclick="@(() => GoToPageAsync((int)pagination.LastPageIndex))">
+                        <span class="bi bi-caret-right-square-fill"></span>
+                    </button>
                 }
             </nav>
         </div>
@@ -65,7 +91,7 @@
 @if (UserModalOpen)
 {
     <UserModal userFormRequest="@userFormRequest" userTypeList="@userTypeList"
-               OnClose="@SaveTaskListModel">
+    OnClose="@SaveUserModel">
     </UserModal>
 }
 
@@ -78,7 +104,7 @@
 
     private int? currentPageIndex = 0;
     private int? lastPageIndex = 0;
-
+    private int pageNumber = 0;
     private int _itemsPerPage = 10;
 
     private int ItemsPerPage
@@ -97,12 +123,45 @@
 
     public bool UserModalOpen = false;
     public UserFormRequest userFormRequest { get; set; }
+
+    QuickGrid<UserDto> userListDtoGrid; //Added into QucikGrid @ref="myGrid"
     private List<UserType> userTypeList { get; set; } = new List<UserType>();
 
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
 
     protected async override Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
+        var authState = await authenticationState;
+        var user = authState.User;
+        if (!user.Identity.IsAuthenticated)
+            NavigationManager.NavigateTo("/", true);
+
+        // Fetch paginated data
+        pageNumber = pagination.CurrentPageIndex + 1; // Convert to 1-based index
+        pagination.TotalItemCountChanged += (sender, eventArgs) => StateHasChanged();
+
+
+        gridItemsProvider = async req =>
+        {
+            var response = await _userService.GetPagingDataAsync(
+                $"Users/userlist?PageNumber={pageNumber}&PageSize={ItemsPerPage}&OrderBy=Id&IsDescending=false", true);
+
+            if (response != null)
+            {
+                // Update total item count for pagination
+                totalItemCount = response.TotalCount;
+
+                // Return the grid data
+                return GridItemsProviderResult.From(response.Items.ToList(), response.TotalCount);
+            }
+            else
+            {
+                // Log or handle the null response scenario
+                Console.Error.WriteLine("Failed to load task list data. API returned null.");
+                return GridItemsProviderResult.From<UserDto>((ICollection<UserDto>)Enumerable.Empty<UserDto>().ToList(), 0);
+            }
+        };
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -115,9 +174,6 @@
             {
                 userTypeList.Add(userType);
             }
-
-
-            await OnItemsPerPageChanged();
 
             StateHasChanged();
         }
@@ -159,19 +215,31 @@
 
     private async Task LoadUserListAsync()
     {
-        // Fetch paginated data
-        var pageNumber = pagination.CurrentPageIndex + 1; // Convert to 1-based index
-                                                          //var pageSize = pagination.ItemsPerPage;
+        // // Fetch paginated data
+        // var pageNumber = pagination.CurrentPageIndex + 1; // Convert to 1-based index
+        // //var pageSize = pagination.ItemsPerPage;
 
-        gridItemsProvider = async req =>
-        {
-            var userListDtos = await _userService.GetPagingDataAsync(
-            $"Users/userlist?PageNumber={pageNumber}&PageSize={ItemsPerPage}&OrderBy=Id&IsDescending=false", true);
+        // gridItemsProvider = async req =>
+        // {
+        //     var userListDtos = await _userService.GetPagingDataAsync(
+        //     $"Users/userlist?PageNumber={pageNumber}&PageSize={ItemsPerPage}&OrderBy=Id&IsDescending=false", true);
 
-            return GridItemsProviderResult.From(userListDtos.Items.ToList(), userListDtos.TotalCount);
-        };
+        //     return GridItemsProviderResult.From(userListDtos.Items.ToList(), userListDtos.TotalCount);
+        // };
 
         //StateHasChanged();
+
+
+        if (userListDtoGrid != null)
+        {
+            // Fetch paginated data
+            //pageNumber = pagination.CurrentPageIndex + 1; // Convert to 1-based index
+            //var pageSize = pagination.ItemsPerPage;
+
+            //pagination.TotalItemCountChanged += (sender, eventArgs) => StateHasChanged();
+
+            await userListDtoGrid.RefreshDataAsync();
+        }
     }
 
 
@@ -184,8 +252,15 @@
 
     #region Modal
 
+    private async Task ModalSuccess()
+    {
+        UserModalOpen = false;
+        //ActionPerItemModalOpen = false;
+        await LoadUserListAsync(); // Reload data with the updated page size
+        StateHasChanged();
+    }
 
-    protected async Task EditTasklist(int Id)
+    protected async Task EditUser(int Id)
     {
         if (Id > 0)
         {
@@ -207,7 +282,7 @@
         UserModalOpen = true;
     }
 
-    protected async Task SaveTaskListModel(UserFormRequest userFormRequest)
+    protected async Task SaveUserModel(UserFormRequest userFormRequest)
     {
         if (userFormRequest == null)
         {
@@ -215,6 +290,8 @@
         }
         else
         {
+            HttpResponseMessage apiReturn;
+
             if (userFormRequest.Id > 0)
             {
                 UpdateUserRequest updateUserRequest = new UpdateUserRequest()
@@ -224,7 +301,7 @@
                         UserEmail = userFormRequest.UserEmail
                     };
 
-                var apiReturn = await _updateUserService.UpdateAsync("users", userFormRequest.Id, updateUserRequest);
+                apiReturn = await _updateUserService.UpdateAsync("users", userFormRequest.Id, updateUserRequest);
             }
             else
             {
@@ -234,13 +311,19 @@
                         UserEmail = userFormRequest.UserEmail,
                         UserType = userFormRequest.UserType
                     };
-                var apiReturn = await _createUserService.SaveAsync("users", createUserRequest, true);
+                apiReturn = await _createUserService.SaveAsync("users", createUserRequest, true);
             }
 
-            UserModalOpen = false;
+            //UserModalOpen = false;
+
+            if(apiReturn.IsSuccessStatusCode)
+            {
+                await ModalSuccess();
+            }
+
         }
 
-        StateHasChanged();
+        //StateHasChanged();
 
     }
 

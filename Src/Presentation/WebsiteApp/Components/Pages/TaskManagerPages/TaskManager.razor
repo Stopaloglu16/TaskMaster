@@ -18,6 +18,7 @@
 
 @rendermode InteractiveServer
 
+
 <div class="container mt-3">
     <h2>Task Manager</h2>
     <div class="card">
@@ -49,7 +50,7 @@
                     </div>
 
                     <div class="grid">
-                        <QuickGrid ItemsProvider="@gridItemsProvider" Pagination="@pagination" >
+                        <QuickGrid ItemsProvider="@gridItemsProvider" Pagination="@pagination" @ref="taskListDtoGrid">
                             <PropertyColumn Property="@(p => p.Title)" Title="Title" Sortable="true" />
                             <PropertyColumn Property="@(p => p.DueDate)" Title="DueDate" Format="yyyy-MM-dd" Sortable="true" />
                             <PropertyColumn Property="@(p => p.CompletedDate)" Title="Completed Date" Format="yyyy-MM-dd" Sortable="true" />
@@ -69,19 +70,25 @@
                 {
                     var lastIx = (int)pagination.LastPageIndex + 1;
 
-                    <button class="oi oi-arrow-circle-left" type="button" title="Go to first page" @onclick="@(() => GoToPageAsync(0))"></button>
-                    <button class="oi oi-arrow-thick-left" type="button" title="Go to previous page" @onclick="@(() => GoToPageAsync((int)(currentPageIndex-1)))"></button>
+                    <button class="btn btn-default" type="button" title="Go to first page" @onclick="@(() => GoToPageAsync(0))">
+                        <span class="bi bi-caret-left-square-fill"></span>
+                    </button>
+                    <button class="btn btn-light" type="button" title="Go to previous page" @onclick="@(() => GoToPageAsync((int)(currentPageIndex-1)))">
+                        <span class="bi bi-caret-left-fill"></span>
+                    </button>
                     <div class="pagination-text">
                         Page <strong b-3qssc0bm46="">@((int)currentPageIndex + 1)</strong>
                         of <strong b-3qssc0bm46=""> @lastIx</strong>
                     </div>
-                    <button class="oi oi-arrow-thick-right" type="button" title="Go to next page" @onclick="@(() => GoToPageAsync((int)(currentPageIndex+1)))"></button>
-                    <button class="oi oi-arrow-circle-right" type="button" title="Go to last page" @onclick="@(() => GoToPageAsync((int)pagination.LastPageIndex))"></button>
+                    <button class="btn btn-light" type="button" title="Go to next page" @onclick="@(() => GoToPageAsync((int)(currentPageIndex+1)))">
+                        <span class="bi bi-caret-right-fill"></span>
+                    </button>
+                    <button class="btn btn-light" type="button" title="Go to last page" @onclick="@(() => GoToPageAsync((int)pagination.LastPageIndex))">
+                        <span class="bi bi-caret-right-square-fill"></span>
+                    </button>
                 }
             </nav>
         </div>
-
-
     </div>
 </div>
 
@@ -110,11 +117,8 @@
 
     private int? currentPageIndex = 0;
     private int? lastPageIndex = 0;
-
     private int pageNumber = 0;
-
     private int _itemsPerPage = 10;
-
 
     private int ItemsPerPage
     {
@@ -124,22 +128,20 @@
             if (_itemsPerPage != value)
             {
                 _itemsPerPage = value;
-                OnItemsPerPageChanged(); // Trigger change handler
+                OnItemsPerPageChanged().ConfigureAwait(false); // Trigger change handler
             }
         }
     }
 
-    public bool IsSuccess = false;
-
     public bool TaskListModalOpen = false;
     public TaskListFormRequest taskListFormRequest { get; set; }
 
+    QuickGrid<TaskListDto> taskListDtoGrid; //Added into QucikGrid @ref="myGrid"
 
     List<SelectListItem> taskUserList { get; set; }
 
     [CascadingParameter]
     private Task<AuthenticationState>? authenticationState { get; set; }
-
 
     protected async override Task OnInitializedAsync()
     {
@@ -148,69 +150,9 @@
         if (!user.Identity.IsAuthenticated)
             NavigationManager.NavigateTo("/", true);
 
-
-
-
-        await base.OnInitializedAsync();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await OnItemsPerPageChanged();
-            StateHasChanged();
-        }
-
-        await base.OnAfterRenderAsync(firstRender);
-    }
-
-
-
-    private async Task OnItemsPerPageChanged()
-    {
-        currentPageIndex = 0;
-        pagination.ItemsPerPage = ItemsPerPage; // Update pagination state
-        await pagination.SetCurrentPageIndexAsync(0); // Reset to the first page
-        await LoadTaskListAsync(); // Reload data with the updated page size
-
-    }
-
-
-    private async Task GoToPageAsync(int pageIndex)
-    {
-        currentPageIndex = pageIndex;
-        await pagination.SetCurrentPageIndexAsync(pageIndex);
-        await LoadTaskListAsync();
-    }
-
-    private string? PageButtonClass(int pageIndex)
-        => pagination.CurrentPageIndex == pageIndex ? "current" : null;
-
-
-    private string? AriaCurrentValue(int pageIndex)
-      => pagination.CurrentPageIndex == pageIndex ? "page" : null;
-
-
-
-    //QuickGrid<TaskListDto> myGrid; Added into QucikGrid @ref="myGrid"
-
-
-    private async Task LoadTaskListAsync()
-    {
-        if (gridItemsProvider != null)
-        {
-            // Only force a reload if needed
-            StateHasChanged();
-            return;
-        }
-
         // Fetch paginated data
         pageNumber = pagination.CurrentPageIndex + 1; // Convert to 1-based index
-                                                      //var pageSize = pagination.ItemsPerPage;
-
         pagination.TotalItemCountChanged += (sender, eventArgs) => StateHasChanged();
-
 
         gridItemsProvider = async req =>
         {
@@ -231,16 +173,59 @@
                 Console.Error.WriteLine("Failed to load task list data. API returned null.");
                 return GridItemsProviderResult.From<TaskListDto>((ICollection<TaskListDto>)Enumerable.Empty<TaskListDto>().ToList(), 0);
             }
-
         };
 
-        // if (myGrid != null)
-        // {
-        //     await myGrid.RefreshDataAsync();
-        // }
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
 
 
-        StateHasChanged();
+
+    private async Task OnItemsPerPageChanged()
+    {
+        currentPageIndex = 0;
+        pagination.ItemsPerPage = ItemsPerPage; // Update pagination state
+        await pagination.SetCurrentPageIndexAsync(0); // Reset to the first page
+        await LoadTaskListAsync(); // Reload data with the updated page size
+    }
+
+    private async Task GoToPageAsync(int pageIndex)
+    {
+        currentPageIndex = pageIndex;
+        await pagination.SetCurrentPageIndexAsync(pageIndex);
+        await LoadTaskListAsync();
+    }
+
+    private string? PageButtonClass(int pageIndex)
+        => pagination.CurrentPageIndex == pageIndex ? "current" : null;
+
+
+    private string? AriaCurrentValue(int pageIndex)
+      => pagination.CurrentPageIndex == pageIndex ? "page" : null;
+
+
+
+    private async Task LoadTaskListAsync()
+    {
+        if (taskListDtoGrid != null)
+        {
+            // Fetch paginated data
+            //pageNumber = pagination.CurrentPageIndex + 1; // Convert to 1-based index
+            //var pageSize = pagination.ItemsPerPage;
+
+            //pagination.TotalItemCountChanged += (sender, eventArgs) => StateHasChanged();
+
+            await taskListDtoGrid.RefreshDataAsync();
+        }
     }
 
 
@@ -258,7 +243,6 @@
         TaskListModalOpen = false;
         ActionPerItemModalOpen = false;
         await LoadTaskListAsync(); // Reload data with the updated page size
-
         StateHasChanged();
     }
 
@@ -292,26 +276,27 @@
             if (taskListFormRequest.AssignedToId == 0)
                 taskListFormRequest.AssignedToId = null;
 
-
+            HttpResponseMessage apiReturn;
             if (taskListFormRequest.Id > 0)
             {
-                var apiReturn = await _taskListFormCrudService.UpdateAsync("tasklist", taskListFormRequest.Id, taskListFormRequest);
-
-                if (apiReturn.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    toastService.ShowSuccess($"{taskListFormRequest.Title} is {ActionNameModel.Saved}");
-                    await ModalSuccess();
-                }
+                apiReturn = await _taskListFormCrudService.UpdateAsync("tasklist", taskListFormRequest.Id, taskListFormRequest);
             }
             else
             {
-                var apiReturn = await _taskListFormCrudService.SaveAsync("tasklist", taskListFormRequest);
+                apiReturn = await _taskListFormCrudService.SaveAsync("tasklist", taskListFormRequest);
 
-                if (apiReturn.StatusCode == System.Net.HttpStatusCode.Created)
-                {
-                    await ModalSuccess();
-                }
+                // if (apiReturn.StatusCode == System.Net.HttpStatusCode.Created)
+                // {
+                //     await ModalSuccess();
+                // }
             }
+
+            if (apiReturn.IsSuccessStatusCode)
+            {
+                toastService.ShowSuccess($"{taskListFormRequest.Title} is {ActionNameModel.Saved}");
+                await ModalSuccess();
+            }
+
         }
     }
 
@@ -322,17 +307,17 @@
 
     private bool ActionPerItemModalOpen { get; set; } = false;
 
-    public string ModalClassAction;
-    public string ModalDisplayAction = "none;";
+    //public string ModalClassAction;
+    //public string ModalDisplayAction = "none;";
 
     private int ItemIdAction;
     private string ActionItemText = "";
 
 
-    public bool IsVisible { get; set; }
-    public int ResultType { get; set; }
+    //public bool IsVisible { get; set; }
+    //public int ResultType { get; set; }
     public string ActionName { get; set; }
-    public string ActionText { get; set; }
+    //public string ActionText { get; set; }
     private int ActionTypeId { get; set; }
 
     public void ActionItem(TaskListDto taskListDto, int _ActionTypeId)

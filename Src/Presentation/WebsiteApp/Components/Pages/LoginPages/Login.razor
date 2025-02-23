@@ -46,8 +46,10 @@
     public string LoginMesssage { get; set; }
     ClaimsPrincipal claimsPrincipal;
 
-    // [CascadingParameter]
-    // private Task<AuthenticationState> authenticationStateTask { get; set; }
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationStateTask { get; set; }
+
+
 
     protected async override Task OnInitializedAsync()
     {
@@ -55,23 +57,31 @@
         //user = new User();
         userModel = new UserLoginRequest() { Username = "", Password = "" };
 
-        userModel.Username = "taskmaster@hotmail.co.uk";
-        userModel.Password = "SuperStrongPassword+123";
+        // userModel.Username = "taskmaster@hotmail.co.uk";
+        // userModel.Password = "SuperStrongPassword+123";
 
-        //claimsPrincipal = (await authenticationStateTask).User;
+        claimsPrincipal = (await authenticationStateTask).User;
 
-        // if (claimsPrincipal.Identity.IsAuthenticated)
-        // {
-        //     NavigationManager.NavigateTo("/taskmanager", false);
-        // }
-        // else
-        // {
 
-        //     userModel = new UserLoginRequest() { Username = "Sertac01", Password = "Password@123" };
+        var authState = await authenticationStateTask;
+        var user = authState.User;
+        if (user.Identity.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/taskmanager", false);
+        }    
 
-        //     //userModel.Username = "";
-        //     //userModel.Password = "";
-        // }
+        if (claimsPrincipal.Identity.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/taskmanager", false);
+        }
+        else
+        {
+
+            userModel = new UserLoginRequest() { Username = "Sertac01", Password = "Password@123" };
+
+            //userModel.Username = "";
+            //userModel.Password = "";
+        }
 
         
     }
@@ -87,7 +97,7 @@
             {
                await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(returnedUser.Value);
 
-               NavigationManager.NavigateTo("/taskmanagerdemo", false);
+               NavigationManager.NavigateTo("/taskmanager", false);
             }
             else
             {

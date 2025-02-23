@@ -11,7 +11,6 @@ using WebApiAuth.Services;
 
 namespace WebApiAuth.Controllers
 {
-
     [ApiVersion(1)]
     [Route("api/v{apiVersion:apiVersion}/[controller]")]
     [ApiController]
@@ -151,9 +150,6 @@ namespace WebApiAuth.Controllers
                 return Ok(new UserLoginResponse());
             }
         }
-
-
-
 
     }
 }
