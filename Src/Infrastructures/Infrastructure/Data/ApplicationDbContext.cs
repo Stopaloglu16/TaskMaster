@@ -27,14 +27,13 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
 
-
-    public virtual async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             if (_currentUserService != null)
             {
-                if (!String.IsNullOrEmpty(_currentUserService.UserId) && !String.IsNullOrEmpty(_currentUserService.UserName))
+                if (!string.IsNullOrEmpty(_currentUserService.UserId) && !string.IsNullOrEmpty(_currentUserService.UserName))
                 {
                     var userId = _currentUserService.UserId;
 
@@ -65,11 +64,9 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
         }
     }
 
-
     private void SeedAdminUser(ModelBuilder builder)
     {
         const string adminUserName = "taskmaster@hotmail.co.uk";
-
 
         builder.Entity<User>().HasData(new User
         {

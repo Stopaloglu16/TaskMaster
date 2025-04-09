@@ -31,13 +31,7 @@ public class TaskListRepository : EfCoreRepository<TaskList, int>, ITaskListRepo
         return await _dbContext.TaskLists.AsNoTracking()
                                          .Where(qq => qq.IsDeleted == 0 &&
                                                              qq.IsCompleted == false)
-                                         .Select(ss => new TaskListFormRequest
-                                         {
-                                             Id = ss.Id,
-                                             Title = ss.Title,
-                                             DueDate = ss.DueDate,
-                                             AssignedToId = ss.AssignedToId
-                                         })
+                                         .Select(ss => ss.MapToFormDto())
                                          .FirstOrDefaultAsync(qq => qq.Id == Id, cancellationToken);
     }
 
@@ -47,18 +41,11 @@ public class TaskListRepository : EfCoreRepository<TaskList, int>, ITaskListRepo
     {
 
         var query = _dbContext.TaskLists.Include(ss => ss.AssignedTo)
+                                         .Include(ss => ss.TaskItems)
                                          .AsNoTracking()
                                          .Where(qq => qq.IsDeleted == 0 &&
                                                              qq.IsCompleted == false)
-                                         .Select(ss => new TaskListDto
-                                         {
-                                             Id = ss.Id,
-                                             Title = ss.Title,
-                                             DueDate = ss.DueDate,
-                                             AssignedTo = ss.AssignedTo.FullName ?? "",
-                                             TaskItemCount = ss.TaskItems.Count(),
-                                             TaskItemCompletedCount = ss.TaskItems.Count(ti => ti.IsCompleted),
-                                         });
+                                         .Select(ss => ss.MapToDto());
 
         return await PagingResponse<TaskListDto>.CreateAsync(query, pagingParameters);
 

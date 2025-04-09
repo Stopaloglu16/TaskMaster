@@ -25,6 +25,7 @@ public static class AuthenticationExtensions
         {
             o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
             o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            o.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 
         }).AddJwtBearer(x =>
         {
@@ -33,9 +34,11 @@ public static class AuthenticationExtensions
             x.TokenValidationParameters = new TokenValidationParameters
             {
                 // TODO validate issuer
-
-                ValidateIssuerSigningKey = false,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettingsSection.GetRequiredValue("SecretKey"))),
+                ValidateIssuerSigningKey = true,
+                ValidateLifetime = true,
+                ValidIssuer = jwtSettingsSection.GetRequiredValue("Issuer"),
+                ValidAudience = jwtSettingsSection.GetRequiredValue("Audience"),
                 ValidateIssuer = false,
                 ValidateAudience = false,
                 ClockSkew = TimeSpan.Zero

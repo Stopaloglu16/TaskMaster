@@ -47,7 +47,17 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
                 .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
                     "IntegrationTest",
                     options => { }
+
                 );
+
+            //services.AddAuthorization(options =>
+            //{
+            //    options.AddPolicy("RequireAuthenticatedUser", policy =>
+            //    {
+            //        policy.RequireAuthenticatedUser();
+            //        policy.RequireClaim(JwtRegisteredClaimNames.Aud, "ExpectedAudience"); // Ensure audience validation
+            //    });
+            //});
 
         });
 

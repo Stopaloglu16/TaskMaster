@@ -1,5 +1,4 @@
-﻿using Application.Aggregates.TaskItemAggregate.Commands.Create;
-using Application.Aggregates.TaskItemAggregate.Commands.Update;
+﻿using Application.Aggregates.TaskItemAggregate.Commands.CreateUpdate;
 using Application.Aggregates.TaskItemAggregate.Queries;
 using Microsoft.AspNetCore.Http.HttpResults;
 using ServiceLayer.TaskItems;
@@ -33,11 +32,11 @@ namespace WebApi.Apis
         }
 
 
-        public static async Task<Ok<IEnumerable<TaskItemDto>>> GetTaskItemActive(int taskItemId,
+        public static async Task<Ok<IEnumerable<TaskItemDto>>> GetTaskItemActive(int taskListId,
                                                                                 ITaskItemService taskItemService,
                                                                                CancellationToken cancellationToken)
         {
-            var taskItem = await taskItemService.GetTaskItemsByTaskItem(taskItemId, cancellationToken);
+            var taskItem = await taskItemService.GetTaskItemsByTaskItem(taskListId, cancellationToken);
 
             return TypedResults.Ok(taskItem.AsEnumerable());
         }
@@ -47,10 +46,10 @@ namespace WebApi.Apis
 
         #region Routes for modify
 
-        public static async Task<Results<Created, BadRequest<string>>> CreateTaskItem(CreateTaskItemRequest createTaskItemRequest,
+        public static async Task<Results<Created, BadRequest<string>>> CreateTaskItem(TaskItemFormRequest taskItemFormRequest,
                                                                                      ITaskItemService taskItemService)
         {
-            var customResult = await taskItemService.CreateTaskItem(createTaskItemRequest);
+            var customResult = await taskItemService.CreateTaskItem(taskItemFormRequest);
 
             if (customResult.IsSuccess)
             {
@@ -63,10 +62,10 @@ namespace WebApi.Apis
         }
 
 
-        public static async Task<Results<Ok, BadRequest<string>>> UpdateTaskItem(int Id, UpdateTaskItemRequest updateTaskItemRequest,
+        public static async Task<Results<Ok, BadRequest<string>>> UpdateTaskItem(int Id, TaskItemFormRequest taskItemFormRequest,
                                                                                  ITaskItemService taskItemService)
         {
-            var customResult = await taskItemService.UpdateTaskItem(Id, updateTaskItemRequest);
+            var customResult = await taskItemService.UpdateTaskItem(Id, taskItemFormRequest);
 
             if (customResult.IsSuccess)
             {

@@ -8,7 +8,6 @@ namespace WebApi.Apis
 {
     public static class TaskListApi
     {
-
         public static RouteGroupBuilder TaskListApiV1(this IEndpointRouteBuilder app)
         {
             var api = app.MapGroup("api/v{apiVersion:apiVersion}/tasklist")
@@ -23,33 +22,29 @@ namespace WebApi.Apis
 
             //TODO: Add paging (search page) 
 
-
             // Routes for modify
             api.MapPost("/", CreateTaskList);
             api.MapPut("/{id:int}", UpdateTaskList);
             api.MapDelete("/{id:int}", DeleteTaskList);
 
-            //TODO: Assing to multi user
+            //TODO: Assign to multi user
             //api.MapPatch("/{id}", AssignTaskListToUser);
 
             return api;
         }
 
-
         public static async Task<Ok<PagingResponse<TaskListDto>>> GetActiveTaskListWithPagination(ITaskListService taskListService,
                                                                                                  [AsParameters] PagingParameters pagingParameters,
-                                                                                                  CancellationToken cancellationToken)
+                                                                                                 CancellationToken cancellationToken)
         {
             var taskList = await taskListService.GetActiveTaskListWithPagination(pagingParameters, cancellationToken);
-
             return TypedResults.Ok(taskList);
         }
 
-
-        public static async Task<Results<Ok<TaskListFormRequest>, BadRequest<CustomError>>> GetTaskList(int Id, ITaskListService taskListService,
-                                                                                           CancellationToken cancellationToken)
+        public static async Task<Results<Ok<TaskListFormRequest>, BadRequest<CustomError>>> GetTaskList(int id, ITaskListService taskListService,
+                                                                                                        CancellationToken cancellationToken)
         {
-            var taskListFormRequest = await taskListService.GetTaskListById(Id, cancellationToken);
+            var taskListFormRequest = await taskListService.GetTaskListById(id, cancellationToken);
 
             if (taskListFormRequest.IsSuccess)
             {
@@ -78,11 +73,10 @@ namespace WebApi.Apis
             }
         }
 
-
-        public static async Task<Results<Ok, BadRequest<string>>> UpdateTaskList(int Id, TaskListFormRequest taskListFormRequest,
+        public static async Task<Results<Ok, BadRequest<string>>> UpdateTaskList(int id, TaskListFormRequest taskListFormRequest,
                                                                                  ITaskListService taskListService)
         {
-            var customResult = await taskListService.UpdateTaskList(Id, taskListFormRequest);
+            var customResult = await taskListService.UpdateTaskList(id, taskListFormRequest);
 
             if (customResult.IsSuccess)
             {
@@ -94,10 +88,9 @@ namespace WebApi.Apis
             }
         }
 
-
-        public static async Task<Results<NoContent, BadRequest<string>>> DeleteTaskList(int Id, ITaskListService taskListService)
+        public static async Task<Results<NoContent, BadRequest<string>>> DeleteTaskList(int id, ITaskListService taskListService)
         {
-            var customResult = await taskListService.SoftDeleteTaskListById(Id);
+            var customResult = await taskListService.SoftDeleteTaskListById(id);
 
             if (customResult.IsSuccess)
             {
@@ -110,6 +103,5 @@ namespace WebApi.Apis
         }
 
         #endregion
-
     }
 }

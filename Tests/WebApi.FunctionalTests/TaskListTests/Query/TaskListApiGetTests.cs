@@ -7,7 +7,6 @@ using WebApi.FunctionalTests.Helpers;
 
 namespace WebApi.FunctionalTests.TaskListTests.Query;
 
-
 public class TaskListApiGetTests : BaseIntegrationTest
 {
 

@@ -31,13 +31,7 @@ public class TaskItemRepository : EfCoreRepository<TaskItem, int>, ITaskItemRepo
         {
             return await _dbContext.TaskItems.AsNoTracking()
                                        .Where(ti => ti.TaskListId == taskListId && ti.IsDeleted == 0)
-                                       .Select(ti => new TaskItemDto
-                                       {
-                                           Title = ti.Title,
-                                           Description = ti.Description,
-                                           CompletedDate = ti.CompletedDate,
-                                           IsCompleted = ti.IsCompleted
-                                       })
+                                       .Select(ti => ti.MapToDto())
                                        .ToListAsync();
         }
         catch (Exception ex)

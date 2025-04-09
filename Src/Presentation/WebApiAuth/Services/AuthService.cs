@@ -98,7 +98,7 @@ public class AuthService : IAuthService
         var tokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidateAudience = true,
+            ValidateAudience = false,
             ValidateLifetime = false, // Ignore expiration for refresh validation
             ValidateIssuerSigningKey = true,
             ValidIssuer = _jwtsettings.Issuer,

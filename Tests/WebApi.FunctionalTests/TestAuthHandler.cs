@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 
@@ -24,6 +25,7 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
         mylist.Add(new Claim(ClaimTypes.GivenName, "MockUserName"));
 
         mylist.Add(new Claim(ClaimTypes.Role, UserType.AdminUser.ToString()));
+        mylist.Add(new Claim(JwtRegisteredClaimNames.Aud, "ExpectedAudience"));
 
         //var identity = new ClaimsIdentity(Array.Empty<Claim>(), "Test");
         var identity = new ClaimsIdentity(mylist, "IntegrationTest");

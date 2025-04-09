@@ -14,6 +14,10 @@ var withApiVersioning = builder.Services.AddApiVersioning();
 builder.AddDefaultOpenApi(withApiVersioning);
 
 
+
+builder.Services.AddHealthChecks();
+
+
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
@@ -27,11 +31,13 @@ if (app.Environment.IsDevelopment())
 
 var taskList = app.NewVersionedApi("TaskList");
 taskList.TaskListApiV1().RequireAuthorization();
-//taskList.TaskListApiV1();
+
 
 var taskItem = app.NewVersionedApi("TaskItem");
-//taskItem.TaskListApiV1().RequireAuthorization();
-taskItem.TaskItemApiV1();
+taskItem.TaskItemApiV1().RequireAuthorization();
+
+
+app.MapHealthChecks("_health");
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -7,7 +7,6 @@ using WebApi.FunctionalTests.Utility;
 
 namespace WebApi.FunctionalTests.TaskItemTests;
 
-
 [TestCaseOrderer(
     ordererTypeName: "WebApi.FunctionalTests.Utility.PriorityOrderer",
     ordererAssemblyName: "WebApi.FunctionalTests")]

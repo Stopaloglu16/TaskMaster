@@ -1,27 +1,26 @@
-﻿using Application.Aggregates.TaskItemAggregate.Commands.Create;
-using Application.Aggregates.TaskItemAggregate.Commands.Update;
+﻿using Application.Aggregates.TaskItemAggregate.Commands.CreateUpdate;
 
 namespace SharedTestDataLibrary.TaskDataSample;
 
 public class TaskItemData
 {
-    public static CreateTaskItemRequest CreateCreateTaskItemRequestEmpty()
+    public static TaskItemFormRequest CreateCreateTaskItemRequestEmpty()
     {
-        return new CreateTaskItemRequest() { Title = string.Empty, Description = string.Empty };
+        return new TaskItemFormRequest() { Title = string.Empty, Description = string.Empty, TaskListId = 0 };
     }
 
-    public static CreateTaskItemRequest CreateCreateTaskItemRequestValid(int taskListId)
+    public static TaskItemFormRequest CreateCreateTaskItemRequestValid(int taskListId)
     {
         return CreateCreateTaskItemRequestEmpty() with { Title = "MockItemTitle", TaskListId = taskListId };
     }
 
-    public static CreateTaskItemRequest CreateCreateTaskItemRequestGenerator(int taskListId, int mockId)
+    public static TaskItemFormRequest CreateCreateTaskItemRequestGenerator(int taskListId, int mockId)
     {
         return CreateCreateTaskItemRequestEmpty() with { Title = $"MockItemTitle {mockId}", TaskListId = taskListId };
     }
 
-    public static UpdateTaskItemRequest CreateUpdateTaskItemRequestValid(string title, string description)
+    public static TaskItemFormRequest CreateUpdateTaskItemRequestValid(string title, string description)
     {
-        return new UpdateTaskItemRequest() { Id = 1, Title = title, Description = description };
+        return new TaskItemFormRequest() { Id = 1, Title = title, Description = description, TaskListId = 0 };
     }
 }
