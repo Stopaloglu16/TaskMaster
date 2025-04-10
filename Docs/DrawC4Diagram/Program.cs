@@ -4,7 +4,7 @@ using C4Sharp.Diagrams.Plantuml;
 using C4Sharp.Diagrams.Themes;
 using DrawC4Diagram.Diagrams;
 
-Console.WriteLine("Star to draw");
+Console.WriteLine("Start to draw");
 
 
 string workingDirectory = Environment.CurrentDirectory;
