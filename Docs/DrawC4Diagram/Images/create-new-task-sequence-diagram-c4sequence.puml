@@ -15,12 +15,12 @@ SHOW_PERSON_PORTRAIT()
 
 title Create new Task Sequence diagram
 
-Container(A1, "Web Application", "None:JavaScript and Blazor", "Enter task name ")
-Container(A2, "Web Application", "None:JavaScript and Blazor", "")
+Container(A1, "Web Application", "None:JavaScript and Blazor", "Enter task name abd submit")
+Container(A2, "Web Application", "None:JavaScript and Blazor", "Call API")
 
 Container_Boundary(b, "Web Api")
     Component(bA, "TaskListApi", "Minimal Api", "CreateTaskList")
-    Component(bB, "Service Layer", "Class Library", "CreateTaskList: ITaskListService")
+    Component(bB, "Service Layer", "Class Library", "CreateTaskList")
     Component(bC, "Service layer", "Class Library", "CheckMaxTaskListPerUser: Check how many assigned to user")
     Component(bD, "Infrasture layer", "Class Library", "Repository function")
 Boundary_End()
