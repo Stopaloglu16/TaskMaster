@@ -1,4 +1,7 @@
-﻿using Application.Aggregates.TaskItemAggregate.Queries;
+﻿using Application.Aggregates.TaskItemAggregate.Commands.CreateUpdate;
+using Application.Aggregates.TaskItemAggregate.Queries;
+using Domain.Entities;
+using Google.Protobuf.WellKnownTypes;
 using SharedTestDataLibrary.TaskDataSample;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -58,21 +61,21 @@ public class TaskItemApiTests : BaseIntegrationTest
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
 
+        //api/v1.0/taskitem/21
 
-        var response1 = await _httpClient.GetAsync($"/api/v1.0/taskitem?taskItemId=1");
+        var response1 = await _httpClient.GetAsync($"/api/v1.0/taskitem/1");
         Assert.Equal(System.Net.HttpStatusCode.OK, response1.StatusCode);
 
-        var result = await response1.Content.ReadFromJsonAsync<List<TaskItemDto>>();
+        var result = await response1.Content.ReadFromJsonAsync<TaskItemFormRequest>();
 
-        Assert.Equal(mockTitle, result[0].Title);
-        Assert.Equal(mockDescription, result[0].Description);
+        Assert.Equal(mockTitle, result.Title);
+        Assert.Equal(mockDescription, result.Description);
     }
 
 
     [Fact, TestPriority(3)]
     public async Task RemoveTaskItem_ValidTaskItem_RemoveSuccess()
     {
-
         // Arrange
 
         // Act
@@ -81,10 +84,9 @@ public class TaskItemApiTests : BaseIntegrationTest
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.NoContent, response.StatusCode);
 
-        var response1 = await _httpClient.GetAsync($"/api/v1.0/taskitem?taskItemId=1");
-        var result = await response1.Content.ReadFromJsonAsync<List<TaskItemDto>>();
+        var response1 = await _httpClient.GetAsync($"/api/v1.0/taskitem/1");
 
-        Assert.Equal(0, result.Count);
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response1.StatusCode);
     }
 
 }

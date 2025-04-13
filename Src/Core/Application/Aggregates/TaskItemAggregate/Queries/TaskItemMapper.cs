@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.Aggregates.TaskItemAggregate.Commands.CreateUpdate;
+using Domain.Entities;
 
 namespace Application.Aggregates.TaskItemAggregate.Queries
 {
@@ -14,5 +15,17 @@ namespace Application.Aggregates.TaskItemAggregate.Queries
                 IsCompleted = taskItem.IsCompleted
             };
         }
+
+        public static TaskItemFormRequest MapToFormDto(this TaskItem taskItem)
+        {
+            return new TaskItemFormRequest()
+            {
+                Id = taskItem.Id,
+                Title = taskItem.Title,
+                Description = taskItem.Description,
+                TaskListId = taskItem.TaskListId
+            };
+        }
+
     }
 }

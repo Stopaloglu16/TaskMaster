@@ -1,9 +1,11 @@
 ﻿using Application.Aggregates.TaskItemAggregate.Commands.CreateUpdate;
 using Application.Aggregates.TaskItemAggregate.Commands.Update;
 using Application.Aggregates.TaskItemAggregate.Queries;
+using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
 using Application.Common.Models;
 using Application.Repositories;
 using Domain.Entities;
+using System.Threading;
 
 namespace ServiceLayer.TaskItems;
 
@@ -98,9 +100,13 @@ public class TaskItemService : ITaskItemService
 
 
 
-    public Task<TaskItemDto> GetTaskItemId(int Id)
+    public async Task<CustomResult<TaskItemFormRequest>> GetTaskItemId(int Id, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var taskItemFormRequest = await _taskItemRepository.GetTaskItemById(Id, cancellationToken);
+
+        if (taskItemFormRequest == null) return CustomResult<TaskItemFormRequest>.Failure(new CustomError(false, "Not found"));
+
+        return CustomResult<TaskItemFormRequest>.Success(taskItemFormRequest);
     }
 
     public Task<IEnumerable<SelectListItem>> GetTaskItemList()

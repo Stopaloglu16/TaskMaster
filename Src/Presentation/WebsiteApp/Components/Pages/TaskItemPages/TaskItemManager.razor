@@ -22,14 +22,13 @@
 
 
 <div class="container mt-3">
-    <h2>Task Items</h2>
+    @if (taskListDto != null)
+    {
+        <h2> @taskListDto.Title</h2>
+    }
+
     <div class="card">
         <div class="card-header">
-
-            @if( taskListDto != null)
-            {
-                @taskListDto.Title
-            }
 
             <button class="btn btn-primary" type="button" @onclick="@(() => EditTaskItem(0))">New Task</button>
         </div>
@@ -41,29 +40,21 @@
             }
             else
             {
-                @if (pagination.TotalItemCount == 0)
-                {
-                    <p>No item found! ⚠️</p>
-                }
-                else
-                {
+                <div class="grid">
+                    <QuickGrid ItemsProvider="@gridItemsProvider" @ref="taskItemDtoGrid">
+                        <PropertyColumn Property="@(p => p.Title)" Title="Title" Sortable="true" />
+                        <PropertyColumn Property="@(p => p.Description)" Title="Description" Sortable="true" />
+                        <PropertyColumn Property="@(p => p.CompletedDate)" Title="Completed Date" Format="yyyy-MM-dd" Sortable="true" />
+                        <TemplateColumn Title="Actions">
+                            <button class="btn btn-success" @onclick="@(() => EditTaskItem(context.Id))"><span class="bi bi-pencil"></span> </button>
+                            <button class="btn btn-danger" @onclick="@(() => ActionItem(context , 1))"><span class="bi bi-trash"></span></button>
+                        </TemplateColumn>
+                    </QuickGrid>
+                </div>
 
-                    <div class="grid">
-                        <QuickGrid ItemsProvider="@gridItemsProvider" @ref="taskItemDtoGrid">
-                            <PropertyColumn Property="@(p => p.Title)" Title="Title" Sortable="true" />
-                            <PropertyColumn Property="@(p => p.Description)" Title="Description" Sortable="true" />
-                            <PropertyColumn Property="@(p => p.CompletedDate)" Title="Completed Date" Format="yyyy-MM-dd" Sortable="true" />
-                            <TemplateColumn Title="Actions">
-                                <button class="btn btn-success" @onclick="@(() => EditTaskItem(context.Id))"><span class="bi bi-pencil"></span> </button>
-                                <button class="btn btn-danger" @onclick="@(() => ActionItem(context , 1))"><span class="bi bi-trash"></span></button>
-                            </TemplateColumn>
-                        </QuickGrid>
-                    </div>
-                }
             }
         </div>
         <div class="card-footer">
-
         </div>
     </div>
 </div>
@@ -72,15 +63,15 @@
 @if (TaskItemModalOpen)
 {
     <TaskItemModal taskItemFormRequest="@taskItemFormRequest"
-    OnClose="@SaveTaskItemModel">
+                   OnClose="@SaveTaskItemModel">
     </TaskItemModal>
 }
 
 @if (ActionPerItemModalOpen)
 {
     <ActionPerItemModal ActionItemText="@ActionItemText"
-    ActionText="@ActionName"
-    OnCloseModal="@OnActionPerItemModalClose">
+                        ActionText="@ActionName"
+                        OnCloseModal="@OnActionPerItemModalClose">
     </ActionPerItemModal>
 }
 
@@ -89,31 +80,9 @@
     [Parameter]
     public int TaskListId { get; set; }
 
-    public PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
     public GridItemsProvider<TaskItemDto>? gridItemsProvider;
     private int totalItemCount = 0; // Manages total items across all pages
-
-    public TaskListDto taskListDto { get; set; } 
-
-
-    // private int? currentPageIndex = 0;
-    // private int? lastPageIndex = 0;
-    // private int pageNumber = 0;
-    // private int _itemsPerPage = 10;
-
-    // private int ItemsPerPage
-    // {
-    //     get => _itemsPerPage;
-    //     set
-    //     {
-    //         if (_itemsPerPage != value)
-    //         {
-    //             _itemsPerPage = value;
-    //             OnItemsPerPageChanged().ConfigureAwait(false); // Trigger change handler
-    //         }
-    //     }
-    // }
-
+    public TaskListDto taskListDto { get; set; }
     public bool TaskItemModalOpen = false;
     public TaskItemFormRequest taskItemFormRequest { get; set; }
 
@@ -129,26 +98,37 @@
         if (user?.Identity?.IsAuthenticated != true)
             NavigationManager.NavigateTo("/", true);
 
-        
-        gridItemsProvider = async req =>
+        taskListDto = await _taskListService.GetDataByIdAsync($"tasklist/{TaskListId}");
+
+        if (taskListDto == null)
         {
-            var response = await _taskItemService.GetPagingDataAsync($"taskitem?taskListId={TaskListId}");
+            toastService.ShowWarning($"Task not found");
 
-            if (response != null)
-            {
-                // Update total item count for pagination
-                totalItemCount = response.TotalCount;
+        }
+        else
+        {
+            gridItemsProvider = async req =>
+     {
+         var response = await _taskItemService.GetAllDataAsync($"taskitem?taskListId={TaskListId}");
 
-                // Return the grid data
-                return GridItemsProviderResult.From(response.Items.ToList(), response.TotalCount);
-            }
-            else
-            {
-                // Log or handle the null response scenario
-                Console.Error.WriteLine("Failed to load task list data. API returned null.");
-                return GridItemsProviderResult.From<TaskItemDto>((ICollection<TaskItemDto>)Enumerable.Empty<TaskItemDto>().ToList(), 0);
-            }
-        };
+         if (response != null)
+         {
+             // Update total item count for pagination
+             totalItemCount = response.Count;
+
+             // Return the grid data
+             return GridItemsProviderResult.From(response, response.Count);
+         }
+         else
+         {
+             // Log or handle the null response scenario
+             Console.Error.WriteLine("Failed to load task list data. API returned null.");
+             return GridItemsProviderResult.From<TaskItemDto>((ICollection<TaskItemDto>)Enumerable.Empty<TaskItemDto>().ToList(), 0);
+         }
+     };
+        }
+
+
 
         await base.OnInitializedAsync();
     }
@@ -164,41 +144,10 @@
     }
 
 
-
-    // private async Task OnItemsPerPageChanged()
-    // {
-    //     currentPageIndex = 0;
-    //     pagination.ItemsPerPage = ItemsPerPage; // Update pagination state
-    //     await pagination.SetCurrentPageIndexAsync(0); // Reset to the first page
-    //     await LoadTaskListAsync(); // Reload data with the updated page size
-    // }
-
-    // private async Task GoToPageAsync(int pageIndex)
-    // {
-    //     currentPageIndex = pageIndex;
-    //     await pagination.SetCurrentPageIndexAsync(pageIndex);
-    //     await LoadTaskListAsync();
-    // }
-
-    // private string? PageButtonClass(int pageIndex)
-    //     => pagination.CurrentPageIndex == pageIndex ? "current" : null;
-
-
-    // private string? AriaCurrentValue(int pageIndex)
-    //   => pagination.CurrentPageIndex == pageIndex ? "page" : null;
-
-
-
-    private async Task LoadTaskListAsync()
+    private async Task LoadTaskItemAsync()
     {
         if (taskItemDtoGrid != null)
         {
-            // Fetch paginated data
-            //pageNumber = pagination.CurrentPageIndex + 1; // Convert to 1-based index
-            //var pageSize = pagination.ItemsPerPage;
-
-            //pagination.TotalItemCountChanged += (sender, eventArgs) => StateHasChanged();
-
             await taskItemDtoGrid.RefreshDataAsync();
         }
     }
@@ -217,7 +166,7 @@
     {
         TaskItemModalOpen = false;
         ActionPerItemModalOpen = false;
-        await LoadTaskListAsync(); // Reload data with the updated page size
+        await LoadTaskItemAsync(); // Reload data with the updated page size
         StateHasChanged();
     }
 
@@ -244,15 +193,15 @@
         }
         else
         {
-            
+
             HttpResponseMessage apiReturn;
             if (taskItemFormRequest.Id > 0)
             {
-                apiReturn = await _taskItemFormCrudService.UpdateAsync("tasklist", taskItemFormRequest.Id, taskItemFormRequest);
+                apiReturn = await _taskItemFormCrudService.UpdateAsync("taskitem", taskItemFormRequest.Id, taskItemFormRequest);
             }
             else
             {
-                apiReturn = await _taskItemFormCrudService.SaveAsync("tasklist", taskItemFormRequest);
+                apiReturn = await _taskItemFormCrudService.SaveAsync("taskitem", taskItemFormRequest);
             }
 
             if (apiReturn.IsSuccessStatusCode)

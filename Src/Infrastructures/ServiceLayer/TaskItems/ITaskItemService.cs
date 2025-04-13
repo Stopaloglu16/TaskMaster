@@ -8,7 +8,7 @@ namespace ServiceLayer.TaskItems;
 
 public interface ITaskItemService
 {
-    Task<TaskItemDto> GetTaskItemId(int Id);
+    Task<CustomResult<TaskItemFormRequest>> GetTaskItemId(int Id, CancellationToken cancellationToken);
     Task<IEnumerable<SelectListItem>> GetTaskItemList();
     Task<IEnumerable<TaskItemDto>> GetTaskItemsByTaskItem(int taskListId, CancellationToken cancellationToken);
     Task<CustomResult> CreateTaskItem(TaskItemFormRequest taskItemFormRequest);

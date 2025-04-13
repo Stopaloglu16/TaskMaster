@@ -1,5 +1,6 @@
 ﻿using Application.Aggregates.TaskItemAggregate.Commands.CreateUpdate;
 using Application.Aggregates.TaskItemAggregate.Queries;
+using Application.Common.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using ServiceLayer.TaskItems;
 
@@ -13,8 +14,9 @@ namespace WebApi.Apis
                                         .HasApiVersion(1.0);
 
             // Route for query task items
-            api.MapGet("/", GetTaskItemActive);
+            api.MapGet("/", GetTaskItemListActive);
 
+            api.MapGet("/{id:int}", GetTaskItem);
             //TODO: Get taskItem assigned to user
 
             //TODO: Add paging (search page) 
@@ -32,7 +34,7 @@ namespace WebApi.Apis
         }
 
 
-        public static async Task<Ok<IEnumerable<TaskItemDto>>> GetTaskItemActive(int taskListId,
+        public static async Task<Ok<IEnumerable<TaskItemDto>>> GetTaskItemListActive(int taskListId,
                                                                                 ITaskItemService taskItemService,
                                                                                CancellationToken cancellationToken)
         {
@@ -41,6 +43,21 @@ namespace WebApi.Apis
             return TypedResults.Ok(taskItem.AsEnumerable());
         }
 
+
+        public static async Task<Results<Ok<TaskItemFormRequest>, BadRequest<CustomError>>> GetTaskItem(int id, ITaskItemService taskItemService,
+                                                                                                        CancellationToken cancellationToken)
+        {
+            var taskItemFormRequest = await taskItemService.GetTaskItemId(id, cancellationToken);
+
+            if (taskItemFormRequest.IsSuccess)
+            {
+                return TypedResults.Ok(taskItemFormRequest.Value);
+            }
+            else
+            {
+                return TypedResults.BadRequest(taskItemFormRequest.CustomError);
+            }
+        }
 
 
 

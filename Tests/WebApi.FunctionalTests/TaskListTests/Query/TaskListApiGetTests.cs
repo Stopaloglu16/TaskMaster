@@ -63,7 +63,6 @@ public class TaskListApiGetTests : BaseIntegrationTest
                 Assert.Equal(4, taskList.TaskItemCount);
                 Assert.Equal(4, taskList.TaskItemCompletedCount);
             }
-
         }
     }
 

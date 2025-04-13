@@ -28,18 +28,16 @@ public class TaskListRepository : EfCoreRepository<TaskList, int>, ITaskListRepo
 
     public async Task<TaskListFormRequest?> GetTaskListById(int Id, CancellationToken cancellationToken)
     {
-        return await _dbContext.TaskLists.AsNoTracking()
-                                         .Where(qq => qq.IsDeleted == 0 &&
-                                                             qq.IsCompleted == false)
-                                         .Select(ss => ss.MapToFormDto())
+        var tempTaskList = await _dbContext.TaskLists.AsNoTracking()
+                                         .Where(qq => qq.IsDeleted == 0)
                                          .FirstOrDefaultAsync(qq => qq.Id == Id, cancellationToken);
-    }
 
+        return tempTaskList?.MapToFormDto();
+    }
 
     public async Task<PagingResponse<TaskListDto>> GetActiveTaskListWithPagination(PagingParameters pagingParameters,
                                                                                    CancellationToken cancellationToken)
     {
-
         var query = _dbContext.TaskLists.Include(ss => ss.AssignedTo)
                                          .Include(ss => ss.TaskItems)
                                          .AsNoTracking()
