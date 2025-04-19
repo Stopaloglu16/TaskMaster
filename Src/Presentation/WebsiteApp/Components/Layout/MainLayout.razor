@@ -2,61 +2,56 @@
 @using WebsiteApp.Data
 @using TaskMasterRazorClassLibrary
 
-
 @inherits LayoutComponentBase
-
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
+<RadzenLayout>
+    <RadzenHeader Style="padding: 0 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="10px">
+                <RadzenImage Path="logos/TaskMasterLogo4.png" Style="width: 12rem; height: 3rem;" AlternateText="taskmasterlogo" />
+                <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
+            </RadzenStack>
 
-<PageTitle>WebApp</PageTitle>
-
-
-<BlazoredToasts toastposition="ToastPosition.TopRight" Timeout="10" SuccessClass="success-toast-override"
-                SuccessIconClass="oi oi-check"
-                InfoIconClass="oi oi-warning" />
-
-
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-          @* <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div> *@
-
-        <!-- Right navbar links -->
-        <div class="top-row px-4">
-            <ul class="navbar-nav ml-auto">
-
-                <!-- Notifications Dropdown Menu -->
-                <li class="nav-item dropdown">
-
-                </li>
-
-                <li class="nav-item">
-                    <AuthorizeView>
-                        <Authorized>
-                            @context.User.Identity.Name  <a href="/" @onclick="(() => Logout())">Logout</a>
-                        </Authorized>
-                        <NotAuthorized>
-                            <a href="/">Login</a>
-                        </NotAuthorized>
-                    </AuthorizeView>
-
-                </li>
-            </ul>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="10px">
+                <AuthorizeView>
+                    <Authorized>
+                        <span>@context.User.Identity?.Name</span>
+                        <RadzenButton Text="Logout" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Variant="Variant.Outlined" Click="@Logout" />
+                    </Authorized>
+                    <NotAuthorized>
+                        <RadzenLink Path="/login" Text="Login" />
+                    </NotAuthorized>
+                </AuthorizeView>
+            </RadzenStack>
         </div>
+    </RadzenHeader>
 
-        <article class="content px-4">
+    <RadzenSidebar Responsive="false" Style="width: max-content">
+        <RadzenPanelMenu DisplayStyle="@(sidebarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="false">
+            <RadzenPanelMenuItem Text="Home" Icon="home" Click='() => NavigationManager.NavigateTo("home")' />
+            <RadzenPanelMenuItem Text="Dashboard" Icon="dashboard" href="dashboard" />
+            <RadzenPanelMenuItem Text="Task Manager" Icon="list" Click='() => NavigationManager.NavigateTo("taskmanager")' />
+            <RadzenPanelMenuItem Text="Report" Icon="assignment" href="report" />
+            <RadzenPanelMenuItem Text="Admin" Icon="manage_accounts" Click='() => NavigationManager.NavigateTo("usermanager")' />
+        </RadzenPanelMenu>
+    </RadzenSidebar>
+    <RadzenBody>
+        <div class="rz-p-4">
             @Body
-        </article>
-    </main>
-</div>
+        </div>
+    </RadzenBody>
+    <RadzenFooter>
+        Footer
+    </RadzenFooter>
+</RadzenLayout>
+
+<RadzenComponents @rendermode="InteractiveServer" />
 
 @code {
+
+    bool sidebarExpanded = true;
 
     public async Task Logout()
     {

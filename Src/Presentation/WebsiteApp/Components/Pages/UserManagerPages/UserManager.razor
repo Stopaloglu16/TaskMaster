@@ -11,78 +11,51 @@
 @inject IWebApiService<CreateUserRequest, CreateUserRequest> _createUserService
 @inject IWebApiService<UpdateUserRequest, UpdateUserRequest> _updateUserService
 @inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+
+@rendermode InteractiveServer
+
+<PageTitle>User Manager</PageTitle>
 
 <div class="container mt-3">
-    <h2>User Manager</h2>
+
     <div class="card">
         <div class="card-header">
-            <button class="btn btn-primary" type="button" @onclick="@(() => EditUser(0))">New</button>
+            <RadzenBreadCrumb>
+                <RadzenBreadCrumbItem Path="/home" Text="Home" />
+                <RadzenBreadCrumbItem Text="User Manager" />
+
+            </RadzenBreadCrumb>
+
+        </div>
+        <div class="card-header">
+            <RadzenButton Icon="add" Text="New" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat" Size="ButtonSize.Medium"
+            class="rz-my-1 rz-ms-1" Click="@(args => EditUser(0))" />
         </div>
         <div class="card-body">
-
-
-            @if (gridItemsProvider == null)
-            {
-                <p>Loading...</p>
-            }
-            else
-            {
-                @if (pagination.TotalItemCount == 0)
-                {
-                    <p>No item found! ⚠️</p>
-                }
-                else
-                {
-
-                    <div class="page-size-chooser">
-                        Items per page:
-                        <select @bind="ItemsPerPage">
-                            <option>5</option>
-                            <option>10</option>
-                            <option>20</option>
-                            <option>50</option>
-                        </select>
-                    </div>
-
-                    <div class="grid">
-                        <QuickGrid ItemsProvider="@gridItemsProvider" Pagination="@pagination" @ref="userListDtoGrid">
-                            <PropertyColumn Property="@(p => p.FullName)" Title="Full name" Sortable="true" />
-                            <PropertyColumn Property="@(p => p.UserEmail)" Title="Email" Sortable="true" />
-                            <PropertyColumn Property="@(p => p.UserType)" Title="User Type" Sortable="true" />
-                            <TemplateColumn Title="Actions">
-                                <button class="btn btn-success" @onclick="@(() => EditUser(context.Id))"><span class="bi bi-pencil"></span> </button>
-                                <button class="btn btn-danger" @onclick="@(() => DeleteTasklist(context))"><span class="bi bi-trash"></span></button>
-                            </TemplateColumn>
-                        </QuickGrid>
-                    </div>
-                }
-            }
-
-        </div>
-        <div class="card-footer">
-            <nav role="navigation">
-                @if (pagination.TotalItemCount.HasValue)
-                {
-                    var lastIx = (int)pagination.LastPageIndex + 1;
-
-                    <button class="btn btn-default" type="button" title="Go to first page" @onclick="@(() => GoToPageAsync(0))">
-                        <span class="bi bi-caret-left-square-fill"></span>
-                    </button>
-                    <button class="btn btn-light" type="button" title="Go to previous page" @onclick="@(() => GoToPageAsync((int)(currentPageIndex-1)))">
-                        <span class="bi bi-caret-left-fill"></span>
-                    </button>
-                    <div class="pagination-text">
-                        Page <strong b-3qssc0bm46="">@((int)currentPageIndex + 1)</strong>
-                        of <strong b-3qssc0bm46=""> @lastIx</strong>
-                    </div>
-                    <button class="btn btn-light" type="button" title="Go to next page" @onclick="@(() => GoToPageAsync((int)(currentPageIndex+1)))">
-                        <span class="bi bi-caret-right-fill"></span>
-                    </button>
-                    <button class="btn btn-light" type="button" title="Go to last page" @onclick="@(() => GoToPageAsync((int)pagination.LastPageIndex))">
-                        <span class="bi bi-caret-right-square-fill"></span>
-                    </button>
-                }
-            </nav>
+            <RadzenStack Gap="1rem">
+                <RadzenDataGrid @ref=@gridItemsProvider TItem="UserDto" Data="@userList" LoadData="@LoadData" IsLoading="@isLoading"
+                AllowPaging="true" AllowSorting="false" PagerHorizontalAlign="HorizontalAlign.Center"
+                PageSizeOptions="@pageSizeOptions" ShowPagingSummary="@showPagerSummary"
+                Count="@totalItemCount">
+                    <PagingSummaryTemplate>
+                        <RadzenIcon Icon="database" Style="color: var(--rz-primary); font-size: var(--rz-pager-summary-font-size);" />
+                        Displaying page @context.CurrentPage of @context.NumberOfPages <b>(total @context.TotalCount records)</b>
+                    </PagingSummaryTemplate>
+                    <Columns>
+                        <RadzenDataGridColumn Property="@nameof(UserDto.FullName)" Title="FullName" />
+                        <RadzenDataGridColumn Property="@nameof(UserDto.UserType)" Title="UserType" />
+                        <RadzenDataGridColumn TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+                            <Template>
+                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                class="rz-my-1 rz-ms-1" Click="@(async () => await EditUser(1))" />
+                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                class="rz-my-1 rz-ms-1" Click="@(() => ActionItem(context , 1))" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            </RadzenStack>
         </div>
     </div>
 </div>
@@ -98,37 +71,25 @@
 
 @code {
 
-    public PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
-    public GridItemsProvider<UserDto>? gridItemsProvider;
-    private int? totalItemCount; // Manages total items across all pages
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
 
-    private int? currentPageIndex = 0;
-    private int? lastPageIndex = 0;
-    private int pageNumber = 0;
-    private int _itemsPerPage = 10;
+    RadzenDataGrid<UserDto> gridItemsProvider;
+    IEnumerable<UserDto> userList;
+    ODataEnumerable<UserDto> userListDtos;
 
-    private int ItemsPerPage
-    {
-        get => _itemsPerPage;
-        set
-        {
-            if (_itemsPerPage != value)
-            {
-                _itemsPerPage = value;
-                OnItemsPerPageChanged(); // Trigger change handler
-            }
-        }
-    }
+    bool showPagerSummary = true;
 
+    bool isLoading;
+    private int totalItemCount = 0;
+    private int pageNumber = 1;
+    private int itemsPerPage = 10;
+    IEnumerable<int> pageSizeOptions = new int[] { 5, 10, 20, 30 };
 
     public bool UserModalOpen = false;
     public UserFormRequest userFormRequest { get; set; }
-
-    QuickGrid<UserDto> userListDtoGrid; //Added into QucikGrid @ref="myGrid"
     private List<UserType> userTypeList { get; set; } = new List<UserType>();
 
-    [CascadingParameter]
-    private Task<AuthenticationState>? authenticationState { get; set; }
 
     protected async override Task OnInitializedAsync()
     {
@@ -137,31 +98,33 @@
         if (!user.Identity.IsAuthenticated)
             NavigationManager.NavigateTo("/", true);
 
+        await base.OnInitializedAsync();
+
         // Fetch paginated data
-        pageNumber = pagination.CurrentPageIndex + 1; // Convert to 1-based index
-        pagination.TotalItemCountChanged += (sender, eventArgs) => StateHasChanged();
+        // pageNumber = pagination.CurrentPageIndex + 1; // Convert to 1-based index
+        // pagination.TotalItemCountChanged += (sender, eventArgs) => StateHasChanged();
 
 
-        gridItemsProvider = async req =>
-        {
-            var response = await _userService.GetPagingDataAsync(
-                $"Users/userlist?PageNumber={pageNumber}&PageSize={ItemsPerPage}&OrderBy=Id&IsDescending=false", true);
+        // gridItemsProvider = async req =>
+        // {
+        //     var response = await _userService.GetPagingDataAsync(
+        //         $"Users/userlist?PageNumber={pageNumber}&PageSize={ItemsPerPage}&OrderBy=Id&IsDescending=false", true);
 
-            if (response != null)
-            {
-                // Update total item count for pagination
-                totalItemCount = response.TotalCount;
+        //     if (response != null)
+        //     {
+        //         // Update total item count for pagination
+        //         totalItemCount = response.TotalCount;
 
-                // Return the grid data
-                return GridItemsProviderResult.From(response.Items.ToList(), response.TotalCount);
-            }
-            else
-            {
-                // Log or handle the null response scenario
-                Console.Error.WriteLine("Failed to load task list data. API returned null.");
-                return GridItemsProviderResult.From<UserDto>((ICollection<UserDto>)Enumerable.Empty<UserDto>().ToList(), 0);
-            }
-        };
+        //         // Return the grid data
+        //         return GridItemsProviderResult.From(response.Items.ToList(), response.TotalCount);
+        //     }
+        //     else
+        //     {
+        //         // Log or handle the null response scenario
+        //         Console.Error.WriteLine("Failed to load task list data. API returned null.");
+        //         return GridItemsProviderResult.From<UserDto>((ICollection<UserDto>)Enumerable.Empty<UserDto>().ToList(), 0);
+        //     }
+        // };
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -181,71 +144,45 @@
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    private async Task OnItemsPerPageChanged()
+    private async Task LoadData(LoadDataArgs args)
     {
-        currentPageIndex = 0;
-        pagination.ItemsPerPage = ItemsPerPage; // Update pagination state
-        await pagination.SetCurrentPageIndexAsync(0); // Reset to the first page
-        await LoadUserListAsync(); // Reload data with the updated page size
-
-        StateHasChanged();
-    }
-
-
-    private async Task GoToPageAsync(int pageIndex)
-    {
-        currentPageIndex = pageIndex;
-        //pagination.ItemsPerPage = ItemsPerPage;
-        await pagination.SetCurrentPageIndexAsync(pageIndex);
-        await LoadUserListAsync();
-
-
-        StateHasChanged();
-    }
-
-    private string? PageButtonClass(int pageIndex)
-        => pagination.CurrentPageIndex == pageIndex ? "current" : null;
-
-
-    private string? AriaCurrentValue(int pageIndex)
-      => pagination.CurrentPageIndex == pageIndex ? "page" : null;
-
-
-
-
-    private async Task LoadUserListAsync()
-    {
-        // // Fetch paginated data
-        // var pageNumber = pagination.CurrentPageIndex + 1; // Convert to 1-based index
-        // //var pageSize = pagination.ItemsPerPage;
-
-        // gridItemsProvider = async req =>
-        // {
-        //     var userListDtos = await _userService.GetPagingDataAsync(
-        //     $"Users/userlist?PageNumber={pageNumber}&PageSize={ItemsPerPage}&OrderBy=Id&IsDescending=false", true);
-
-        //     return GridItemsProviderResult.From(userListDtos.Items.ToList(), userListDtos.TotalCount);
-        // };
-
-        //StateHasChanged();
-
-
-        if (userListDtoGrid != null)
+        try
         {
-            // Fetch paginated data
-            //pageNumber = pagination.CurrentPageIndex + 1; // Convert to 1-based index
-            //var pageSize = pagination.ItemsPerPage;
+            isLoading = true;
+            itemsPerPage = args.Top ?? 10;
 
-            //pagination.TotalItemCountChanged += (sender, eventArgs) => StateHasChanged();
+            int pageNumber = ((int)args.Skip / itemsPerPage) + 1;
 
-            await userListDtoGrid.RefreshDataAsync();
+
+            var response = await _userService.GetPagingDataAsync(
+            $"Users/userlist?PageNumber={pageNumber}&PageSize={itemsPerPage}&OrderBy=Id&IsDescending=false", true);
+
+            if (response != null)
+            {
+                totalItemCount = response.TotalCount;
+
+                userListDtos = response.Items.AsODataEnumerable();
+                // Return the grid data
+                userList = response.Items;
+            }
+            else
+            {
+                // Log or handle the null response scenario
+                Console.Error.WriteLine("Failed to load task list data. API returned null.");
+            }
+
+            isLoading = false;
+        }
+        catch (Exception)
+        {
+            throw;
         }
     }
 
 
-    protected async Task DeleteTasklist(UserDto userDto)
+    void ShowNotification(NotificationMessage message)
     {
-        await Task.Delay(1000);
+        NotificationService.Notify(message);
     }
 
 
@@ -255,8 +192,7 @@
     private async Task ModalSuccess()
     {
         UserModalOpen = false;
-        //ActionPerItemModalOpen = false;
-        await LoadUserListAsync(); // Reload data with the updated page size
+        await gridItemsProvider.RefreshDataAsync();  // Reload data with the updated page size
         StateHasChanged();
     }
 
@@ -301,7 +237,7 @@
                         UserEmail = userFormRequest.UserEmail
                     };
 
-                apiReturn = await _updateUserService.UpdateAsync("users", userFormRequest.Id, updateUserRequest);
+                apiReturn = await _updateUserService.UpdateAsync("users", userFormRequest.Id, updateUserRequest, true);
             }
             else
             {
@@ -318,13 +254,93 @@
 
             if(apiReturn.IsSuccessStatusCode)
             {
+                ShowNotification(new NotificationMessage { 
+                        Severity = NotificationSeverity.Success,
+                        Summary = ActionNameModel.Saved,
+                        Detail = $"{userFormRequest.FullName} is {ActionNameModel.Saved}",
+                        Duration = 4000
+                    });
+
                 await ModalSuccess();
             }
-
+            else
+            {
+                ShowNotification(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Error",
+                        Detail = apiReturn.StatusCode.ToString(),
+                        Duration = 4000
+                    });
+            }
+            
         }
 
         //StateHasChanged();
 
+    }
+
+    #endregion
+
+
+    #region ActionPerItemModal
+
+    private bool ActionPerItemModalOpen { get; set; } = false;
+
+    private int ItemIdAction;
+    private string ActionItemText = "";
+    public string ActionName { get; set; }
+    private int ActionTypeId { get; set; }
+
+    public void ActionItem(UserDto userDto, int _ActionTypeId)
+    {
+        ItemIdAction = userDto.Id;
+        ActionItemText = userDto.FullName;
+        ActionTypeId = _ActionTypeId;
+
+        if (ActionTypeId == 1)
+        {
+            ActionName = ActionNameModel.Delete;
+        }
+
+        ActionPerItemModalOpen = true;
+    }
+
+
+
+    private async Task OnActionPerItemModalClose(bool RtnAction)
+    {
+        if (RtnAction == false)
+        {
+            ActionPerItemModalOpen = false;
+        }
+        else
+        {
+
+            bool IsSuccess = false;
+
+            if (ActionTypeId == 1)
+            {
+                var apiReturn = await _userService.DeleteAsync($"user", ItemIdAction);
+                IsSuccess = apiReturn.IsSuccessStatusCode;
+            }
+
+
+            if (IsSuccess)
+            {
+                //toastService.ShowSuccess($"{ActionItemText} {ActionName}d");
+
+                ShowNotification(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Warning,
+                        Summary = "Deleted",
+                        Detail = $"{ActionItemText} {ActionName}d",
+                        Duration = 4000
+                    });
+
+                await ModalSuccess();
+            }
+        }
     }
 
     #endregion

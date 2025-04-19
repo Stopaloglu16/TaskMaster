@@ -1,0 +1,70 @@
+﻿@using TaskMasterRazorClassLibrary.Config
+@using WebsiteApp.Data
+@using TaskMasterRazorClassLibrary
+
+
+@inherits LayoutComponentBase
+
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+
+<PageTitle>WebApp</PageTitle>
+
+
+
+@* <BlazoredToasts toastposition="ToastPosition.TopRight" Timeout="10" SuccessClass="success-toast-override"
+                SuccessIconClass="oi oi-check"
+                InfoIconClass="oi oi-warning" />
+ *@
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+          @* <div class="top-row px-4">
+            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+        </div> *@
+
+        <!-- Right navbar links -->
+        <div class="top-row px-4">
+            <ul class="navbar-nav ml-auto">
+
+                <!-- Notifications Dropdown Menu -->
+                <li class="nav-item dropdown">
+
+                </li>
+
+                <li class="nav-item">
+                    <AuthorizeView>
+                        <Authorized>
+                            @context.User.Identity.Name  <a href="/" @onclick="(() => Logout())">Logout</a>
+                        </Authorized>
+                        <NotAuthorized>
+                            <a href="/">Login</a>
+                        </NotAuthorized>
+                    </AuthorizeView>
+
+                </li>
+            </ul>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+<RadzenComponents @rendermode="InteractiveServer" />
+
+@code {
+
+    public async Task Logout()
+    {
+        await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsLoggedOut();
+        NavigationManager.NavigateTo("");
+    }
+
+}

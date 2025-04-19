@@ -5,16 +5,7 @@ namespace Application.Common.Models;
 
 public class PagingResponse<T>
 {
-    //public PagingResponse(IReadOnlyCollection<T> items, int count, int pageNumber, int pageSize)
-    //{
-    //    PageNumber = pageNumber;
-    //    TotalPages = (int)Math.Ceiling(count / (double)pageSize);
-    //    TotalCount = count;
-    //    Items = items;
-    //}
-
-    // public PagingResponse() { }
-
+   
     public PagingResponse(IReadOnlyCollection<T> items)
     {
         Items = items;
