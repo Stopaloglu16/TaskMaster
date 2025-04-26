@@ -75,9 +75,7 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
         // Set the Authorization header
         httpClientRequest.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-
         //https://github.com/hieudose/BlazorApp.git
-        //C:\Users\stopaloglu\source\demoRepos\BlazorApp
     }
 
 
@@ -93,6 +91,7 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
 
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {
+            var cc =  response.Content;
             var responseBody = await response.Content.ReadAsStringAsync();
             return await Task.FromResult(JsonConvert.DeserializeObject<PagingResponse<TResponse>>(responseBody));
         }
