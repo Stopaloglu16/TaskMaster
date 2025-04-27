@@ -1,7 +1,59 @@
 ﻿@page "/home"
+@inject NavigationManager NavigationManager
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<div id="findmetest">hello 
+</div>
 
-Welcome to your new app.
+<RadzenCard Style="padding: 2rem; max-width: 1000px; margin: auto;">
+    <div class="row g-4">
+
+        <div class="col-md-4">
+            <RadzenButton Icon="dashboard"
+                          Text="Dashboard"
+                          Style="width: 100%; height: 100px; font-size: 1.5rem;"
+                          ButtonStyle="ButtonStyle.Info"
+                          IconPosition="IconPosition.Top" 
+                          Variant="Variant.Outlined" />
+        </div>
+
+        <div class="col-md-4">
+            <RadzenButton Icon="list"
+                          Text="Task Manager"
+                          Style="width: 100%; height: 100px; font-size: 1.5rem;"
+                          ButtonStyle="ButtonStyle.Info"
+                          IconPosition="IconPosition.Top" 
+                          Variant="Variant.Outlined"
+                          Click='() => NavigationManager.NavigateTo("taskmanager")' />
+        </div>
+
+        <div class="col-md-4">
+            <RadzenButton Icon="assignment"
+                          Text="Report"
+                          Style="width: 100%; height: 100px; font-size: 1.5rem;"
+                          ButtonStyle="ButtonStyle.Info"
+                          Variant="Variant.Outlined"
+                          IconPosition="IconPosition.Top" />
+        </div>
+
+        <div class="col-md-4">
+            <RadzenButton Icon="manage_accounts"
+                          Text="Admin"
+                          Style="width: 100%; height: 100px; font-size: 1.5rem;"
+                          ButtonStyle="ButtonStyle.Info"
+                          IconPosition="IconPosition.Top"
+                          Variant="Variant.Outlined"
+                          Click='() => NavigationManager.NavigateTo("usermanager")' />
+        </div>
+
+    </div>
+</RadzenCard>
+
+
+@code {
+    void ButtonClicked()
+    {
+        // Handle the Click event of RadzenButton
+    }
+}

@@ -1,5 +1,6 @@
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
+using Radzen;
 using TaskMasterRazorClassLibrary.Services;
 using WebsiteApp.Components;
 using WebsiteApp.Config;
@@ -51,6 +52,8 @@ builder.Services.AddBlazorServices();
 
 builder.Services.AddBlazoredLocalStorage();
 
+
+builder.Services.AddRadzenComponents();
 
 
 var app = builder.Build();

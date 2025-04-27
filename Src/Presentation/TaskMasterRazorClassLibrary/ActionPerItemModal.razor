@@ -6,9 +6,6 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h6 class="modal-title">Question</h6>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="ModalCancel">
-                    <span aria-hidden="true">&times;</span>
-                </button>
             </div>
 
             <div class="modal-body">
@@ -16,8 +13,13 @@
             </div>
 
             <div class="modal-footer">
-                <button type="submit" class="btn btn-sm btn-danger" @onclick="@ModalOk">Yes</button>
+                @* <button type="submit" class="btn btn-sm btn-danger" @onclick="@ModalOk">Yes</button>
                 <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" @onclick="@ModalCancel">Close</button>
+ *@
+                <RadzenButton class="rz-mr-2" Text="No" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => ModalCancel())" Variant="Variant.Outlined" />
+                <RadzenButton Text="Yes" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Click="@(() => ModalOk())"   />
+        
+
             </div>
 
         </div>
