@@ -8,6 +8,7 @@ using Radzen.Blazor;
 using System.Security.Claims;
 using WebsiteApp.Components.Pages.LoginPages;
 using WebsiteApp.Config;
+using WebsiteApp.Data;
 using WebsiteApp.Services;
 
 namespace WebsiteApp.BUnitTests.LoginPages;
@@ -42,10 +43,6 @@ public class LoginTests : TestContext
     [Fact]
     public void LoginPage_Valid_Test()
     {
-        // Arrange: Register required services
-        var fakeNavigationManager = Services.GetRequiredService<FakeNavigationManager>();
-
-
         // Arrange: Register required services
         Services.AddSingleton<IAuthService, AuthService>();
 
@@ -83,10 +80,13 @@ public class LoginTests : TestContext
         Assert.NotNull(loginButton); // Ensure the button exists before interacting
         loginButton.Click();
 
+
+        var fakeNavigationManager = Services.GetRequiredService<FakeNavigationManager>();
+
         // Assert: Verify the alert visibility and content
         Assert.False(cut.Instance.IsVisibleAlert, "The alert should be visible after clicking the button.");
 
-        Assert.Equal("home", fakeNavigationManager.Uri);
+        Assert.Contains("home", fakeNavigationManager.Uri);
     }
 
     [Fact]

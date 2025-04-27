@@ -1,4 +1,6 @@
-﻿using Application.Aggregates.TaskListAggregate.Queries;
+﻿using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
+using Application.Aggregates.TaskListAggregate.Queries;
+using Application.Common.Models;
 using Blazored.LocalStorage;
 using Bunit;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -17,6 +19,7 @@ using WebsiteApp.Components.Pages.LoginPages;
 using WebsiteApp.Components.Pages.TaskManagerPages;
 using WebsiteApp.Config;
 using WebsiteApp.Services;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebsiteApp.BUnitTests.TaskManagerPages;
 
@@ -28,9 +31,14 @@ public class TaskManagerTests: TestContext
     public void TaskManager_Valid_Test()
     {
         // Arrange: Register required services
-        Services.AddSingleton<IAuthService, AuthService>();
+        Services.AddScoped<IAuthService, AuthService>();
+        Services.AddHttpClient();
 
-        Services.AddSingleton<IWebApiService<TaskListDto, TaskListDto>, WebApiService<TaskListDto, TaskListDto>>();
+        Services.AddScoped<IWebApiService<TaskListDto, TaskListDto>, WebApiService<TaskListDto, TaskListDto>>();
+        Services.AddScoped<IWebApiService<TaskListFormRequest, TaskListFormRequest>, WebApiService<TaskListFormRequest, TaskListFormRequest>>();
+        Services.AddScoped<IWebApiService<TaskListFormRequest, HttpResponseMessage>, WebApiService<TaskListFormRequest, HttpResponseMessage>>();
+
+        Services.AddScoped<IWebApiService<SelectListItem, SelectListItem>, WebApiService<SelectListItem, SelectListItem>>();
 
         Services.AddSingleton<NotificationService>();
 
@@ -43,7 +51,7 @@ public class TaskManagerTests: TestContext
         //    ApiAuthUrl = "https://example.com",
         //    ApiUrl = "https://example.com"
         //}));
-        //Services.AddBlazoredLocalStorage();
+        Services.AddBlazoredLocalStorage();
 
         // Mock AuthenticationState
         var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new[]
