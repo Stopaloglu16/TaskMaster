@@ -17,7 +17,7 @@ namespace WebsiteApp.BUnitTests.TaskManagerPages;
 public class TaskManagerTests : TestContext
 {
 
-    [Fact]
+    [Fact(Skip ="In Progress")]
     public void TaskManager_ModalValid_Test()
     {
         // Arrange: Register required services

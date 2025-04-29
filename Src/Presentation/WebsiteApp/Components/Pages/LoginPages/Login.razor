@@ -39,36 +39,6 @@
     </RadzenColumn>
 </RadzenRow>
 
-
-
-@* 
-<h3>Log in</h3> *@
-
-@* <EditForm FormName="LoginForm" Model="@userModel" OnValidSubmit="@LoginSubmit">
-    <DataAnnotationsValidator/>
-    <div class="col-10 row">
-        <InputText class="form-control col-12" @bind-Value="userModel.Username" placeholder="User name" />
-        &nbsp;<ValidationMessage For="@(() => userModel.Username)" />
-    </div>
-    <br />
-    <div class="col-10 row">
-        <InputText type="password" class="form-control col-12" @bind-value="userModel.Password" placeholder="Password" />
-        &nbsp;<ValidationMessage For="@(() => userModel.Password)" />
-    </div>
-    <br />
-    <div class="col-5 row">
-        <span class="col-8"></span>
-        <input type="submit" class="form-control offset-1 col-10 btn btn-primary" value="Login" />
-        <a href="">Forgot password</a>
-    </div>
-    <br />
-    <div class="col-10 row" style="text-align:left; font-weight:bold">
-        <span class="col-12">@LoginMesssage</span>
-    </div>
-
-</EditForm> *@
-
-
 @code {
 
     private UserLoginRequest userModel;

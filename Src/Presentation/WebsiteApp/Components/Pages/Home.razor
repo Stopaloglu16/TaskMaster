@@ -52,6 +52,20 @@
 
 
 @code {
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await authenticationState;
+        var user = authState.User;
+        if (!user.Identity.IsAuthenticated)
+            NavigationManager.NavigateTo("/", true);
+
+        await base.OnInitializedAsync();
+    }
+
     void ButtonClicked()
     {
         // Handle the Click event of RadzenButton
