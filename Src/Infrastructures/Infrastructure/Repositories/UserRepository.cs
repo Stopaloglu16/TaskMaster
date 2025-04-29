@@ -74,6 +74,17 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
         return CustomResult<UserDto>.Success(myUserDto);
     }
 
+    public async Task<CustomResult<User>> GetUserByEmail(string email)
+    {
+        var currentUser = await _dbContext.Users.Where(uu => uu.UserEmail == email)
+                                               .AsNoTracking()
+                                               .FirstOrDefaultAsync();
+
+        if (currentUser == null) return CustomResult<User>.Failure(CustomError.Failure("The user not found"));
+
+        return CustomResult<User>.Success(currentUser);
+    }
+
     public async Task<IEnumerable<UserDto>> GetUsers(bool IsActive, UserType UserTypeId)
     {
         return await _dbContext.Users.Where(uu => uu.UserTypeId == UserTypeId &&

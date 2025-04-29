@@ -109,4 +109,20 @@ public class UserService : IUserService
     {
         return await _userRepository.GetUserByUserGuidId(userGuidId);
     }
+
+    public async Task<CustomResult<Guid>> ForgotPassordAsync(string Username)
+    {
+        var currentUser = await _userRepository.GetUserByEmail(Username);
+
+        if (currentUser == null) return CustomResult<Guid>.Failure(new CustomError(false, "Not found user"));
+
+        var newGuid = Guid.NewGuid();
+        currentUser.Value.RegisterTokenExpieryTime = DateTime.UtcNow.AddMinutes(15);
+        currentUser.Value.RegisterToken = newGuid;
+
+        await _userRepository.UpdateAsync(currentUser.Value);
+
+        return CustomResult<Guid>.Success(newGuid);
+
+    }
 }

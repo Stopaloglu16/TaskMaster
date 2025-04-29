@@ -16,7 +16,6 @@ namespace WebApiAuth.Controllers
     [ApiController]
     public class LoginController : ControllerBase
     {
-
         private readonly JwtSettings _jwtsettings;
         private IConfiguration _configuration;
 

@@ -10,16 +10,16 @@ using ServiceLayer.Users;
 namespace WebApiAuth.Controllers
 {
     [ApiVersion(1)]
-    [Route("api/v{apiVersion:apiVersion}/registerusers")]
+    [Route("api/v{apiVersion:apiVersion}/resetpassword")]
     [ApiController]
-    public class RegisterUsersController : ControllerBase
+    public class ResetPasswordController : ControllerBase
     {
         private IConfiguration _configuration;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly AppSettings _appSettings;
         private readonly IUserRegisterService _userregisterservice;
 
-        public RegisterUsersController(
+        public ResetPasswordController(
                          UserManager<IdentityUser> userManager,
                          IOptions<AppSettings> appSettings,
                          IConfiguration iConfig,
@@ -37,6 +37,8 @@ namespace WebApiAuth.Controllers
         [ProducesResponseType(typeof(BadRequestResult), 400)]
         public async Task<IActionResult> Post(RegisterUserRequest registerUserRequest)
         {
+            throw new NotImplementedException("This method is not implemented yet.");
+
             var myUser = await _userregisterservice.GetUserByAsync(registerUserRequest.Username, registerUserRequest.TokenConfirm);
 
             if (myUser.IsFailure)

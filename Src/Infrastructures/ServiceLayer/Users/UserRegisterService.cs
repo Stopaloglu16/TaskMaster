@@ -6,14 +6,12 @@ namespace ServiceLayer.Users;
 
 public class UserRegisterService : IUserRegisterService
 {
-
     private readonly IUserRegisterRepository _userRegisterRepository;
 
     public UserRegisterService(IUserRegisterRepository userRegisterRepository)
     {
         _userRegisterRepository = userRegisterRepository;
     }
-
 
     public async Task<CustomResult<User>> GetUserByAsync(string Username, string Token)
     {
