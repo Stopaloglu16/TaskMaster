@@ -9,6 +9,7 @@ namespace Application.Aggregates.TaskItemAggregate.Queries
         {
             return new TaskItemDto
             {
+                Id = taskItem.Id,
                 Title = taskItem.Title,
                 Description = taskItem.Description,
                 CompletedDate = taskItem.CompletedDate,

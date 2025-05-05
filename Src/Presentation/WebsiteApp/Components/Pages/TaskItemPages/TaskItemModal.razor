@@ -6,7 +6,51 @@
 <div class="modal show" tabindex="-1" role="dialog" style="display:block">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header">
+
+
+            <RadzenTemplateForm Data="@taskItemFormRequest">
+                <div class="modal-body">
+                    <div class="card-body">
+                        <RadzenRow Gap="2rem" class="rz-p-0 rz-p-lg-4">
+                            <RadzenColumn Size="12" SizeMD="12">
+                                <RadzenStack>
+                                    <RadzenFieldset Text="Task List">
+                                        <RadzenStack Gap="1rem">
+                                            <RadzenRow AlignItems="AlignItems.Center">
+                                                <RadzenColumn Size="12" SizeMD="4">
+                                                    <RadzenLabel Text="Title" Component="Title" />
+                                                </RadzenColumn>
+                                                <RadzenColumn Size="12" SizeMD="8">
+                                                    <RadzenTextBox @bind-Value="taskItemFormRequest.Title" Name="Title" Placeholder="tasklist name" />
+                                                    <RadzenRequiredValidator Component="Title" Text="Title is required" Style="position: absolute;" />
+                                                </RadzenColumn>
+                                            </RadzenRow>
+                                            <RadzenRow AlignItems="AlignItems.Center">
+                                                <RadzenColumn Size="12" SizeMD="4">
+                                                    <RadzenLabel Text="Description" Component="Description" />
+                                                </RadzenColumn>
+                                                <RadzenColumn Size="12" SizeMD="8">
+                                                    <RadzenTextArea @bind-Value="taskItemFormRequest.Description" Style="width: 100%" aria-label="TextArea" />
+                                                    <RadzenRequiredValidator Component="Title" Text="Title is required" Style="position: absolute;" />
+                                                </RadzenColumn>
+                                            </RadzenRow>
+                                        </RadzenStack>
+                                    </RadzenFieldset>
+                                </RadzenStack>
+                            </RadzenColumn>
+                        </RadzenRow>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <RadzenButton class="rz-mr-2" Text="Close" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => ModalCancel())" Variant="Variant.Outlined" />
+                    <RadzenButton Text="Save" ButtonType="ButtonType.Submit" Click="@(() => ModalOk())"  ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                </div>
+
+            </RadzenTemplateForm>
+
+
+         @*    <div class="modal-header">
                 <h6 class="modal-title">Task List</h6>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="ModalCancel">
                     <span aria-hidden="true">&times;</span>
@@ -37,7 +81,7 @@
                     <button type="submit" class="btn btn-sm btn-primary">Save</button>
                 </div>
 
-            </EditForm>
+            </EditForm> *@
 
         </div>
     </div>
@@ -63,4 +107,28 @@
         return OnClose.InvokeAsync(taskItemFormRequest);
     }
 
+
+    // [Parameter]
+    // public TaskItemFormRequest? taskItemFormRequest { get; set; }
+
+    // [Parameter]
+    // public EventCallback<TaskItemFormRequest>? OnClose { get; set; }
+    
+    // private EventCallback<TaskItemFormRequest> SubmitCallback => EventCallback.Factory.Create<TaskItemFormRequest>(this, ModalOk);
+
+
+    // private Task ModalCancel()
+    // {
+    //     return OnClose.InvokeAsync(null);
+    // }
+
+    // private async Task ModalOk(TaskItemFormRequest taskItemFormRequest)
+    // {
+    //     if (taskItemFormRequest != null)
+    //     {
+    //         await OnClose.InvokeAsync(taskItemFormRequest);
+    //     }
+    // }
+
+  
 }

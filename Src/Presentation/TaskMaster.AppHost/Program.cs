@@ -11,4 +11,6 @@ builder.AddProject<WebsiteApp>("websiteapp")
        .WithReference(webapiauth)
        .WithReference(webapi);
 
+builder.AddDockerComposePublisher();
+
 builder.Build().Run();

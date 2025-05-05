@@ -18,7 +18,7 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
     public ILocalStorageService _localStorageService { get; }
     public AuthenticationStateProvider _authStateProvider { get; }
 
-    public string Apitext { get; set; } = $"/api/v1.0/";
+    public string Apitext { get; set; } = $"api/v1.0/";
 
     public WebApiService(IHttpClientFactory httpClientFactory,
                          IOptions<ApiSettingConfig> apiSettingConfig,

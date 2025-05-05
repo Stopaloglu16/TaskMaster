@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250114215803_GuidUserNew")]
-    partial class GuidUserNew
+    [Migration("20250504173837_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -170,10 +170,10 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                             FullName = "taskmaster@hotmail.co.uk",
                             IsDeleted = (byte)0,
                             RefreshTokenExpiryTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            RegisterToken = new Guid("c086da9e-60ad-4e44-8186-04c381ef9b68"),
+                            RegisterToken = new Guid("33fc8420-4a15-45ad-aefc-f340d0e37382"),
                             RegisterTokenExpieryTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             UserEmail = "taskmaster@hotmail.co.uk",
-                            UserGuidId = new Guid("845dde4f-6cde-41c4-ac07-36fa3a805fed"),
+                            UserGuidId = new Guid("e5e54b95-b224-418a-9640-8f6cc69b74d7"),
                             UserTypeId = 0
                         });
                 });

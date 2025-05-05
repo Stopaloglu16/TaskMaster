@@ -69,7 +69,6 @@ namespace WebApiAuth.Controllers
             }
 
             return BadRequest("System issue");
-
         }
 
     }

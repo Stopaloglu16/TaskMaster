@@ -18,7 +18,7 @@ public class LoginTests : BaseIntegrationTest
     public async Task CreateLoginRequest_Valid_Success()
     {
 
-        var identityUserMock = await _factory.RegisterUser();
+        var identityUserMock = await _factory.GetAdminUser();
 
         var userMock = await _dbContext.Users.FirstAsync();
 
@@ -42,5 +42,32 @@ public class LoginTests : BaseIntegrationTest
 
         Assert.NotNull(apiLoginResponse?.RefreshToken);
     }
+
+
+    [Fact]
+    public async Task CreateLoginRequest_InValid_Success()
+    {
+
+        var identityUserMock = await _factory.GetAdminUser();
+
+        var userMock = await _dbContext.Users.FirstAsync();
+
+        userMock.AspId = identityUserMock.Id;
+        _dbContext.Users.Update(userMock);
+
+        await _dbContext.SaveChangesAsync();
+
+
+        //Arrange
+        var loginRequest = LoginRequestSamples.CreateLoginRequestInValidSample();
+
+        //Act
+        var responseApiLogin = await _httpClient.PostAsJsonAsync($"/api/v1.0/Login/login", loginRequest);
+
+
+        //Assert
+        Assert.True(System.Net.HttpStatusCode.Unauthorized == responseApiLogin.StatusCode, $"Login API {responseApiLogin.StatusCode}");
+    }
+
 
 }

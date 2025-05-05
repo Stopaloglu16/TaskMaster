@@ -28,6 +28,17 @@ public class UserRegisterRepository : EfCoreRepository<User, int>, IUserRegister
         return CustomResult<User>.Success(user);
     }
 
+    public async Task<CustomResult<User>> GetUserByAsync(string Username)
+    {
+        var user = await _dbContext.Users.AsNoTracking()
+                                     .Where(u => u.UserEmail == Username)
+                                     .FirstOrDefaultAsync();
+        if (user is null)
+            return CustomResult<User>.Failure(new CustomError(false, "Not found"));
+
+        return CustomResult<User>.Success(user);
+    }
+
     public async Task<CustomResult> UpdateUserAsync(int UserId, string AspId)
     {
         var currentUser = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == UserId);

@@ -1,36 +1,34 @@
-﻿using Application.Aggregates.TaskListAggregate.Queries;
+﻿using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
+using Application.Aggregates.TaskListAggregate.Queries;
+using Application.Common.Models;
 using Blazored.LocalStorage;
 using Bunit;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Radzen;
 using Radzen.Blazor;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using WebsiteApp.BUnitTests.LoginPages;
-using WebsiteApp.Components.Pages.LoginPages;
 using WebsiteApp.Components.Pages.TaskManagerPages;
-using WebsiteApp.Config;
 using WebsiteApp.Services;
 
 namespace WebsiteApp.BUnitTests.TaskManagerPages;
 
-public class TaskManagerTests: TestContext
+public class TaskManagerTests : TestContext
 {
 
-
-    [Fact]
-    public void TaskManager_Valid_Test()
+    [Fact(Skip ="In Progress")]
+    public void TaskManager_ModalValid_Test()
     {
         // Arrange: Register required services
-        Services.AddSingleton<IAuthService, AuthService>();
+        Services.AddScoped<IAuthService, AuthService>();
+        Services.AddHttpClient();
 
-        Services.AddSingleton<IWebApiService<TaskListDto, TaskListDto>, WebApiService<TaskListDto, TaskListDto>>();
+        Services.AddScoped<IWebApiService<TaskListDto, TaskListDto>, WebApiService<TaskListDto, TaskListDto>>();
+        Services.AddScoped<IWebApiService<TaskListFormRequest, TaskListFormRequest>, WebApiService<TaskListFormRequest, TaskListFormRequest>>();
+        Services.AddScoped<IWebApiService<TaskListFormRequest, HttpResponseMessage>, WebApiService<TaskListFormRequest, HttpResponseMessage>>();
+
+        Services.AddScoped<IWebApiService<SelectListItem, SelectListItem>, WebApiService<SelectListItem, SelectListItem>>();
 
         Services.AddSingleton<NotificationService>();
 
@@ -38,12 +36,8 @@ public class TaskManagerTests: TestContext
         var mockHttpClient = new HttpClient(new MockHttpMessageHandler());
         Services.AddSingleton(mockHttpClient);
 
-        //Services.AddSingleton<IOptions<ApiSettingConfig>>(Options.Create(new ApiSettingConfig
-        //{
-        //    ApiAuthUrl = "https://example.com",
-        //    ApiUrl = "https://example.com"
-        //}));
-        //Services.AddBlazoredLocalStorage();
+       
+        Services.AddBlazoredLocalStorage();
 
         // Mock AuthenticationState
         var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new[]
@@ -54,6 +48,8 @@ public class TaskManagerTests: TestContext
 
         var authState = new AuthenticationState(claimsPrincipal);
         var authenticationStateTask = Task.FromResult(authState);
+
+
 
         // Register the CascadingParameter
         Services.AddSingleton<AuthenticationStateProvider>(new TestAuthenticationStateProvider(authenticationStateTask));

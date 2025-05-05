@@ -8,5 +8,5 @@ public interface IEmailSender
 
     Task SendRegisterEmailAsync(string Username, string To, string Link);
 
-    Task SendForgotPasswordEmailAsync(string Username, string To, string Link);
+    Task SendForgotPasswordEmailAsync(string Username, string To, string Token);
 }

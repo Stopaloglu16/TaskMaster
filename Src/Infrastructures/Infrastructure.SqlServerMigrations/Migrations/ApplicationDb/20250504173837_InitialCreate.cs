@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -90,7 +91,7 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "AspId", "Created", "CreatedBy", "FullName", "IsDeleted", "LastModified", "LastModifiedBy", "RefreshToken", "RefreshTokenExpiryTime", "RegisterToken", "RegisterTokenExpieryTime", "UserEmail", "UserGuidId", "UserTypeId" },
-                values: new object[] { 1, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "taskmaster@hotmail.co.uk", (byte)0, null, null, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("00000000-0000-0000-0000-000000000000"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "taskmaster@hotmail.co.uk", new Guid("00000000-0000-0000-0000-000000000000"), 0 });
+                values: new object[] { 1, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "taskmaster@hotmail.co.uk", (byte)0, null, null, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("33fc8420-4a15-45ad-aefc-f340d0e37382"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "taskmaster@hotmail.co.uk", new Guid("e5e54b95-b224-418a-9640-8f6cc69b74d7"), 0 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_TaskItems_TaskListId_Title",

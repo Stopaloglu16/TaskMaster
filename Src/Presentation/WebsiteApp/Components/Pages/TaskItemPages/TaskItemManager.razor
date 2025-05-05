@@ -16,25 +16,55 @@
 @inject IWebApiService<TaskItemFormRequest, HttpResponseMessage> _taskItemFormCrudService
 @inject NavigationManager NavigationManager
 
-@inject TaskMasterRazorClassLibrary.Services.IToastService toastService
+@inject NotificationService NotificationService
 
 @rendermode InteractiveServer
 
+<PageTitle>Task Item</PageTitle>
 
 <div class="container mt-3">
-    @if (taskListDto != null)
-    {
-        <h2> @taskListDto.Title</h2>
-    }
-
     <div class="card">
         <div class="card-header">
-
-            <button class="btn btn-primary" type="button" @onclick="@(() => EditTaskItem(0))">New Task</button>
+            <RadzenBreadCrumb>
+                <RadzenBreadCrumbItem Path="/home" Text="Home" />
+                <RadzenBreadCrumbItem Path="/taskmanager" Text="Task Manager" />
+                <RadzenBreadCrumbItem Text="Task Item" />
+            </RadzenBreadCrumb>
+        </div>
+        <div class="card-header">
+            <RadzenButton Icon="add"
+            Text="New"
+            ButtonStyle="ButtonStyle.Primary"
+            Variant="Variant.Flat"
+            Size="ButtonSize.Medium"
+            class="rz-my-1 rz-ms-1" Click="@(args => EditTaskItem(0))" />
+            <h2>@taskListDto.Title</h2>
         </div>
         <div class="card-body">
 
-            @if (gridItemsProvider == null)
+            <div class="card-body">
+                <RadzenStack Gap="1rem">
+                    <RadzenDataGrid @ref=@gridItemsProvider TItem="TaskItemDto" Data="@taskItemList" LoadData="@LoadTaskItemAsync" IsLoading="@isLoading"
+                    AllowPaging="true" AllowSorting="false" PagerHorizontalAlign="HorizontalAlign.Center"
+                    Count="@totalItemCount">
+                        <Columns>
+                            <RadzenDataGridColumn Property="@nameof(TaskItemDto.Title)" Title="Title" />
+                            <RadzenDataGridColumn Property="@nameof(TaskItemDto.Description)" Title="Description" />
+                            <RadzenDataGridColumn Property="@nameof(TaskItemDto.CompletedDate)" Title="CompletedDate" />
+                            <RadzenDataGridColumn TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+                                <Template Context="task">
+                                    <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                    class="rz-my-1 rz-ms-1" Click="@(async () => await EditTaskItem(task.Id))" />
+                                    <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                    class="rz-my-1 rz-ms-1" Click="@(() => ActionItem(task, 1))" />
+                                </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                </RadzenStack>
+            </div>
+
+            @*     @if (gridItemsProvider == null)
             {
                 <p>Loading...</p>
             }
@@ -52,7 +82,7 @@
                     </QuickGrid>
                 </div>
 
-            }
+            } *@
         </div>
         <div class="card-footer">
         </div>
@@ -67,29 +97,49 @@
     </TaskItemModal>
 }
 
+
 @if (ActionPerItemModalOpen)
 {
-    <ActionPerItemModal ActionItemText="@ActionItemText"
-                        ActionText="@ActionName"
+    <ActionPerItemModal ActionItemText="@ActionItemText" 
+                        ActionText="@ActionName" 
                         OnCloseModal="@OnActionPerItemModalClose">
     </ActionPerItemModal>
 }
 
 @code {
 
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
     [Parameter]
     public int TaskListId { get; set; }
 
-    public GridItemsProvider<TaskItemDto>? gridItemsProvider;
-    private int totalItemCount = 0; // Manages total items across all pages
-    public TaskListDto taskListDto { get; set; }
+
+    RadzenDataGrid<TaskItemDto> gridItemsProvider;
+    IEnumerable<TaskItemDto> taskItemList;
+    ODataEnumerable<TaskItemDto> taskItemDtos;
+
+    bool isLoading;
+    private int totalItemCount = 0;
+
     public bool TaskItemModalOpen = false;
     public TaskItemFormRequest taskItemFormRequest { get; set; }
 
-    QuickGrid<TaskItemDto> taskItemDtoGrid; //Added into QucikGrid @ref="myGrid"
+    public TaskListDto taskListDto { get; set; } = new TaskListDto() { Title = "" };
 
-    [CascadingParameter]
-    private Task<AuthenticationState>? authenticationState { get; set; }
+    /// <summary>
+    /// old old old
+    /// </summary>
+
+    // public GridItemsProvider<TaskItemDto>? gridItemsProvider;
+    // private int totalItemCount = 0; // Manages total items across all pages
+    // public TaskListDto taskListDto { get; set; }
+    // public bool TaskItemModalOpen = false;
+    // public TaskItemFormRequest taskItemFormRequest { get; set; }
+
+    // QuickGrid<TaskItemDto> taskItemDtoGrid; //Added into QucikGrid @ref="myGrid"
+
+    
 
     protected async override Task OnInitializedAsync()
     {
@@ -98,36 +148,34 @@
         if (user?.Identity?.IsAuthenticated != true)
             NavigationManager.NavigateTo("/", true);
 
-        taskListDto = await _taskListService.GetDataByIdAsync($"tasklist/{TaskListId}");
+      
+     //    if (taskListDto == null)
+     //    {
+     //        toastService.ShowWarning($"Task not found");
 
-        if (taskListDto == null)
-        {
-            toastService.ShowWarning($"Task not found");
+     //    }
+     //    else
+     //    {
+     //        gridItemsProvider = async req =>
+     // {
+     //     var response = await _taskItemService.GetAllDataAsync($"taskitem?taskListId={TaskListId}");
 
-        }
-        else
-        {
-            gridItemsProvider = async req =>
-     {
-         var response = await _taskItemService.GetAllDataAsync($"taskitem?taskListId={TaskListId}");
+     //     if (response != null)
+     //     {
+     //         // Update total item count for pagination
+     //         totalItemCount = response.Count;
 
-         if (response != null)
-         {
-             // Update total item count for pagination
-             totalItemCount = response.Count;
-
-             // Return the grid data
-             return GridItemsProviderResult.From(response, response.Count);
-         }
-         else
-         {
-             // Log or handle the null response scenario
-             Console.Error.WriteLine("Failed to load task list data. API returned null.");
-             return GridItemsProviderResult.From<TaskItemDto>((ICollection<TaskItemDto>)Enumerable.Empty<TaskItemDto>().ToList(), 0);
-         }
-     };
-        }
-
+     //         // Return the grid data
+     //         return GridItemsProviderResult.From(response, response.Count);
+     //     }
+     //     else
+     //     {
+     //         // Log or handle the null response scenario
+     //         Console.Error.WriteLine("Failed to load task list data. API returned null.");
+     //         return GridItemsProviderResult.From<TaskItemDto>((ICollection<TaskItemDto>)Enumerable.Empty<TaskItemDto>().ToList(), 0);
+     //     }
+     // };
+        //}
 
 
         await base.OnInitializedAsync();
@@ -137,6 +185,9 @@
     {
         if (firstRender)
         {
+               var taskListDto = await _taskListService.GetDataByIdAsync($"tasklist/{TaskListId}");
+
+
             StateHasChanged();
         }
 
@@ -144,11 +195,34 @@
     }
 
 
-    private async Task LoadTaskItemAsync()
+
+    private async Task LoadTaskItemAsync(LoadDataArgs args)
     {
-        if (taskItemDtoGrid != null)
+        try
         {
-            await taskItemDtoGrid.RefreshDataAsync();
+            isLoading = true;
+          
+            var response = await _taskItemService.GetAllDataAsync($"taskitem?taskListId={TaskListId}");
+
+            if (response != null)
+            {
+                totalItemCount = response.Count;
+
+                taskItemDtos = response.AsODataEnumerable();
+                // Return the grid data
+                taskItemList = response;
+            }
+            else
+            {
+                // Log or handle the null response scenario
+                Console.Error.WriteLine("Failed to load task list data. API returned null.");
+            }
+
+            isLoading = false;
+        }
+        catch (Exception)
+        {
+            throw;
         }
     }
 
@@ -159,6 +233,11 @@
     }
 
 
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+
 
     #region Modal
 
@@ -166,7 +245,9 @@
     {
         TaskItemModalOpen = false;
         ActionPerItemModalOpen = false;
-        await LoadTaskItemAsync(); // Reload data with the updated page size
+        
+        await gridItemsProvider.RefreshDataAsync();
+
         StateHasChanged();
     }
 
@@ -174,7 +255,7 @@
     {
         if (Id > 0)
         {
-            var apiReturn = await _taskItemFormService.GetDataByIdAsync($"tasklist/{Id}");
+            var apiReturn = await _taskItemFormService.GetDataByIdAsync($"taskitem/{Id}");
             taskItemFormRequest = apiReturn;
         }
         else
@@ -206,7 +287,16 @@
 
             if (apiReturn.IsSuccessStatusCode)
             {
-                toastService.ShowSuccess($"{taskItemFormRequest.Title} is {ActionNameModel.Saved}");
+                //toastService.ShowSuccess($"{taskItemFormRequest.Title} is {ActionNameModel.Saved}");
+
+                ShowNotification(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Summary = ActionNameModel.Saved,
+                        Detail = $"{taskItemFormRequest.Title} is {ActionNameModel.Saved}",
+                        Duration = 4000
+                    });
+
                 await ModalSuccess();
             }
         }
@@ -259,7 +349,15 @@
 
             if (IsSuccess)
             {
-                toastService.ShowSuccess($"{ActionItemText} {ActionName}d");
+               // toastService.ShowSuccess($"{ActionItemText} {ActionName}d");
+
+                 ShowNotification(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Warning,
+                        Summary = "Deleted",
+                        Detail = $"{ActionItemText} {ActionName}d",
+                        Duration = 4000
+                    });
 
                 await ModalSuccess();
             }

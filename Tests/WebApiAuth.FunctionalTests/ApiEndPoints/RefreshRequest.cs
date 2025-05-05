@@ -18,7 +18,7 @@ public class RefreshRequestTests : BaseIntegrationTest
     [Fact]
     public async Task CreateRefrehToken_Valid_Success()
     {
-        var identityUserMock = await _factory.RegisterUser();
+        var identityUserMock = await _factory.GetAdminUser();
 
         var userMock = await _dbContext.Users.FirstAsync();
 

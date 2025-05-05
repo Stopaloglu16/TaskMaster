@@ -67,6 +67,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebsiteApp.BUnitTests", "Tests\WebsiteApp.BUnitTests\WebsiteApp.BUnitTests.csproj", "{96CB474C-B850-4666-AF85-07C9B3410D0E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebsiteApp.SeleniumTests", "Tests\WebsiteApp.SeleniumTests\WebsiteApp.SeleniumTests.csproj", "{C1785B63-C7D5-459F-B06F-C0964FF2C856}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -157,6 +159,10 @@ Global
 		{96CB474C-B850-4666-AF85-07C9B3410D0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96CB474C-B850-4666-AF85-07C9B3410D0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96CB474C-B850-4666-AF85-07C9B3410D0E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1785B63-C7D5-459F-B06F-C0964FF2C856}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1785B63-C7D5-459F-B06F-C0964FF2C856}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1785B63-C7D5-459F-B06F-C0964FF2C856}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1785B63-C7D5-459F-B06F-C0964FF2C856}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -186,6 +192,7 @@ Global
 		{375C73E5-A914-48CD-B2A6-0BB88C3BF057} = {D1071BB3-2C6B-45C2-B538-707D462B9F5C}
 		{FEA72CD7-ED79-446B-8613-7CB7A149C036} = {D1071BB3-2C6B-45C2-B538-707D462B9F5C}
 		{96CB474C-B850-4666-AF85-07C9B3410D0E} = {AC84E431-EC65-415A-B649-736F0A044467}
+		{C1785B63-C7D5-459F-B06F-C0964FF2C856} = {AC84E431-EC65-415A-B649-736F0A044467}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5B8B3F2C-AE0B-4C1D-824D-9EC8F8E6C8C5}

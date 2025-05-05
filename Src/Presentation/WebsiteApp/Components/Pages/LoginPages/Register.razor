@@ -1,7 +1,8 @@
 ﻿@page "/register/{username}/{token}"
+@layout Layout.LoginLayout
+
 @using Application.Aggregates.UserAuthAggregate
 @using WebsiteApp.Services
-
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
@@ -10,9 +11,60 @@
 @inject IJSRuntime jsRunTime
 @inject NavigationManager Navigation
 
-<h3>Register</h3>
-<p>@returnMessage</p>
 
+<RadzenStack Gap="0" class="rz-py-8 rz-px-12">
+    <RadzenAlert Visible="@IsVisibleReturnMesssage" AllowClose="false" AlertStyle="AlertStyle.Warning " Variant="Variant.Flat" Shade="Shade.Lighter">
+        @ReturnMesssage
+    </RadzenAlert>
+</RadzenStack>
+
+
+<RadzenTemplateForm Data="@registerUserRequest" Submit="@(async (RegisterUserRequest args) => await RegisterSubmit(args))">
+    <RadzenRow Gap="2rem" class="rz-p-0 rz-p-lg-4">
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenStack>
+                <RadzenFieldset Text="Register User">
+                    <RadzenStack Gap="1rem">
+                        <RadzenRow AlignItems="AlignItems.Center">
+                            <RadzenColumn Size="4">
+                                <RadzenLabel Text="Username" Component="Username" />
+                            </RadzenColumn>
+                            <RadzenColumn Size="8">
+                                <RadzenTextBox @bind-Value="registerUserRequest.Username" Name="Username" Placeholder="user name" />
+                                <RadzenRequiredValidator Component="Username" Text="Username is required" Style="position: absolute;" />
+                            </RadzenColumn>
+                        </RadzenRow>
+                        <RadzenRow AlignItems="AlignItems.Center">
+                            <RadzenColumn Size="12" SizeMD="4">
+                                <RadzenLabel Text="Password1" Component="Password1" />
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="8">
+                                <RadzenPassword @bind-Value="registerUserRequest.Password" Name="Password" Placeholder="Password"  />
+                                <RadzenRequiredValidator Component="Password" Text="Password is required" Style="position: absolute;" />
+                            </RadzenColumn>
+                        </RadzenRow>
+                        <RadzenRow AlignItems="AlignItems.Center">
+                            <RadzenColumn Size="12" SizeMD="4">
+                                <RadzenLabel Text="Confirm Password" Component="ConfirmPassword" />
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="8">
+                                <RadzenPassword @bind-Value="registerUserRequest.ConfirmPassword" Name="Confirm Password" Placeholder="Confirm Password" />
+                                <RadzenRequiredValidator Component="ConfirmPassword" Text="ConfirmPassword is required" Style="position: absolute;" />
+                            </RadzenColumn>
+                        </RadzenRow>
+                    </RadzenStack>
+                </RadzenFieldset>
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Right" Gap="1rem" class="rz-mt-8 rz-mb-4">
+        <RadzenButton ButtonType="ButtonType.Submit" Size="ButtonSize.Medium" Text="Submit" />
+    </RadzenStack>
+
+</RadzenTemplateForm>
+
+@* 
 <EditForm Model="@registerUserRequest" OnValidSubmit="@RegisterSubmit">
     <DataAnnotationsValidator />
     <div class="col-10 row">
@@ -38,8 +90,7 @@
     <div class="col-10 row" style="text-align:left; font-weight:bold">
         <span class="col-12">@RegisterMesssage</span>
     </div>
-
-</EditForm>
+</EditForm> *@
 
 @code {
 
@@ -49,11 +100,10 @@
     [Parameter]
     public string token { get; init; }
 
-    private string returnMessage { get; set; }
-
-
     public RegisterUserRequest registerUserRequest { get; set; }
-    private string RegisterMesssage { get; set; }
+    
+    private string ReturnMesssage { get; set; }
+    private bool IsVisibleReturnMesssage { get; set; } = false;
 
 
     protected async override Task OnInitializedAsync()
@@ -83,7 +133,7 @@
     }
 
 
-    private async Task RegisterSubmit()
+    private async Task RegisterSubmit(RegisterUserRequest registerUserRequest)
     {
         try
         {
@@ -96,12 +146,12 @@
             }
             else
             {
-                returnMessage = returnedUser.Error;
+                ReturnMesssage = returnedUser.Error;
             }
         }
         catch (Exception ex)
         {
-            returnMessage = ex.Message;
+            ReturnMesssage = ex.Message;
         }
 
         StateHasChanged();

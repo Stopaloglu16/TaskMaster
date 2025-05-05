@@ -45,10 +45,17 @@ builder.Services.AddDbContext<WebIdentityContext>(options => _ = provider switch
 
 builder.Services.AddScoped(typeof(IApplicationDbContext), typeof(ApplicationDbContext));
 
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+{
+    options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultProvider;
+})
+.AddEntityFrameworkStores<WebIdentityContext>()
+.AddDefaultTokenProviders();
 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<WebIdentityContext>();
+
 
 builder.Services.AddScoped(typeof(IRepository<,>), typeof(EfCoreRepository<,>));
+
 
 builder.Services.AddUserServices();
 

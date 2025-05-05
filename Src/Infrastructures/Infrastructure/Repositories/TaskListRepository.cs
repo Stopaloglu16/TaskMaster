@@ -41,8 +41,7 @@ public class TaskListRepository : EfCoreRepository<TaskList, int>, ITaskListRepo
         var query = _dbContext.TaskLists.Include(ss => ss.AssignedTo)
                                          .Include(ss => ss.TaskItems)
                                          .AsNoTracking()
-                                         .Where(qq => qq.IsDeleted == 0 &&
-                                                             qq.IsCompleted == false)
+                                         .Where(qq => qq.IsCompleted == false)
                                          .Select(ss => ss.MapToDto());
 
         return await PagingResponse<TaskListDto>.CreateAsync(query, pagingParameters);
