@@ -113,9 +113,8 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
         }
         catch (Exception ex)
         {
-            throw;
+            throw new Exception(ex.Message);    
         }
-
     }
 
     public async Task MarkUserAsLoggedOut()

@@ -3,6 +3,7 @@ using Domain.Common;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using System.Reflection.Emit;
 
 namespace Infrastructure.Data;
 
@@ -22,6 +23,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
+        builder.Entity<TaskList>().HasQueryFilter(p => p.IsDeleted == 0);
+        builder.Entity<TaskItem>().HasQueryFilter(p => p.IsDeleted == 0);
+        builder.Entity<User>().HasQueryFilter(p => p.IsDeleted == 0);
+
         base.OnModelCreating(builder);
         SeedAdminUser(builder);
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

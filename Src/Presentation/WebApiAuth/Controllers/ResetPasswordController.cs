@@ -3,6 +3,7 @@ using Application.Common.Models;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using ServiceLayer.Users;
@@ -35,33 +36,30 @@ namespace WebApiAuth.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(Ok), 200)]
         [ProducesResponseType(typeof(BadRequestResult), 400)]
-        public async Task<IActionResult> Post(RegisterUserRequest registerUserRequest)
+        public async Task<IActionResult> Post(ResetPasswordRequest resetPasswordRequest)
         {
-            throw new NotImplementedException("This method is not implemented yet.");
-
-            var myUser = await _userregisterservice.GetUserByAsync(registerUserRequest.Username, registerUserRequest.TokenConfirm);
+            var myUser = await _userregisterservice.GetUserByAsync(resetPasswordRequest.Email );
 
             if (myUser.IsFailure)
                 return BadRequest("User not found");
 
 
-            DateTime myNow = DateTime.Now;
-            int tt = myNow.Subtract(myUser.Value.RegisterTokenExpieryTime).Days;
+            DateTime myNow = DateTime.UtcNow;
+            int tt = myNow.Subtract(myUser.Value.RegisterTokenExpieryTime).Minutes;
 
-            if (tt >= 1)
+            if (tt >= 15)
                 return BadRequest("Token has been expired");
 
-            var myIduser = new IdentityUser { UserName = registerUserRequest.Username, Email = myUser.Value.UserEmail };
 
-            //userRegister.Password = EncryptDecrypt.Decrypt(userRegister.Password, true, _appSettings.KeyEncrypte);
-            myIduser.EmailConfirmed = true;
+            var currentUser = await _userManager.FindByEmailAsync(resetPasswordRequest.Email);
 
-            var result = await _userManager.CreateAsync(myIduser, registerUserRequest.Password);
+            if (currentUser is null)
+                return BadRequest("User not registered");
+
+            var result = await _userManager.ResetPasswordAsync(currentUser, resetPasswordRequest.ResetCode, resetPasswordRequest.NewPassword);
 
             if (result.Succeeded)
             {
-                await _userregisterservice.UpdateUserAsync(myUser.Value.Id, myIduser.Id);
-
                 return Ok();
             }
 

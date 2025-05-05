@@ -141,49 +141,65 @@ namespace Infrastructure.SqlServerMigrations.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "5cdef780-f605-41b5-af69-7f2f8fa89edf",
+                            Id = "5af04a6d-8a88-4424-844e-46babc8cb815",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "dcef0d62-6466-4ded-81c8-7825fa55161f",
+                            ConcurrencyStamp = "02d102f2-73b2-408b-b204-3b4f9be26c1b",
+                            Email = "taskmaster@hotmail.co.uk",
+                            EmailConfirmed = true,
+                            LockoutEnabled = false,
+                            NormalizedEmail = "TASKMASTER@HOTMAIL.CO.UK",
+                            NormalizedUserName = "TASKMASTER@HOTMAIL.CO.UK",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJ7VxGqCnIAqQoZPb1pGuyEiJaM7DwbZqe3/inZsdGB0xYH0JQP1JGSjckEf/W+6Ig==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "cea5366f-7808-4392-81ba-12305f38712c",
+                            TwoFactorEnabled = false,
+                            UserName = "taskmaster@hotmail.co.uk"
+                        },
+                        new
+                        {
+                            Id = "c368b43d-9624-4435-9fda-300b2b2e1fc6",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "3c2c331a-87c2-4018-893a-f1c25520881a",
                             Email = "AdminUser@hotmail.co.uk",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMINUSER@HOTMAIL.CO.UK",
                             NormalizedUserName = "ADMINUSER@HOTMAIL.CO.UK",
-                            PasswordHash = "AQAAAAIAAYagAAAAEH6jgMAYvuW0UAsiNTQQLpkKajlTkBd4uXUCKJCRUwrNNC+qq0amZKE/NlK7le67tw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAELg+dCTiDvDIB9KInWwQR5CEIs8Kq9J50DEPYgaIbqUfWwIVGiOgt3Ty1Zo4kcVd8g==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "656b4478-f2b2-4657-b1b0-5ba97234d547",
+                            SecurityStamp = "0e4ba39e-ff3e-4827-99d5-7e2a9cc7cdf6",
                             TwoFactorEnabled = false,
                             UserName = "AdminUser"
                         },
                         new
                         {
-                            Id = "56580504-eea9-41ee-bd34-d2330c5056bb",
+                            Id = "b8563f47-608d-40ba-afd9-96043404d628",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "0be9843a-beef-44e6-a54d-8e1fa9e0ac7f",
+                            ConcurrencyStamp = "6804f424-1f48-4293-b674-eb6d0f4feb66",
                             Email = "TaskUser@hotmail.co.uk",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "TASKUSER@HOTMAIL.CO.UK",
                             NormalizedUserName = "TASKUSER@HOTMAIL.CO.UK",
-                            PasswordHash = "AQAAAAIAAYagAAAAEKXo0oHucu36CG07nzX5RBwAhkjObhsM3Nk+l9vRyzAGMF4/l/qpg9F9zMzo5z2WQA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEGQby96iBl1nU+zbVcT15v+k8wgJj5USBH3NKSRLvkBb0K0LTNIooQ6gHaImIyiweQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "563755b4-0a24-4d6d-a574-8e7f5c6c2350",
+                            SecurityStamp = "3a1415c1-f532-43f5-a683-533105807f39",
                             TwoFactorEnabled = false,
                             UserName = "TaskUser"
                         },
                         new
                         {
-                            Id = "82305145-05c0-4f44-bc7b-43bacd016008",
+                            Id = "09f0f7f4-6b8c-49a2-a561-f37d277a05aa",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "3590705a-ad3a-42c0-a45a-4f61d5c4d927",
+                            ConcurrencyStamp = "52955153-8872-406c-90ca-8bd9440713d5",
                             Email = "ReadOnly@hotmail.co.uk",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "READONLY@HOTMAIL.CO.UK",
                             NormalizedUserName = "READONLY@HOTMAIL.CO.UK",
-                            PasswordHash = "AQAAAAIAAYagAAAAEJ04+7iHqebuVEk4kWtuHTauOfG3OnxEvl9TZt7DdfK0zt7s+Vz6+ikifw55dHj3Fg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEIbfhiH16og847HU0F4910TlUfK/1gXmFZCtO593xA6TSx6Et/KMFsCs1WZMNQ8A2Q==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "6616be9c-b6f3-4927-8842-0d085cb75384",
+                            SecurityStamp = "0e648b88-79c3-4a41-b808-23f634c7cfde",
                             TwoFactorEnabled = false,
                             UserName = "ReadOnly"
                         });

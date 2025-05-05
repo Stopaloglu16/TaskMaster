@@ -13,7 +13,7 @@ public interface IUserService
     Task<CustomResult<UserDto>> GetUserById(int Id);
 
     Task<CustomResult<UserDto>> GetUserByAspId(string AspId);
-    Task<CustomResult<Guid>> ForgotPassordAsync(string Username);
+    Task<CustomResult> ForgotPassordAsync(string Username, string resetToken);
     Task<CustomResult<UserDto>> GetUserByUserGuidId(Guid UserGuidId);
 
     public Task<CustomResult<UserLoginResponse>> GetUserByAccessTokenAsync(string accessToken);

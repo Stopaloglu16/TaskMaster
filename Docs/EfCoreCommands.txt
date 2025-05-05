@@ -15,8 +15,3 @@ Add-Migration InitialWebIdCreate -Context Infrastructure.Data.WebIdentityContext
 Update-Database -context Infrastructure.Data.ApplicationDbContext
 Update-Database -context Infrastructure.Data.WebIdentityContext
 
-
-Add-Migration GuidUserNew -Context Infrastructure.Data.ApplicationDbContext -project Src\Infrastructures\Infrastructure.SqliteMigrations -Args "--Provider Sqlite"
-Add-Migration GuidUserNew -Context Infrastructure.Data.ApplicationDbContext -project Src\Infrastructures\Infrastructure.SqlServerMigrations -Args "--Provider SqlServer"
-
-update-database -Context Infrastructure.Data.ApplicationDbContext -project Src\Infrastructures\Infrastructure.SqlServerMigrations -Args "--Provider SqlServer"

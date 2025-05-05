@@ -110,19 +110,22 @@ public class UserService : IUserService
         return await _userRepository.GetUserByUserGuidId(userGuidId);
     }
 
-    public async Task<CustomResult<Guid>> ForgotPassordAsync(string Username)
+    public async Task<CustomResult> ForgotPassordAsync(string Username, string resetToken)
     {
+        
+        //TODO user not found
         var currentUser = await _userRepository.GetUserByEmail(Username);
 
-        if (currentUser == null) return CustomResult<Guid>.Failure(new CustomError(false, "Not found user"));
+        if (currentUser.IsFailure) return CustomResult.Failure( currentUser.CustomError.error);
 
-        var newGuid = Guid.NewGuid();
+        //var newGuid = Guid.NewGuid();
         currentUser.Value.RegisterTokenExpieryTime = DateTime.UtcNow.AddMinutes(15);
-        currentUser.Value.RegisterToken = newGuid;
+        //currentUser.Value.RegisterToken = resetToken;
 
         await _userRepository.UpdateAsync(currentUser.Value);
 
-        return CustomResult<Guid>.Success(newGuid);
+
+        return CustomResult.Success();
 
     }
 }

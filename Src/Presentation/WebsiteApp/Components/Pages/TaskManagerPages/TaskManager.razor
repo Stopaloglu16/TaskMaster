@@ -26,9 +26,7 @@
             <RadzenBreadCrumb>
                 <RadzenBreadCrumbItem Path="/home" Text="Home" />
                 <RadzenBreadCrumbItem Text="Task Manager" />
-
             </RadzenBreadCrumb>
-
         </div>
         <div class="card-header">
             <RadzenButton Icon="add" Text="New" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat" Size="ButtonSize.Medium"
@@ -46,19 +44,29 @@
                         Displaying page @context.CurrentPage of @context.NumberOfPages <b>(total @context.TotalCount records)</b>
                     </PagingSummaryTemplate>
                     <Columns>
-                        <RadzenDataGridColumn Property="@nameof(TaskListDto.Title)" Title="Quantity" />
+                        <RadzenDataGridColumn Title="Task Name">
+                            <Template Context="task">
+                                <a href="@($"taskitemmanager/{task.Id}")">@(task.Title)</a>
+                            </Template>
+                        </RadzenDataGridColumn>
                         <RadzenDataGridColumn Property="@nameof(TaskListDto.DueDate)" Title="DueDate" />
                         <RadzenDataGridColumn Property="@nameof(TaskListDto.CompletedDate)" Title="CompletedDate" />
                         <RadzenDataGridColumn Property="@nameof(TaskListDto.AssignedTo)" Title="AssignedTo" />
-                        <RadzenDataGridColumn TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
-                            <Template>
-                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
-                                              class="rz-my-1 rz-ms-1" Click="@(async () => await EditTasklist(1))" />
-                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Medium"
-                                              class="rz-my-1 rz-ms-1" Click="@(() => ActionItem(context , 1))" />
+                        <RadzenDataGridColumn Title="Progress">
+                            <Template Context="task">
+                                <RadzenProgressBar Value="@(task.TaskItemCompletedCount)"
+                                                   Max="@(task.TaskItemCount)"
+                                                   Unit="@($" out of {task.TaskItemCount}")" />
                             </Template>
                         </RadzenDataGridColumn>
-
+                        <RadzenDataGridColumn TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+                            <Template Context="task">
+                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                              class="rz-my-1 rz-ms-1" Click="@(async () => await EditTasklist(task.Id))" />
+                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                              class="rz-my-1 rz-ms-1" Click="@(() => ActionItem(task, 1))" />
+                            </Template>
+                        </RadzenDataGridColumn>
                     </Columns>
                 </RadzenDataGrid>
             </RadzenStack>
@@ -75,12 +83,18 @@
     </TaskListModal>
 }
 
+@if (ActionPerItemModalOpen)
+{
+    <ActionPerItemModal ActionItemText="@ActionItemText" 
+                        ActionText="@ActionName" 
+                        OnCloseModal="@OnActionPerItemModalClose">
+    </ActionPerItemModal>
+}
 
 @code {
 
     [CascadingParameter]
     private Task<AuthenticationState>? authenticationState { get; set; }
-
 
     RadzenDataGrid<TaskListDto> gridItemsProvider;
     IEnumerable<TaskListDto> tasklistList;
@@ -219,10 +233,11 @@
             {
                 //toastService.ShowSuccess($"{taskListFormRequest.Title} is {ActionNameModel.Saved}");
 
-                ShowNotification(new NotificationMessage { 
+                ShowNotification(new NotificationMessage
+                    {
                         Severity = NotificationSeverity.Success,
                         Summary = ActionNameModel.Saved,
-                        Detail = $"{taskListFormRequest.Title} is {ActionNameModel.Saved}", 
+                        Detail = $"{taskListFormRequest.Title} is {ActionNameModel.Saved}",
                         Duration = 4000
                     });
 

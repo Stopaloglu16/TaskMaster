@@ -46,7 +46,7 @@ public class EmailSender : IEmailSender
 
             MessageBody = " <table style='width:50%;'><tbody><tr><td> <img  style='width:10%;' src='https://localhost:7081/img/carhire.jpeg'> </td></tr>" +
                             "<tr><td> <h2> <span class='welcometxt'>Welcome to Task Master! 📚</span></h2></td></tr>" +
-                            "<tr><td>Click below to verify your account.</br> <a href='https://localhost:7081/register/" + Username + "/" + Token + "'>here</a></td></tr>" +
+                            "<tr><td>Click below to verify your account.</br> <a href='https://localhost:7155/register/" + Username + "/" + Token + "'>here</a></td></tr>" +
                             "<tr><td>Username: </br>" + Username + "</td></tr>" +
                             "</tbody></table>";
 
@@ -55,7 +55,7 @@ public class EmailSender : IEmailSender
 
             MessageToPost messageToPost = new MessageToPost()
             {
-                Subject = "Welcome to TaskMaster",
+                Subject = "Register",
                 From = "noreply@taskmaster.com",  //To email on live system
                 Text = HtmlBegin + MessageBody + HtmlEnd
                 //Text = $"{Username}|{Token}"
@@ -86,7 +86,7 @@ public class EmailSender : IEmailSender
 
             MessageBody = " <table style='width:50%;'><tbody><tr><td> <img  style='width:10%;' src='https://localhost:7081/img/carhire.jpeg'> </td></tr>" +
                             "<tr><td> <h2> <span class='welcometxt'>Welcome to Task Master! 📚</span></h2></td></tr>" +
-                            "<tr><td>Click below to reset your password.</br> <a href='https://localhost:7081/forgotpassword/" + Username + "/" + Token + "'>here</a></td></tr>" +
+                            "<tr><td>Click below to reset your password.</br> <a href='https://localhost:7155/forgotpassword?username=" + Username + "&token=" + Token + "'>here</a></td></tr>" +
                             "<tr><td>Username: </br>" + Username + "</td></tr>" +
                             "</tbody></table>";
 
@@ -95,7 +95,7 @@ public class EmailSender : IEmailSender
 
             MessageToPost messageToPost = new MessageToPost()
             {
-                Subject = "Welcome to TaskMaster",
+                Subject = "Forgot Password",
                 From = "noreply@taskmaster.com",  //To email on live system
                 Text = HtmlBegin + MessageBody + HtmlEnd
                 //Text = $"{Username}|{Token}"
@@ -106,7 +106,7 @@ public class EmailSender : IEmailSender
         }
         catch (Exception ex)
         {
-            throw new Exception("SendRegisterEmailAsync " + ex.Message);
+            throw new Exception("SendForgotPasswordEmailAsync " + ex.Message);
         }
     }
 }

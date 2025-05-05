@@ -18,6 +18,12 @@ public class UserRegisterService : IUserRegisterService
         return await _userRegisterRepository.GetUserByAsync(Username, Token);
     }
 
+    public async Task<CustomResult<User>> GetUserByAsync(string Username)
+    {
+        return await _userRegisterRepository.GetUserByAsync(Username);
+    }
+
+
     public async Task<CustomResult> UpdateUserAsync(int UserId, string AspId)
     {
         return await _userRegisterRepository.UpdateUserAsync(UserId, AspId);

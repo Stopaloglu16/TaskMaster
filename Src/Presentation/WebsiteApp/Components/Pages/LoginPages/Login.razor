@@ -33,7 +33,7 @@
                 Username=@userModel.Username
                 Password=@userModel.Password
                 Login=@(args => LoginSubmit(args))
-                ResetPassword=@(args => OnResetPassword(args, "Login with default values")) />
+                ResetPassword=@(args => OnResetPassword()) />
             </RadzenTemplateForm>
         </RadzenCard>
     </RadzenColumn>
@@ -98,25 +98,31 @@
         Console.WriteLine($"{name} -> Register");
     }
 
-    void OnResetPassword(string value, string name)
+    void OnResetPassword()
     {
-        Console.WriteLine($"{name} -> ResetPassword for user: {value}");
+        NavigationManager.NavigateTo("/forgotpassword", false);
+        //Console.WriteLine($"{name} -> ResetPassword for user: {value}");
     }
 
 
     private async Task LoginSubmit(LoginArgs args)
     {
-
         userModel = new UserLoginRequest()
             {
                 Username = args.Username,
                 Password = args.Password
             };
 
-        var returnedUser = await authService.LoginAsync(userModel);
+        string rtnMsg = "";
 
         try
         {
+            rtnMsg = "Login API go";
+
+            var returnedUser = await authService.LoginAsync(userModel);
+
+            rtnMsg += returnedUser.IsSuccess ? "Login successful" : "Login failed";
+
             if (returnedUser.IsSuccess)
             {
                 await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(returnedUser.Value);
@@ -125,13 +131,18 @@
             }
             else
             {
+
+                rtnMsg += returnedUser.CustomError.error;
+
                 IsVisibleAlert = true;
-                LoginMesssage = returnedUser.CustomError.error;
+                //LoginMesssage = returnedUser.CustomError.error;
+                LoginMesssage = "Cst" + rtnMsg;
             }
         }
         catch (Exception ex)
         {
-            LoginMesssage = ex.Message;
+            //LoginMesssage = ex.Message;
+            LoginMesssage = "Exlog" + rtnMsg;
         }
     }
 }

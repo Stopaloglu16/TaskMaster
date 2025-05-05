@@ -46,12 +46,15 @@ namespace WebApiAuth.Controllers
             if (aspUser is null)
                 return BadRequest("User not registered");
 
-            var myUser = await _userService.ForgotPassordAsync(forgotPasswordRequest.Username);
+            // Generate the password reset token
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(aspUser);
+
+            var myUser = await _userService.ForgotPassordAsync(forgotPasswordRequest.Username, resetToken);
 
             if (!myUser.IsSuccess)
                 return BadRequest("User not found");
 
-            await _emailSender.SendForgotPasswordEmailAsync(forgotPasswordRequest.Username, forgotPasswordRequest.Username, myUser.Value.ToString());
+            await _emailSender.SendForgotPasswordEmailAsync(forgotPasswordRequest.Username, forgotPasswordRequest.Username, resetToken);
 
             return Ok();
         }
