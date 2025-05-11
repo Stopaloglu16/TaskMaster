@@ -14,8 +14,9 @@ public class User : BaseAuditableEntity<int>
 
     public UserType UserTypeId { get; set; }
 
+    [Column(TypeName = "varchar(450)")]
     public string? AspId { get; set; }
-    public Guid UserGuidId { get; set; } = Guid.NewGuid();
+    //public Guid UserGuidId { get; set; } = Guid.NewGuid();
 
     public Guid RegisterToken { get; set; } = Guid.NewGuid();
     public DateTime RegisterTokenExpieryTime { get; set; }

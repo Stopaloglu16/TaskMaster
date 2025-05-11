@@ -5,6 +5,7 @@ using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using ServiceLayer.TaskItems;
 using ServiceLayer.TaskLists;
+using ServiceLayer.Users;
 using TaskMaster.ServiceDefaults;
 
 namespace WebApi.Extensions;
@@ -34,6 +35,9 @@ internal static class Extensions
 
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IUserRepository, UserRepository>();
 
 
     }

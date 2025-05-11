@@ -100,15 +100,15 @@ public class UserService : IUserService
         return await _userRepository.UpdateRefreshTokenAsync(UserId, refreshToken, refreshTokenExpiery);
     }
 
-    public async Task<CustomError> CheckRefreshTokenOfUser(Guid userGuidId, string refreshToken)
+    public async Task<CustomError> CheckRefreshTokenOfUser(string aspId, string refreshToken)
     {
-        return await _userRepository.CheckRefreshTokenOfUser(userGuidId, refreshToken);
+        return await _userRepository.CheckRefreshTokenOfUser(aspId, refreshToken);
     }
 
-    public async Task<CustomResult<UserDto>> GetUserByUserGuidId(Guid userGuidId)
-    {
-        return await _userRepository.GetUserByUserGuidId(userGuidId);
-    }
+    //public async Task<CustomResult<UserDto>> GetUserByUserGuidId(Guid userGuidId)
+    //{
+    //    return await _userRepository.GetUserByUserGuidId(userGuidId);
+    //}
 
     public async Task<CustomResult> ForgotPassordAsync(string Username, string resetToken)
     {

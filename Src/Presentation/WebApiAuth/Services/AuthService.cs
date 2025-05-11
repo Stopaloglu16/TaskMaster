@@ -31,7 +31,7 @@ public class AuthService : IAuthService
         var LoginResponse = new UserLoginResponse();
 
         LoginResponse.RefreshToken = refreshToken;
-        LoginResponse.AccessToken = GenerateAccessToken(userTokenDto.Username, userTokenDto.UserGuidId.ToString(), userTokenDto.Role);
+        LoginResponse.AccessToken = GenerateAccessToken(userTokenDto.Username, userTokenDto.AspId.ToString(), userTokenDto.Role);
         LoginResponse.UserName = userTokenDto.Username;
 
         return LoginResponse;
@@ -44,7 +44,7 @@ public class AuthService : IAuthService
         var LoginResponse = new UserLoginResponse();
 
         LoginResponse.RefreshToken = "refreshToken";
-        LoginResponse.AccessToken = GenerateAccessToken(userTokenDto.Username, userTokenDto.UserGuidId.ToString(), userTokenDto.Role);
+        LoginResponse.AccessToken = GenerateAccessToken(userTokenDto.Username, userTokenDto.AspId.ToString(), userTokenDto.Role);
         LoginResponse.UserName = userTokenDto.Username;
 
         return LoginResponse;

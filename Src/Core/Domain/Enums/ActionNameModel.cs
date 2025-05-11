@@ -10,4 +10,5 @@ public static class ActionNameModel
     public const string Deactivated = "deactivated";
     public const string Restored = "restored";
     public const string Restore = "restore";
+    public const string Complete = "complete";
 }

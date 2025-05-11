@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using SharedUtilityTestMethods;
-using System;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -12,7 +11,6 @@ using System.Web;
 using ForgotPasswordRequest = Application.Aggregates.UserAuthAggregate.ForgotPasswordRequest;
 
 namespace WebApiAuth.FunctionalTests.ApiEndPoints;
-
 
 public class ForgotPasswordTests : BaseIntegrationTest
 {

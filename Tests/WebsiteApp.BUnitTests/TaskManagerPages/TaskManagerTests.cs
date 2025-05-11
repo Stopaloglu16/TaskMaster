@@ -55,7 +55,7 @@ public class TaskManagerTests : TestContext
         Services.AddSingleton<AuthenticationStateProvider>(new TestAuthenticationStateProvider(authenticationStateTask));
 
         // Render the component
-        var cut = RenderComponent<TaskManager>(parameters => parameters
+        var cut = RenderComponent<TaskManagerAdmin>(parameters => parameters
             .AddCascadingValue(authenticationStateTask)
         );
 

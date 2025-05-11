@@ -3,6 +3,7 @@
 @layout Layout.LoginLayout
 
 @using Application.Aggregates.UserAuthAggregate
+@using Domain.Enums
 @using Newtonsoft.Json
 @using System.Security.Claims
 @using WebsiteApp.Data
@@ -113,36 +114,47 @@
                 Password = args.Password
             };
 
-        string rtnMsg = "";
 
         try
         {
-            rtnMsg = "Login API go";
 
             var returnedUser = await authService.LoginAsync(userModel);
-
-            rtnMsg += returnedUser.IsSuccess ? "Login successful" : "Login failed";
 
             if (returnedUser.IsSuccess)
             {
                 await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(returnedUser.Value);
 
-                NavigationManager.NavigateTo("/home", false);
+                //if admin
+                var authState = await authenticationStateTask;
+                var user = authState.User;
+                var userTypeClaim = user.FindFirst(ClaimTypes.Role);
+
+                if (userTypeClaim != null)
+                {
+                    if (userTypeClaim.Value == nameof(UserType.AdminUser))
+                    {
+                        NavigationManager.NavigateTo("/home", true);
+                    }
+                    else
+                    {
+                        NavigationManager.NavigateTo("/taskmanageruser", true);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("User type claim not found.");
+                }
+
             }
             else
             {
-
-                rtnMsg += returnedUser.CustomError.error;
-
                 IsVisibleAlert = true;
-                //LoginMesssage = returnedUser.CustomError.error;
-                LoginMesssage = "Cst" + rtnMsg;
+                LoginMesssage = returnedUser.CustomError.error;
             }
         }
         catch (Exception ex)
         {
-            //LoginMesssage = ex.Message;
-            LoginMesssage = "Exlog" + rtnMsg;
+            LoginMesssage = ex.Message;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿@page "/taskmanager"
+﻿@page "/taskmanageradmin"
 
 @using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate
 @using Application.Aggregates.TaskListAggregate.Queries
@@ -29,12 +29,12 @@
             </RadzenBreadCrumb>
         </div>
         <div class="card-header">
-            <RadzenButton Icon="add" Text="New" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat" Size="ButtonSize.Medium"
+            <RadzenButton id="CreateNewTaskButton" Icon="add" Text="New" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat" Size="ButtonSize.Medium"
                           class="rz-my-1 rz-ms-1" Click="@(args => EditTasklist(0))" />
         </div>
         <div class="card-body">
             <RadzenStack Gap="1rem">
-                <RadzenDataGrid @ref=@gridItemsProvider TItem="TaskListDto" Data="@tasklistList" LoadData="@LoadData" IsLoading="@isLoading"
+                <RadzenDataGrid id="TaskmanagerTableId" @ref=@gridItemsProvider TItem="TaskListDto" Data="@tasklistList" LoadData="@LoadData" IsLoading="@isLoading"
                                 AllowPaging="true" AllowSorting="false" PagerHorizontalAlign="HorizontalAlign.Center"
                                 PageSizeOptions="@pageSizeOptions" ShowPagingSummary="@showPagerSummary"
                                 Count="@totalItemCount">
@@ -85,8 +85,8 @@
 
 @if (ActionPerItemModalOpen)
 {
-    <ActionPerItemModal ActionItemText="@ActionItemText" 
-                        ActionText="@ActionName" 
+    <ActionPerItemModal ActionItemText="@ActionItemText"
+                        ActionText="@ActionName"
                         OnCloseModal="@OnActionPerItemModalClose">
     </ActionPerItemModal>
 }
@@ -143,7 +143,6 @@
 
             int pageNumber = ((int)args.Skip / itemsPerPage) + 1;
 
-
             var response = await _taskListService.GetPagingDataAsync(
             $"tasklist?PageNumber={pageNumber}&PageSize={itemsPerPage}&OrderBy=Id&IsDescending=false");
 
@@ -196,7 +195,7 @@
 
         if (Id > 0)
         {
-            var apiReturn = await _taskListFormService.GetDataByIdAsync($"tasklist/{Id}");
+            var apiReturn = await _taskListFormService.GetDataByIdAsync($"tasklist/GetTaskListForm/{Id}");
             taskListFormRequest = apiReturn;
         }
         else

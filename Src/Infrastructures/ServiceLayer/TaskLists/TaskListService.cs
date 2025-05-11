@@ -99,12 +99,32 @@ public class TaskListService : ITaskListService
         throw new NotImplementedException();
     }
 
-    public async Task<CustomResult<TaskListFormRequest>> GetTaskListById(int Id, CancellationToken cancellationToken)
+    public async Task<CustomResult<TaskListFormRequest>> GetTaskListFormById(int Id, CancellationToken cancellationToken)
     {
-        var taskListFormRequest = await _taskListRepository.GetTaskListById(Id, cancellationToken);
+        var taskListFormRequest = await _taskListRepository.GetTaskListFormById(Id, cancellationToken);
 
         if (taskListFormRequest == null) return CustomResult<TaskListFormRequest>.Failure(new CustomError(false, "Not found"));
 
         return CustomResult<TaskListFormRequest>.Success(taskListFormRequest);
     }
+
+    public async Task<IEnumerable<TaskListWithItemsDto>> GetTaskListWithItemsByUser(int userId, CancellationToken cancellationToken)
+    {
+        return await _taskListRepository.GetTaskListWithItemsByUser(userId, cancellationToken);
+    }
+
+    public async Task<CustomResult> CompleteTaskList(int Id, CancellationToken cancellationToken)
+    {
+        return await _taskListRepository.CompleteTaskList(Id, cancellationToken);
+    }
+
+    public async Task<CustomResult<TaskListDto>> GetTaskListById(int Id, CancellationToken cancellationToken)
+    {
+        var taskListDto = await _taskListRepository.GetTaskListById(Id, cancellationToken);
+
+        if (taskListDto == null) return CustomResult<TaskListDto>.Failure(new CustomError(false, "Not found"));
+
+        return CustomResult<TaskListDto>.Success(taskListDto);
+    }
+
 }
