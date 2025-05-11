@@ -45,37 +45,24 @@ public class AuthService : IAuthService
             var response = await _httpClient.SendAsync(requestMessage);
 
             var responseBody = await response.Content.ReadAsStringAsync();
+            //UnauthorizedSystem.Threading.Tasks.Task`1[System.String]
 
-            var errorDetails = new
-            {
-                Url = _httpClient.BaseAddress + "*" + requestMessage.RequestUri.ToString(),
-                Parameters = serializedUser,
-                Response = responseBody,
-                StatusCode = response.StatusCode.ToString()
-            };
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-               
                 var mysign = JsonConvert.DeserializeObject<UserLoginResponse>(responseBody);
-
                 return CustomResult<UserLoginResponse>.Success(mysign);
             }
             else
             {
-                
+                var rtnMessage = response.Content.ReadAsStringAsync();
 
-                // Log or return the error details
-                return CustomResult<UserLoginResponse>.Failure(
-                    new CustomError(false, $"Request failed. Details: {JsonConvert.SerializeObject(errorDetails)}")
-                );
-
-                //return CustomResult<UserLoginResponse>.Failure(new CustomError(false, "Fail" + rtnMessage));
+                return CustomResult<UserLoginResponse>.Failure(new CustomError(false, response.StatusCode.ToString() + ": " + rtnMessage.Result));
             }
         }
         catch (Exception ex)
         {
-            return CustomResult<UserLoginResponse>.Failure(new CustomError(false, "Ex" + ex.Message));
+            return CustomResult<UserLoginResponse>.Failure(new CustomError(false, "Ex:" + ex.Message));
         }
     }
 

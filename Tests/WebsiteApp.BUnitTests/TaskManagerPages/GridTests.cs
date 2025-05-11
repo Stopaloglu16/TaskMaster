@@ -192,7 +192,7 @@ public class GridTests : TestContext
         Services.AddSingleton<IWebApiService<SelectListItem, SelectListItem>>(new TestWebApiService(mockData));
 
         // Act
-        var cut = RenderComponent<TaskManager>(parameters => parameters
+        var cut = RenderComponent<TaskManagerAdmin>(parameters => parameters
           .AddCascadingValue(authenticationStateTask)
         );
 
@@ -239,7 +239,7 @@ public class GridTests : TestContext
         Services.AddSingleton<IWebApiService<SelectListItem, SelectListItem>>(new TestWebApiService(mockData));
 
         // Act
-        var cut = RenderComponent<TaskManager>(parameters => parameters
+        var cut = RenderComponent<TaskManagerAdmin>(parameters => parameters
           .AddCascadingValue(authenticationStateTask)
         );
 

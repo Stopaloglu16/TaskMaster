@@ -1,11 +1,9 @@
 ﻿using Application.Aggregates.TaskItemAggregate.Commands.CreateUpdate;
 using Application.Aggregates.TaskItemAggregate.Commands.Update;
 using Application.Aggregates.TaskItemAggregate.Queries;
-using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
 using Application.Common.Models;
 using Application.Repositories;
 using Domain.Entities;
-using System.Threading;
 
 namespace ServiceLayer.TaskItems;
 
@@ -20,13 +18,9 @@ public class TaskItemService : ITaskItemService
         _taskListRepository = taskListRepository;
     }
 
-    public async Task<CustomResult> CompleteTaskItem(CompleteTaskItemRequest completeTaskItemRequest)
+    public async Task<CustomResult> CompleteSingleTaskItem(CompleteTaskItemRequest completeTaskItemRequest, CancellationToken cancellationToken)
     {
-        var currentTaskItem = await _taskItemRepository.GetByIdAsync(completeTaskItemRequest.Id);
-
-        currentTaskItem.CompletedDate = DateOnly.FromDateTime(DateTime.Now);
-
-        return await _taskItemRepository.UpdateAsync(currentTaskItem);
+        return await _taskItemRepository.CompleteSingleTaskItem(completeTaskItemRequest.taskItemId, cancellationToken);
     }
 
     public async Task<CustomResult> CreateTaskItem(TaskItemFormRequest taskItemFormRequest)

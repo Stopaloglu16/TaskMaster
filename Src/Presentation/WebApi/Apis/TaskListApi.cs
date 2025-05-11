@@ -2,7 +2,9 @@
 using Application.Aggregates.TaskListAggregate.Queries;
 using Application.Common.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using ServiceLayer.TaskLists;
+using ServiceLayer.Users;
 
 namespace WebApi.Apis
 {
@@ -16,9 +18,12 @@ namespace WebApi.Apis
             // Route for query task lists
             api.MapGet("/", GetActiveTaskListWithPagination);
 
-            api.MapGet("/{id:int}", GetTaskList);
+            api.MapGet("/GetTaskListForm/{id:int}", GetTaskListForm);
+            api.MapGet("/GetTaskList/{id:int}", GetTaskList);
 
             //TODO: Get tasklist assigned to user
+            api.MapGet("/TaskListwithItemsByUserId/{aspUserId}", GetTaskListWithItemsByUser);
+
 
             //TODO: Add paging (search page) 
 
@@ -41,7 +46,7 @@ namespace WebApi.Apis
             return TypedResults.Ok(taskList);
         }
 
-        public static async Task<Results<Ok<TaskListFormRequest>, BadRequest<CustomError>>> GetTaskList(int id, ITaskListService taskListService,
+        public static async Task<Results<Ok<TaskListDto>, BadRequest<CustomError>>> GetTaskList(int id, ITaskListService taskListService,
                                                                                                         CancellationToken cancellationToken)
         {
             var taskListFormRequest = await taskListService.GetTaskListById(id, cancellationToken);
@@ -54,6 +59,39 @@ namespace WebApi.Apis
             {
                 return TypedResults.BadRequest(taskListFormRequest.CustomError);
             }
+        }
+
+
+        public static async Task<Results<Ok<TaskListFormRequest>, BadRequest<CustomError>>> GetTaskListForm(int id, ITaskListService taskListService,
+                                                                                                    CancellationToken cancellationToken)
+        {
+            var taskListFormRequest = await taskListService.GetTaskListFormById(id, cancellationToken);
+
+            if (taskListFormRequest.IsSuccess)
+            {
+                return TypedResults.Ok(taskListFormRequest.Value);
+            }
+            else
+            {
+                return TypedResults.BadRequest(taskListFormRequest.CustomError);
+            }
+        }
+
+        public static async Task<Results<Ok<IEnumerable<TaskListWithItemsDto>>, BadRequest<string>>> GetTaskListWithItemsByUser(string aspUserId,
+                                                                                                   [FromServices] ITaskListService taskListService,
+                                                                                                   [FromServices] IUserService userService,
+                                                                                                   CancellationToken cancellationToken)
+        {
+            var userDto = await userService.GetUserByAspId(aspUserId);
+
+            if (userDto.IsFailure)
+            {
+                return TypedResults.BadRequest("User not found");
+            }
+
+            var taskItem = await taskListService.GetTaskListWithItemsByUser(userDto.Value.Id, cancellationToken);
+
+            return TypedResults.Ok(taskItem.AsEnumerable());
         }
 
         #region Routes for modify

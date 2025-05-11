@@ -1,6 +1,5 @@
 ﻿using Application.Aggregates.TaskItemAggregate.Commands.CreateUpdate;
 using Application.Aggregates.TaskItemAggregate.Queries;
-using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
 using Application.Common.Interfaces;
 using Application.Common.Models;
 using Domain.Entities;
@@ -14,4 +13,6 @@ public interface ITaskItemRepository : IRepository<TaskItem, int>
     Task<CustomResult<int>> CheckMaxTaskItemPerTaskList(int taskListId);
 
     Task<IEnumerable<TaskItemDto>> GetTaskItems(int taskListId, CancellationToken cancellationToken);
+
+    Task<CustomResult> CompleteSingleTaskItem(int taskItemId, CancellationToken cancellationToken);
 }

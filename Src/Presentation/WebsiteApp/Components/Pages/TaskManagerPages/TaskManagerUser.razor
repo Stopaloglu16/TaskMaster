@@ -1,0 +1,258 @@
+﻿@page "/taskmanageruser"
+
+@using Application.Aggregates.TaskItemAggregate.Commands.Update
+@using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate
+@using Application.Aggregates.TaskListAggregate.Queries
+@using Application.Common.Models
+@using Domain.Enums
+@using System.Security.Claims
+@using WebsiteApp.Services
+﻿@using Microsoft.AspNetCore.Components.QuickGrid
+@using TaskMasterRazorClassLibrary
+
+@inject IWebApiService<TaskListWithItemsDto, TaskListWithItemsDto> _taskListService
+@inject IWebApiService<CompleteTaskItemRequest, HttpResponseMessage> _taskItemService
+@inject NavigationManager NavigationManager
+
+@inject NotificationService NotificationService
+
+@rendermode InteractiveServer
+
+<PageTitle>Task Manager</PageTitle>
+
+<div class="container mt-3">
+    <div class="card">
+        <div class="card-header">
+            <RadzenBreadCrumb>
+                <RadzenBreadCrumbItem Path="/home" Text="Home" />
+                <RadzenBreadCrumbItem Text="Task Manager" />
+            </RadzenBreadCrumb>
+        </div>
+
+        @* https://blazor.radzen.com/datagrid-grouping-api?theme=material3 *@
+
+
+        <div class="card-body">
+            <RadzenStack Gap="1rem">
+                <RadzenDataGrid id="TaskmanagerTableId" @ref=@gridItemsProvider TItem="TaskListWithItemsDto" Data="@tasklistList" LoadData="@LoadData" IsLoading="@isLoading"
+                AllowPaging="false" AllowSorting="true" PagerHorizontalAlign="HorizontalAlign.Center"
+                PageSizeOptions="@pageSizeOptions" ShowPagingSummary="@showPagerSummary"
+                Count="@totalItemCount">
+
+                    <PagingSummaryTemplate>
+                        <RadzenIcon Icon="database" Style="color: var(--rz-primary); font-size: var(--rz-pager-summary-font-size);" />
+                        Displaying page @context.CurrentPage of @context.NumberOfPages <b>(total @context.TotalCount records)</b>
+                    </PagingSummaryTemplate>
+                    <Columns>
+                        <RadzenDataGridColumn Property="@nameof(TaskListDto.Title)" Title="Title" Width="10rem" />
+                        <RadzenDataGridColumn Property="@nameof(TaskListDto.DueDate)" Title="DueDate" Width="5rem" />
+
+                        <RadzenDataGridColumn Title="Task Items" Width="25rem">
+                            <Template Context="tasklist">
+                                <RadzenDataGrid Data="@tasklist.taskItemDtos">
+                                    <Columns>
+                                        <RadzenDataGridColumn Property="Title" Title="Task Title" Width="10rem" />
+                                        <RadzenDataGridColumn Property="Description" Title="Description" Width="25rem" />
+                                        <RadzenDataGridColumn Title="Actions" TextAlign="TextAlign.Center" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" Width="5rem">
+                                            <Template Context="taskItem">
+                                                @* <RadzenButton Icon="check_box_outline_blank" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                                class="rz-my-1 rz-ms-1" Click="@(() => CompleteTaskItem(tasklist.Id, taskItem.Id, taskItem.Title))" />*@
+                                                <RadzenButton Icon="@GetIcon(taskItem.IsCompleted)"
+                                                              ButtonStyle="@GetButtonStyle(taskItem.IsCompleted)"
+                                                              Variant="Variant.Flat"
+                                                              Size="ButtonSize.Medium"
+                                                              class="rz-my-1 rz-ms-1"
+                                                              Click="@(() => CompleteTaskItem(tasklist.Id, taskItem.Id, taskItem.Title))" 
+                                                              />
+
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                    </Columns>
+                                </RadzenDataGrid>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            </RadzenStack>
+        </div>
+    </div>
+</div>
+
+@if (ActionPerItemModalOpen)
+{
+    <ActionPerItemModal ActionItemText="@ActionItemText"
+                        ActionText="@ActionName"
+                        OnCloseModal="@OnActionPerItemModalClose">
+    </ActionPerItemModal>
+}
+
+
+@code {
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
+    RadzenDataGrid<TaskListWithItemsDto> gridItemsProvider;
+    IEnumerable<TaskListWithItemsDto> tasklistList;
+    ODataEnumerable<TaskListWithItemsDto> taskListDtos;
+
+    private string GetIcon(bool isCompleted) => isCompleted ? "select_check_box" : "check_box_outline_blank";
+
+    private Radzen.ButtonStyle GetButtonStyle(bool isCompleted)
+    {
+        return isCompleted ? Radzen.ButtonStyle.Success : Radzen.ButtonStyle.Base;
+    }
+
+
+    bool showPagerSummary = true;
+
+    bool isLoading;
+    private int totalItemCount = 0;
+    private int pageNumber = 1;
+    private int itemsPerPage = 10;
+    IEnumerable<int> pageSizeOptions = new int[] { 5, 10, 20, 30 };
+
+    public bool TaskListModalOpen = false;
+    public TaskListFormRequest taskListFormRequest { get; set; }
+    List<SelectListItem> taskUserList { get; set; }
+
+    private string aspUserId = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        var authState = await authenticationState;
+        var user = authState.User;
+        if (!user.Identity.IsAuthenticated)
+            NavigationManager.NavigateTo("/", true);
+
+        var userTypeClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userTypeClaim != null)
+        {
+            aspUserId = userTypeClaim.Value;
+        }
+        else
+        {
+            Console.WriteLine("User type claim not found.");
+        }
+
+
+        await gridItemsProvider.Reload();
+
+        await base.OnInitializedAsync();
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task LoadData(LoadDataArgs args)
+    {
+        try
+        {
+            isLoading = true;
+
+            if (!string.IsNullOrEmpty(aspUserId))
+            {
+                var response = await _taskListService.GetAllDataAsync($"tasklist/TaskListwithItemsByUserId/{aspUserId}");
+
+                if (response != null)
+                {
+                    totalItemCount = response.Count();
+
+                    taskListDtos = response.AsODataEnumerable();
+                    // Return the grid data
+                    tasklistList = response;
+                }
+                else
+                {
+                    // Log or handle the null response scenario
+                    Console.Error.WriteLine("Failed to load task list data. API returned null.");
+                }
+            }
+
+            isLoading = false;
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+
+    //var response = await _httpClient.PatchAsJsonAsync($"/api/v1.0/taskitem/CompleteSingleItem", completeTaskItemRequest);
+
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+
+    #region ActionPerItemModal
+
+    private bool ActionPerItemModalOpen { get; set; } = false;
+
+    private int ItemIdAction;
+    private string ActionItemText = "";
+    public string ActionName { get; set; }
+    private int ActionTypeId { get; set; }
+
+    private CompleteTaskItemRequest? completeTaskItemRequest;
+
+    public void CompleteTaskItem(int taskListId, int taskItemId, string taskItemTitle)
+    {
+        ActionName = ActionNameModel.Complete;
+        ActionItemText = taskItemTitle;
+        completeTaskItemRequest = new CompleteTaskItemRequest(taskListId, taskItemId);
+
+        ActionPerItemModalOpen = true;
+    }
+
+    private async Task OnActionPerItemModalClose(bool RtnAction)
+    {
+        if (RtnAction == false)
+        {
+            ActionPerItemModalOpen = false;
+        }
+        else
+        {
+
+            var apiReturn = await _taskItemService.PatchAsync($"taskitem/CompleteSingleItem", completeTaskItemRequest.taskItemId, completeTaskItemRequest);
+
+            if (apiReturn.IsSuccessStatusCode)
+            {
+
+                ShowNotification(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Summary = "Updated",
+                        Detail = $"{ActionItemText} {ActionName}d",
+                        Duration = 4000
+                    });
+
+                ActionPerItemModalOpen = false;
+            }
+            else
+            {
+                ShowNotification(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Warning,
+                        Summary = "Warning",
+                        Detail = apiReturn.StatusCode.ToString(),
+                        Duration = 4000
+                    });
+
+
+                await gridItemsProvider.Reload();
+            }
+        }
+    }
+
+    #endregion
+}

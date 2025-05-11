@@ -74,7 +74,7 @@ namespace WebApiAuth.Controllers
 
                 UserTokenDto userTokenDto = new UserTokenDto()
                 {
-                    UserGuidId = webUser.Value.UserGuidId,
+                    AspId = webUser.Value.AspId,
                     UserId = webUser.Value.Id,
                     Role = webUser.Value.UserType.ToString(),
                     Username = webUser.Value.UserEmail
@@ -120,18 +120,19 @@ namespace WebApiAuth.Controllers
                 }
 
 
-                var userGuidId = Guid.Parse(userGuidIdClaim);
-                var user = await _userloginservice.CheckRefreshTokenOfUser(userGuidId, refreshToken);
+                //var userGuidId = Guid.Parse(userGuidIdClaim);
+                var user = await _userloginservice.CheckRefreshTokenOfUser(userGuidIdClaim, refreshToken);
 
                 if (!user.isSuccess)
                     return BadRequest(user.error);
 
 
-                var webUser = await _userloginservice.GetUserByUserGuidId(userGuidId);
+                //var webUser = await _userloginservice.GetUserByUserGuidId(userGuidId);
+                var webUser = await _userloginservice.GetUserByAspId(userGuidIdClaim);
 
                 UserTokenDto userTokenDto = new UserTokenDto()
                 {
-                    UserGuidId = userGuidId,
+                    AspId = userGuidIdClaim,
                     UserId = webUser.Value.Id,
                     Role = webUser.Value.UserType.ToString(),
                     Username = webUser.Value.UserEmail

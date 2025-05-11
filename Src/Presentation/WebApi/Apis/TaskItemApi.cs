@@ -1,8 +1,10 @@
 ﻿using Application.Aggregates.TaskItemAggregate.Commands.CreateUpdate;
+using Application.Aggregates.TaskItemAggregate.Commands.Update;
 using Application.Aggregates.TaskItemAggregate.Queries;
 using Application.Common.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using ServiceLayer.TaskItems;
+using ServiceLayer.TaskLists;
 
 namespace WebApi.Apis
 {
@@ -17,10 +19,13 @@ namespace WebApi.Apis
             api.MapGet("/", GetTaskItemListActive);
 
             api.MapGet("/{id:int}", GetTaskItem);
-            //TODO: Get taskItem assigned to user
+
+
 
             //TODO: Add paging (search page) 
 
+
+            api.MapPatch("/CompleteSingleItem/{id:int}", CompleteSingle);
 
             // Routes for modify
             api.MapPost("/", CreateTaskItem);
@@ -59,6 +64,25 @@ namespace WebApi.Apis
             }
         }
 
+
+        public static async Task<Results<Ok, BadRequest<string>>> CompleteSingle(int Id, CompleteTaskItemRequest completeTaskItemRequest, 
+                                                                                                                   ITaskItemService taskItemService,
+                                                                                                                   ITaskListService taskListService,
+                                                                                                                   CancellationToken cancellationToken)
+        {
+            var taskItemFormRequest = await taskItemService.CompleteSingleTaskItem(completeTaskItemRequest, cancellationToken);
+
+            if (taskItemFormRequest.IsSuccess)
+            {
+                var taskListRequest = await taskListService.CompleteTaskList(completeTaskItemRequest.taskListId, cancellationToken);
+
+                return TypedResults.Ok();
+            }
+            else
+            {
+                return TypedResults.BadRequest("System Error");
+            }
+        }
 
 
         #region Routes for modify

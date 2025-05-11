@@ -51,7 +51,16 @@ public class TaskItemRepository : EfCoreRepository<TaskItem, int>, ITaskItemRepo
         return CustomResult<int>.Success(taskItemCount);
     }
 
-    
+    public async Task<CustomResult> CompleteSingleTaskItem(int taskItemId, CancellationToken cancellationToken)
+    {
+        FormattableString queryString = $"""
+            UPDATE [dbo].[TaskItems] 
+            SET IsCompleted = 1, [CompletedDate] = GETDATE()
+            WHERE Id = {taskItemId}
+            """;
 
- 
+        await _dbContext.Database.ExecuteSqlAsync(queryString, cancellationToken);
+
+        return CustomResult.Success();
+    }
 }

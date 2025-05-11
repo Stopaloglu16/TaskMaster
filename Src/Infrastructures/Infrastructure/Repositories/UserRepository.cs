@@ -25,7 +25,7 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
                                                   .Select(ss => new UserDto()
                                                   {
                                                       Id = ss.Id,
-                                                      UserGuidId = ss.UserGuidId,
+                                                      AspId = ss.AspId,
                                                       FullName = ss.FullName,
                                                       UserEmail = ss.UserEmail,
                                                       UserType = (UserType)ss.UserTypeId
@@ -37,24 +37,24 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
         return CustomResult<UserDto>.Success(myUserDto);
     }
 
-    public async Task<CustomResult<UserDto>> GetUserByUserGuidId(Guid UserGuidId)
-    {
-        var myUserDto = await _dbContext.Users.Where(uu => uu.UserGuidId == UserGuidId)
-                                                  .AsNoTracking()
-                                                  .Select(ss => new UserDto()
-                                                  {
-                                                      Id = ss.Id,
-                                                      UserGuidId = ss.UserGuidId,
-                                                      FullName = ss.FullName,
-                                                      UserEmail = ss.UserEmail,
-                                                      UserType = (UserType)ss.UserTypeId
-                                                  })
-                                                  .FirstOrDefaultAsync();
+    //public async Task<CustomResult<UserDto>> GetUserByUserGuidId(Guid UserGuidId)
+    //{
+    //    var myUserDto = await _dbContext.Users.Where(uu => uu.UserGuidId == UserGuidId)
+    //                                              .AsNoTracking()
+    //                                              .Select(ss => new UserDto()
+    //                                              {
+    //                                                  Id = ss.Id,
+    //                                                  UserGuidId = ss.UserGuidId,
+    //                                                  FullName = ss.FullName,
+    //                                                  UserEmail = ss.UserEmail,
+    //                                                  UserType = (UserType)ss.UserTypeId
+    //                                              })
+    //                                              .FirstOrDefaultAsync();
 
-        if (myUserDto == null) return CustomResult<UserDto>.Failure(CustomError.Failure("The user not found"));
+    //    if (myUserDto == null) return CustomResult<UserDto>.Failure(CustomError.Failure("The user not found"));
 
-        return CustomResult<UserDto>.Success(myUserDto);
-    }
+    //    return CustomResult<UserDto>.Success(myUserDto);
+    //}
 
     public async Task<CustomResult<UserDto>> GetUserById(int Id)
     {
@@ -145,9 +145,9 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
         return true;
     }
 
-    public async Task<CustomError> CheckRefreshTokenOfUser(Guid userGuidId, string refreshToken)
+    public async Task<CustomError> CheckRefreshTokenOfUser(string aspId, string refreshToken)
     {
-        var tokenTemp = await _dbContext.Users.Where(uu => uu.UserGuidId == userGuidId)
+        var tokenTemp = await _dbContext.Users.Where(uu => uu.AspId == aspId)
                                      .Select(ss => new { ss.RefreshToken, ss.RefreshTokenExpiryTime })
                                      .FirstAsync();
 

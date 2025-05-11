@@ -14,7 +14,7 @@ public interface IUserService
 
     Task<CustomResult<UserDto>> GetUserByAspId(string AspId);
     Task<CustomResult> ForgotPassordAsync(string Username, string resetToken);
-    Task<CustomResult<UserDto>> GetUserByUserGuidId(Guid UserGuidId);
+    //Task<CustomResult<UserDto>> GetUserByUserGuidId(Guid UserGuidId);
 
     public Task<CustomResult<UserLoginResponse>> GetUserByAccessTokenAsync(string accessToken);
 
@@ -26,7 +26,7 @@ public interface IUserService
 
     Task<bool> UpdateRefreshTokenAsync(int UserId, string refreshToken, DateTime refreshTokenExpiery);
 
-    Task<CustomError> CheckRefreshTokenOfUser(Guid userGuidId, string refreshToken);
+    Task<CustomError> CheckRefreshTokenOfUser(string aspId, string refreshToken);
 
     Task<PagingResponse<UserDto>> GetActiveUsersWithPagination(PagingParameters pagingParameters, CancellationToken cancellationToken);
 

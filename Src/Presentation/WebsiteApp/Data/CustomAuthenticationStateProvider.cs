@@ -8,10 +8,8 @@ using WebsiteApp.Services;
 
 namespace WebsiteApp.Data;
 
-
 public class CustomAuthenticationStateProvider : AuthenticationStateProvider
 {
-
     public ILocalStorageService _localStorageService { get; }
 
     //Another option for localstorage

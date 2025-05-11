@@ -1,5 +1,9 @@
 ﻿using Application.Aggregates.TaskItemAggregate.Commands.CreateUpdate;
+using Application.Aggregates.TaskItemAggregate.Commands.Update;
 using Application.Aggregates.TaskItemAggregate.Queries;
+using Application.Aggregates.TaskListAggregate.Queries;
+using Application.Common.Models;
+using Asp.Versioning;
 using Domain.Entities;
 using Google.Protobuf.WellKnownTypes;
 using SharedTestDataLibrary.TaskDataSample;
@@ -17,6 +21,9 @@ public class TaskItemApiTests : BaseIntegrationTest
 {
 
     private string token { get; set; }
+    private string apiVersion = "v1.0";
+    const int pageNumber = 1;
+    const int ItemsPerPage = 10;
 
     public TaskItemApiTests(IntegrationTestWebAppFactory factory) : base(factory)
     {
@@ -24,7 +31,6 @@ public class TaskItemApiTests : BaseIntegrationTest
 
         // Set JWT Token in the Authorization header
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
     }
 
 
@@ -59,9 +65,7 @@ public class TaskItemApiTests : BaseIntegrationTest
         var response = await _httpClient.PutAsync($"/api/v1.0/taskitem/1", HttpHelper.GetJsonHttpContent(mockTaskItem));
 
         // Assert
-        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
-
-        //api/v1.0/taskitem/21
+        Assert.True(System.Net.HttpStatusCode.OK == response.StatusCode, $"Put taskitem {response.StatusCode}");
 
         var response1 = await _httpClient.GetAsync($"/api/v1.0/taskitem/1");
         Assert.Equal(System.Net.HttpStatusCode.OK, response1.StatusCode);
@@ -74,6 +78,28 @@ public class TaskItemApiTests : BaseIntegrationTest
 
 
     [Fact, TestPriority(3)]
+    public async Task CompleteTaskItem_ValidTaskItem_CompleteSuccess()
+    {
+
+        // Arrange
+        CompleteTaskItemRequest completeTaskItemRequest = new CompleteTaskItemRequest(taskListId: 1, taskItemId: 1);
+
+        // Act
+        var response = await _httpClient.PatchAsJsonAsync($"/api/v1.0/taskitem/CompleteSingleItem", completeTaskItemRequest);
+
+        // Assert
+        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+
+        var response1 = await _httpClient.GetAsync($"/api/v1.0/tasklist/GetTaskList/1");
+        Assert.Equal(System.Net.HttpStatusCode.OK, response1.StatusCode);
+
+        var result = await response1.Content.ReadFromJsonAsync<TaskListDto>();
+
+        Assert.Equal(1, result.TaskItemCompletedCount);
+    }
+
+
+    [Fact, TestPriority(4)]
     public async Task RemoveTaskItem_ValidTaskItem_RemoveSuccess()
     {
         // Arrange
