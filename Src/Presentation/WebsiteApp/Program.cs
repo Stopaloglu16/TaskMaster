@@ -1,4 +1,5 @@
 using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Radzen;
 using TaskMasterRazorClassLibrary.Services;
@@ -22,8 +23,18 @@ builder.Services.Configure<ApiSettingConfig>(appSettingSection);
 
 builder.Services.AddTransient<ValidateHeaderHandler>();
 
-
 builder.Services.AddAuthorizationCore();
+//builder.Services.AddAuthentication(); // Registers IAuthenticationService
+
+
+//TODO update audienceee!
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+.AddJwtBearer(jwtOptions =>
+{
+    jwtOptions.Authority = builder.Configuration["AppSettings:ApiAuthUrl"];
+    jwtOptions.Audience = builder.Configuration["AppSettings:ApiAuthUrl"];
+});
+
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();

@@ -4,6 +4,7 @@
 @using Application.Aggregates.TaskListAggregate.Queries
 @using Application.Common.Models
 @using Domain.Enums
+@using Microsoft.AspNetCore.Authorization
 @using WebsiteApp.Services
 ﻿@using Microsoft.AspNetCore.Components.QuickGrid
 @using TaskMasterRazorClassLibrary
@@ -13,6 +14,8 @@
 @inject IWebApiService<SelectListItem, SelectListItem> _taskListSelectService
 @inject IWebApiService<TaskListFormRequest, HttpResponseMessage> _taskListFormCrudService
 @inject NavigationManager NavigationManager
+
+@attribute [Authorize(Roles = "AdminUser")] 
 
 @inject NotificationService NotificationService
 

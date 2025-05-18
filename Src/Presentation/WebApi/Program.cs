@@ -37,6 +37,9 @@ taskList.TaskListApiV1().RequireAuthorization();
 var taskItem = app.NewVersionedApi("TaskItem");
 taskItem.TaskItemApiV1().RequireAuthorization();
 
+var dashboard = app.NewVersionedApi("Dashboard");
+dashboard.DashboardApiV1().RequireAuthorization();
+
 
 //app.MapGet("/connectforecast", () =>
 //{

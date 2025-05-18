@@ -3,6 +3,7 @@ using Application.Repositories;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using ServiceLayer.Dashboards;
 using ServiceLayer.TaskItems;
 using ServiceLayer.TaskLists;
 using ServiceLayer.Users;
@@ -31,6 +32,10 @@ internal static class Extensions
 
         services.AddTransient<ITaskItemRepository, TaskItemRepository>();
         services.AddTransient<ITaskItemService, TaskItemService>();
+
+        services.AddTransient<IDashboardRepository, DashboardRepository>();
+        services.AddTransient<IDashboardService, DashboardService>();
+
 
 
         services.AddHttpContextAccessor();

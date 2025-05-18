@@ -5,6 +5,7 @@
 @using Application.Common.Models
 @using Domain.Enums
 @using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
 @using WebsiteApp.Services
 ﻿@using Microsoft.AspNetCore.Components.QuickGrid
 
@@ -13,6 +14,8 @@
 @inject IWebApiService<UpdateUserRequest, UpdateUserRequest> _updateUserService
 @inject NavigationManager NavigationManager
 @inject NotificationService NotificationService
+
+@attribute [Authorize(Roles = "AdminUser")]
 
 @rendermode InteractiveServer
 
@@ -102,17 +105,17 @@
             NavigationManager.NavigateTo("/", true);
 
 
-        var userTypeClaim = user.FindFirst(ClaimTypes.Role);
+        // var userTypeClaim = user.FindFirst(ClaimTypes.Role);
         
-        if (userTypeClaim != null)
-        {
-            if (userTypeClaim.Value != nameof(UserType.AdminUser))
-                NavigationManager.NavigateTo("/", true);
-        }
-        else
-        {
-            Console.WriteLine("User type claim not found.");
-        }
+        // if (userTypeClaim != null)
+        // {
+        //     if (userTypeClaim.Value != nameof(UserType.AdminUser))
+        //         NavigationManager.NavigateTo("/", true);
+        // }
+        // else
+        // {
+        //     Console.WriteLine("User type claim not found.");
+        // }
 
         await base.OnInitializedAsync();
 

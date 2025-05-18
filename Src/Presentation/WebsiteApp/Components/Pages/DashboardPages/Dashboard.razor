@@ -1,0 +1,248 @@
+﻿@page "/dashboard"
+
+@using System.Text.RegularExpressions
+@using Application.Aggregates.DashboardAggregate
+@using Microsoft.AspNetCore.Authorization
+@using Radzen.Blazor.Rendering
+@using WebsiteApp.Services
+
+@inject IWebApiService<TopWidgetDto, TopWidgetDto> _topwidgetService
+@inject IWebApiService<MonthlyAnalyseDto, MonthlyAnalyseDto> _monthlyAnalyseService
+@inject IWebApiService<TopTaskUsersDto, TopTaskUsersDto> _topTaskUsersService
+
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+
+@rendermode InteractiveServer
+
+<RadzenStack Gap="1rem" Style="position: relative">
+
+    <RadzenRow JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" class="rz-mb-4">
+        <RadzenColumn Size="12">
+            <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-m-0">
+                🗓️ Next 5 days tasks (including today).
+            </RadzenText>
+        </RadzenColumn>
+    </RadzenRow>
+
+    <RadzenRow Style="--rz-text-h2-line-height: 1; --rz-text-h2-font-weight: 200;">
+        <RadzenColumn Size="12" SizeMD="12" SizeXL="2">
+            <RadzenRow>
+                <RadzenColumn Size="12" SizeMD="4" SizeXL="12">
+                    <RadzenCard Variant="Variant.Outlined" Style="height: 100%;">
+                        <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
+                                <RadzenText TextStyle="TextStyle.H6">Progress</RadzenText>
+                                <RadzenText TextStyle="TextStyle.H2" class="rz-color-info rz-m-0">@($"{Math.Round(closeRatioPercentage)}%")</RadzenText>
+                            </RadzenStack>
+                            <RadzenProgressBar ProgressBarStyle="ProgressBarStyle.Info" @bind-Value=@closeRatioPercentage ShowValue="false"
+                                               Style="--rz-progressbar-background-color: var(--rz-info-lighter); --rz-progressbar-height: 1rem;" />
+                        </RadzenStack>
+                    </RadzenCard>
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="4" SizeXL="12">
+                    <RadzenCard Variant="Variant.Outlined" Style="height: 100%;">
+                        <RadzenStack Gap="0">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
+                                <RadzenText TextStyle="TextStyle.H6">Task List</RadzenText>
+                                <RadzenText TextStyle="TextStyle.H2" class="rz-color-success rz-m-0">@topWidget?.taskListPercentages.Sum(aa => aa.TotalTasks)</RadzenText>
+                            </RadzenStack>
+                            <RadzenSparkline Style="width: 100%; height: 80px;">
+                                <RadzenColumnSeries Data=@topWidget.taskListPercentages ValueProperty="OpenTasks" CategoryProperty="DueDate" Title="OpenTasks" Fill="var(--rz-success)" />
+                                <RadzenColumnOptions Margin="0" />
+                                <RadzenCategoryAxis Padding="20" Visible="false" />
+                            </RadzenSparkline>
+                        </RadzenStack>
+                    </RadzenCard>
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="4" SizeXL="12">
+                    <RadzenCard Variant="Variant.Outlined" Style="height: 100%;">
+                        <RadzenStack Gap="0">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
+                                <RadzenText TextStyle="TextStyle.H6">Task Items</RadzenText>
+                                <RadzenText TextStyle="TextStyle.H2" class="rz-color-danger rz-m-0">@topWidget?.taskItemPercentages.Sum(aa => aa.OpenTaskItems) </RadzenText>
+                            </RadzenStack>
+                            <RadzenSparkline Style="width: 100%; height: 80px;">
+                                <RadzenColumnSeries Data=@topWidget.taskItemPercentages ValueProperty="OpenTaskItems" CategoryProperty="DueDateTaskItem" Title="Issues" Fill="var(--rz-danger)" />
+                                <RadzenColumnOptions Margin="0" />
+                                <RadzenCategoryAxis Padding="20" Visible="false" />
+                            </RadzenSparkline>
+                        </RadzenStack>
+                    </RadzenCard>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenColumn>
+
+        <RadzenColumn Size="12" SizeMD="6" SizeLG="6">
+            <RadzenCard Variant="Variant.Outlined" Style="height: 100%;">
+                <RadzenStack class="rz-p-0 rz-p-md-6 rz-p-lg-12">
+
+                    <RadzenRow>
+                        <RadzenColumn Size="12">
+                            <h4>Last 6 months Report</h4>
+                            @if (monthlyData == null)
+                            {
+                                <p><em>Loading...</em></p>
+                            }
+                            else
+                            {
+                                <RadzenChart>
+                                    
+                                    <RadzenValueAxis>
+                                        <RadzenGridLines Visible="true" />
+                                        
+                                    </RadzenValueAxis>
+                                    <RadzenCategoryAxis>
+                                        <RadzenGridLines Visible="true" />
+                                    </RadzenCategoryAxis>
+
+                                    <RadzenColumnSeries Data="@monthlyData" CategoryProperty="MonthName" Title="Completed In Time" ValueProperty="CompletedInTime" />
+                                    <RadzenColumnSeries Data="@monthlyData" CategoryProperty="MonthName" Title="Completed Late" ValueProperty="CompletedLate" />
+                                    <RadzenColumnSeries Data="@monthlyData" CategoryProperty="MonthName" Title="Not Completed" ValueProperty="NotCompleted" />
+                                </RadzenChart>
+                            }
+                        </RadzenColumn>
+                    </RadzenRow>
+                </RadzenStack>
+            </RadzenCard>
+        </RadzenColumn>
+
+          <RadzenColumn Size="12" SizeMD="6" SizeXL="4">
+            <RadzenCard Variant="Variant.Outlined" Style="height: 100%; --rz-card-padding: 0;">
+                <RadzenTabs Style="height: 100%; min-height: 330px">
+                    <Tabs>
+                        <RadzenTabsItem Text="Top Contributors">
+                            <RadzenChart Style="width: 100%; height: 100%;">
+                                <RadzenDonutSeries Data=@topTaskUsers CategoryProperty="Username" ValueProperty="TaskCount" />
+                            </RadzenChart>
+                        </RadzenTabsItem>
+                     @*    <RadzenTabsItem Text="Most Active Member">
+                            <div class="rz-text-align-center">
+                                <img Style="width: 120px; border-radius: 50%; margin: 20px 0;" src=@mostActiveMember?.AvatarUrl alt="Most active member avatar" />
+                                <h4>
+                                    @mostActiveMember?.Login
+                                </h4>
+                            </div>
+                        </RadzenTabsItem> *@
+                    </Tabs>
+                </RadzenTabs>
+            </RadzenCard>
+        </RadzenColumn>
+    </RadzenRow>
+
+</RadzenStack>
+
+
+@code {
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
+
+    public TopWidgetDto topWidget { get; set; } = new TopWidgetDto();
+    private double closeRatio = 0;
+    private double closeRatioPercentage = 0;
+
+    private int TotalIssues { get; set; } = 0;
+    private int OpenIssues { get; set; } = 0;
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await authenticationState;
+        var user = authState.User;
+        if (user?.Identity?.IsAuthenticated != true)
+            NavigationManager.NavigateTo("/", true);
+
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+
+            await GetTopWidget();
+            await GetMonthlyAnalyse();
+            await GetTopTaskUsers();
+
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+
+    }
+
+
+    public async Task GetTopWidget()
+    {
+    
+        topWidget = await _topwidgetService.GetDataByIdAsync($"dashboard/GetTopWidget");
+
+        TotalIssues = 0;
+        OpenIssues = 0;
+
+        if (topWidget.taskListPercentages.Count > 0)
+        {
+
+            TotalIssues = topWidget.taskListPercentages.Sum(x => x.TotalTasks);
+            OpenIssues = topWidget.taskListPercentages.Sum(x => x.OpenTasks);
+        }
+
+        int closedIssues = 0;
+        closedIssues = TotalIssues - OpenIssues;
+
+        if (closedIssues == 0)
+        {
+            closeRatioPercentage = 0;
+        }
+        else
+        {
+            closeRatio = (double)closedIssues / (double)TotalIssues;
+            closeRatioPercentage = closeRatio * 100;
+        }
+
+    }
+
+
+    private List<MonthlyAnalyseDto>? monthlyData;
+
+
+    public async Task GetMonthlyAnalyse()
+    {
+        monthlyData = await _monthlyAnalyseService.GetAllDataAsync($"dashboard/GetMonthlyAnalyse");
+
+    }
+
+    public List<TopTaskUsersDto>? topTaskUsers;
+   
+      public async Task GetTopTaskUsers()
+    {
+        topTaskUsers = await _topTaskUsersService.GetAllDataAsync($"dashboard/GetTopTaskUsers");
+
+    }
+
+
+    //   IEnumerable<UserGroup> openByGroups;
+
+
+
+    //   protected override async Task OnAfterRenderAsync(bool firstRender)
+    //   {
+    //       if (firstRender)
+    //       {
+
+
+
+    //           //     openByGroups = issues.GroupBy(issue => issue.User.Login)
+    //           //                         .Select(group => new UserGroup { Name = group.Key, Count = group.Count() })
+    //           //                         .OrderByDescending(group => group.Count)
+    //           //                         .Take(7);
+
+
+    //           StateHasChanged();
+    //       }
+    //   }
+
+}

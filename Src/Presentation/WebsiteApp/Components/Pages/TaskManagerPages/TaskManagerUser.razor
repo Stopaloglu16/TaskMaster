@@ -58,12 +58,12 @@
                                                 @* <RadzenButton Icon="check_box_outline_blank" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Size="ButtonSize.Medium"
                                                 class="rz-my-1 rz-ms-1" Click="@(() => CompleteTaskItem(tasklist.Id, taskItem.Id, taskItem.Title))" />*@
                                                 <RadzenButton Icon="@GetIcon(taskItem.IsCompleted)"
-                                                              ButtonStyle="@GetButtonStyle(taskItem.IsCompleted)"
-                                                              Variant="Variant.Flat"
-                                                              Size="ButtonSize.Medium"
-                                                              class="rz-my-1 rz-ms-1"
-                                                              Click="@(() => CompleteTaskItem(tasklist.Id, taskItem.Id, taskItem.Title))" 
-                                                              />
+                                                ButtonStyle="@GetButtonStyle(taskItem.IsCompleted)"
+                                                Variant="Variant.Flat"
+                                                Size="ButtonSize.Medium"
+                                                class="rz-my-1 rz-ms-1"
+                                                Click="@(() => CompleteTaskItem(tasklist.Id, taskItem.Id, taskItem.Title))" 
+                                                />
 
                                             </Template>
                                         </RadzenDataGridColumn>
@@ -81,8 +81,8 @@
 @if (ActionPerItemModalOpen)
 {
     <ActionPerItemModal ActionItemText="@ActionItemText"
-                        ActionText="@ActionName"
-                        OnCloseModal="@OnActionPerItemModalClose">
+    ActionText="@ActionName"
+    OnCloseModal="@OnActionPerItemModalClose">
     </ActionPerItemModal>
 }
 
@@ -137,8 +137,10 @@
             Console.WriteLine("User type claim not found.");
         }
 
-
-        await gridItemsProvider.Reload();
+        if (gridItemsProvider != null)
+        {
+            await gridItemsProvider.Reload();
+        }
 
         await base.OnInitializedAsync();
 

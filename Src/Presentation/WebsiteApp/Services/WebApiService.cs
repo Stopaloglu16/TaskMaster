@@ -91,7 +91,7 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
 
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {
-            var cc =  response.Content;
+            var cc = response.Content;
             var responseBody = await response.Content.ReadAsStringAsync();
             return await Task.FromResult(JsonConvert.DeserializeObject<PagingResponse<TResponse>>(responseBody));
         }
@@ -230,7 +230,7 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
 
         string serializedUser = JsonConvert.SerializeObject(obj);
 
-        var requestMessage = new HttpRequestMessage(HttpMethod.Patch , Apitext + requestUri + "/" + Id);
+        var requestMessage = new HttpRequestMessage(HttpMethod.Patch, Apitext + requestUri + "/" + Id);
 
         var token = await _localStorageService.GetItemAsync<string>("accessToken");
         requestMessage.Headers.Authorization
@@ -268,5 +268,8 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
         //return await Task.FromResult(JsonConvert.DeserializeObject<TResponse>(responseBody));
     }
 
-  
+    public Task<TResponse> GetSingleDataAsync(string requestUri, bool requiresAuth = false)
+    {
+        throw new NotImplementedException();
+    }
 }

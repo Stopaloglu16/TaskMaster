@@ -1,4 +1,5 @@
-﻿using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
+﻿using Application.Aggregates.DashboardAggregate;
+using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
 using Application.Aggregates.TaskListAggregate.Queries;
 using Application.Aggregates.UserAggregate.Commands;
 using Application.Aggregates.UserAggregate.Queries;
@@ -23,6 +24,10 @@ public static class WebConfiguration
         services.AddHttpClient<IWebApiService<UserFormRequest, HttpResponseMessage>, WebApiService<UserFormRequest, HttpResponseMessage>>().AddHttpMessageHandler<ValidateHeaderHandler>();
         services.AddHttpClient<IWebApiService<CreateUserRequest, CreateUserRequest>, WebApiService<CreateUserRequest, CreateUserRequest>>().AddHttpMessageHandler<ValidateHeaderHandler>();
         services.AddHttpClient<IWebApiService<UpdateUserRequest, UpdateUserRequest>, WebApiService<UpdateUserRequest, UpdateUserRequest>>().AddHttpMessageHandler<ValidateHeaderHandler>();
+
+        services.AddHttpClient<IWebApiService<TopWidgetDto, TopWidgetDto>, WebApiService<TopWidgetDto, TopWidgetDto>>().AddHttpMessageHandler<ValidateHeaderHandler>();
+        services.AddHttpClient<IWebApiService<MonthlyAnalyseDto, MonthlyAnalyseDto>, WebApiService<MonthlyAnalyseDto, MonthlyAnalyseDto>>().AddHttpMessageHandler<ValidateHeaderHandler>();
+        services.AddHttpClient<IWebApiService<TopTaskUsersDto, TopTaskUsersDto>, WebApiService<TopTaskUsersDto, TopTaskUsersDto>>().AddHttpMessageHandler<ValidateHeaderHandler>();
 
         services.AddHttpClient<IWebApiService<SelectListItem, SelectListItem>, WebApiService<SelectListItem, SelectListItem>>().AddHttpMessageHandler<ValidateHeaderHandler>();
 
