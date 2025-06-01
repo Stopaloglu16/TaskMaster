@@ -1,5 +1,7 @@
 ﻿@page "/taskmanageradmin"
 
+@attribute [Authorize(Roles = "AdminUser")] 
+
 @using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate
 @using Application.Aggregates.TaskListAggregate.Queries
 @using Application.Common.Models
@@ -14,11 +16,10 @@
 @inject IWebApiService<SelectListItem, SelectListItem> _taskListSelectService
 @inject IWebApiService<TaskListFormRequest, HttpResponseMessage> _taskListFormCrudService
 @inject NavigationManager NavigationManager
-
-@attribute [Authorize(Roles = "AdminUser")] 
-
 @inject NotificationService NotificationService
 
+
+@implements IDisposable
 @rendermode InteractiveServer
 
 <PageTitle>Task Manager</PageTitle>
@@ -34,6 +35,8 @@
         <div class="card-header">
             <RadzenButton id="CreateNewTaskButton" Icon="add" Text="New" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat" Size="ButtonSize.Medium"
                           class="rz-my-1 rz-ms-1" Click="@(args => EditTasklist(0))" />
+            <RadzenButton id="CreateNewTaskButton" Icon="upload" Text="New" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                          class="rz-my-1 rz-ms-1" Click='() => NavigationManager.NavigateTo("taskmanagerupload")' />
         </div>
         <div class="card-body">
             <RadzenStack Gap="1rem">
@@ -98,6 +101,7 @@
 
     [CascadingParameter]
     private Task<AuthenticationState>? authenticationState { get; set; }
+    private CancellationTokenSource? _cts = new();
 
     RadzenDataGrid<TaskListDto> gridItemsProvider;
     IEnumerable<TaskListDto> tasklistList;
@@ -147,7 +151,8 @@
             int pageNumber = ((int)args.Skip / itemsPerPage) + 1;
 
             var response = await _taskListService.GetPagingDataAsync(
-            $"tasklist?PageNumber={pageNumber}&PageSize={itemsPerPage}&OrderBy=Id&IsDescending=false");
+            $"tasklist?PageNumber={pageNumber}&PageSize={itemsPerPage}&OrderBy=Id&IsDescending=false",
+            _cts.Token);
 
             if (response != null)
             {
@@ -194,7 +199,7 @@
     protected async Task EditTasklist(int Id)
     {
 
-        taskUserList = await _taskListSelectService.GetAllDataAsync("Users/taskuserselectlist", true);
+        taskUserList = await _taskListSelectService.GetAllDataAsync("Users/taskuserselectlist", _cts.Token, true);
 
         if (Id > 0)
         {
@@ -317,4 +322,10 @@
     }
 
     #endregion
+
+     public void Dispose()
+    {
+       _cts?.Cancel();
+       _cts?.Dispose();
+    }
 }

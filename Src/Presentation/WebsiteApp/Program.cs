@@ -1,6 +1,8 @@
+using Application.Aggregates.DashboardAggregate;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
+using Polly;
 using Radzen;
 using TaskMasterRazorClassLibrary.Services;
 using WebsiteApp.Components;
@@ -39,18 +41,40 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
+// Register HttpClientFactory first
+builder.Services.AddHttpClient();
+
 // Register WebApiService with two HttpClient instances
 builder.Services.AddHttpClient("DefaultClient", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["AppSettings:ApiUrl"]);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
+}).AddStandardResilienceHandler(options =>
+{
+    options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(45);
+});
+
+builder.Services.AddHttpClient("LongRunningClient", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["AppSettings:ApiUrl"]);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+   
+}).AddStandardResilienceHandler(options =>
+{
+    options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(5);
+    //options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(30); // optional
+    options.Retry.MaxRetryAttempts = 3; // optional
 });
 
 builder.Services.AddHttpClient("AuthClient", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["AppSettings:ApiAuthUrl"]);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
+}).AddStandardResilienceHandler(options =>
+{
+    options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(45);
 });
+
 
 
 builder.Services.AddScoped(typeof(IWebApiService<,>), typeof(WebApiService<,>));

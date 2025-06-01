@@ -81,4 +81,6 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
             UserTypeId = Domain.Enums.UserType.AdminUser
         });
     }
+
+ 
 }

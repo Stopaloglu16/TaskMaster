@@ -3,18 +3,22 @@ using Application.Aggregates.TaskListAggregate.Queries;
 using Application.Common.Models;
 using Application.Repositories;
 using Domain.Entities;
+using ServiceLayer.Users;
 
 namespace ServiceLayer.TaskLists;
 
 public class TaskListService : ITaskListService
 {
     private readonly ITaskListRepository _taskListRepository;
+    private readonly IUserService _userService;
 
-    public TaskListService(ITaskListRepository taskListRepository)
+    public TaskListService(ITaskListRepository taskListRepository, IUserService userService)
     {
         _taskListRepository = taskListRepository;
+        _userService = userService;
     }
 
+   
     #region Crud operations
 
     public async Task<CustomResult> CreateTaskList(TaskListFormRequest taskListFormRequest)
@@ -40,6 +44,113 @@ public class TaskListService : ITaskListService
 
         return CustomResult.Success();
     }
+
+    public async Task<CustomResult<List<CreateTaskListResponse>>> CreateTaskListBulk(IEnumerable<CreateTaskListRequest> createTaskListRequests,
+                                                                                     CancellationToken cancellationToken)
+    {
+        List<CreateTaskListResponse> createTaskListResponseList = new List<CreateTaskListResponse>();
+
+        try
+        {
+
+            //Get users and map to dictionary
+            var users =  await _userService.GetUsers(true, Domain.Enums.UserType.TaskUser);
+            var userNameToId = users.ToDictionary(u => u.FullName, u => u.Id);
+            
+            List<TaskList> taskLists = new List<TaskList>();
+            CustomError customError;
+
+            foreach (var request in createTaskListRequests)
+            {
+                customError = new CustomError(true);
+
+                if (!string.IsNullOrEmpty(request.AssignedTo) && !string.IsNullOrWhiteSpace(request.AssignedTo))
+                {
+                    // Try to get the user ID from the dictionary using the AssignedTo name
+                    if (userNameToId.TryGetValue(request.AssignedTo, out var userId))
+                    {
+
+                        var validation = await CheckMaxTaskListPerUser(userId);
+
+                        if (!validation.IsSuccess)
+                        {
+                            customError = new CustomError(false, validation.Error);
+                        }
+                        else
+                        {
+                            // If user found, assign the ID to the request
+                            request.AssignedToId = userId;
+                        }
+
+                    }
+                    else
+                    {
+                        //User not found, add error to response
+                        customError = new CustomError(false, $"AssignedTo '{request.AssignedTo}' not found");
+                    }
+                }
+
+
+                if (customError.isSuccess)
+                {
+                    var newTaskList = new TaskList
+                    {
+                        Title = request.Title,
+                        AssignedToId = request.AssignedToId,
+                        DueDate = request.DueDate
+                    };
+
+                    foreach (var taskItem in request.createTaskItemRequests)
+                    {
+                        //TODO testing performance
+                        await Task.Delay(5000);
+
+                        var newTaskItem = new TaskItem()
+                        {
+                            Title = taskItem.Title,
+                            Description = taskItem.Description
+                        };
+
+                        createTaskListResponseList.Add(new CreateTaskListResponse
+                        {
+                            RowId = taskItem.RowId,
+                            CustomError = new CustomError(true)
+                        });
+
+                        newTaskList.TaskItems.Add(newTaskItem);
+                    }
+
+                    taskLists.Add(newTaskList);
+                }
+                else
+                {
+                    foreach (var taskItem in request.createTaskItemRequests)
+                    {
+                        createTaskListResponseList.Add(new CreateTaskListResponse
+                        {
+                            RowId = taskItem.RowId,
+                            CustomError = customError
+                        });
+                    }
+                }
+            }
+
+
+            var customResulTemp = await _taskListRepository.AddRangeAsync(taskLists);
+
+            return CustomResult<List<CreateTaskListResponse>>.Success(createTaskListResponseList);
+        }
+        catch (Exception ex)
+        {
+            createTaskListResponseList.Add(new CreateTaskListResponse
+            {
+                RowId = 0,
+                CustomError = new CustomError(false, $"An error occurred while creating task lists: {ex.Message}")
+            });
+            return CustomResult<List<CreateTaskListResponse>>.Success(createTaskListResponseList);
+        }
+    }
+
 
     public async Task<CustomResult> UpdateTaskList(int Id, TaskListFormRequest taskListFormRequest)
     {
@@ -126,5 +237,6 @@ public class TaskListService : ITaskListService
 
         return CustomResult<TaskListDto>.Success(taskListDto);
     }
+
 
 }

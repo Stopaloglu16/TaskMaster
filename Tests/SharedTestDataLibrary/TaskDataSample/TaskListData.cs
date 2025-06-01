@@ -1,4 +1,6 @@
-﻿using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
+﻿using Application.Aggregates.TaskItemAggregate.Commands.CreateUpdate;
+using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
+using System.Collections.Generic;
 
 namespace SharedTestDataLibrary.TaskDataSample;
 
@@ -18,4 +20,54 @@ public class TaskListData
     {
         return new TaskListFormRequest() { Id = 1, Title = string.Empty, DueDate = DateOnly.FromDateTime(DateTime.Now) };
     }
+
+    public static CreateTaskListRequest CreateTaskListRequestEmpty()
+    {
+        return new CreateTaskListRequest()
+        {
+            Title = string.Empty,
+            DueDate = DateOnly.FromDateTime(DateTime.Now),
+            AssignedTo = null
+        };
+    }
+
+    /// <summary>
+    /// Create task list, task item by count
+    /// </summary>
+    /// <param name="taskCount"></param>
+    /// <returns></returns>
+    public static IEnumerable<CreateTaskListRequest> CreateTaskListRequestEmpty(int[] taskCount, string taskUser)
+    {
+        List<CreateTaskListRequest> taskListRequestList = new List<CreateTaskListRequest>();
+
+        int taskListCount = taskCount[0];
+        Random random = new Random();
+
+        for (int i = 0; i < taskListCount; i++)
+        {
+            var taskListRequest = new CreateTaskListRequest()
+            {
+                Title = $"MockTitle{i + 1}",
+                DueDate = DateOnly.FromDateTime(DateTime.Now),
+                AssignedTo = taskUser,
+                createTaskItemRequests = new List<CreateTaskItemRequest>()
+            };
+
+            int taskItemCount = random.Next(1, taskCount[1]);
+
+            for (int t = 0; t < taskItemCount; t++)
+            {
+                taskListRequest.createTaskItemRequests.Add(new CreateTaskItemRequest() { 
+                    Title = $"MockTaskItem{t + 1}" ,
+                    Description = $"MockTaskItemDescription{t + 1}",
+                    RowId = t + 1
+                });
+            }
+
+            taskListRequestList.Add(taskListRequest);
+        }
+
+        return taskListRequestList;
+    }
+
 }

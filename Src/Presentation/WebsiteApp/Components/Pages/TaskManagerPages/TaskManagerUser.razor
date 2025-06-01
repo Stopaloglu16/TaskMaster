@@ -13,9 +13,9 @@
 @inject IWebApiService<TaskListWithItemsDto, TaskListWithItemsDto> _taskListService
 @inject IWebApiService<CompleteTaskItemRequest, HttpResponseMessage> _taskItemService
 @inject NavigationManager NavigationManager
-
 @inject NotificationService NotificationService
 
+@implements IDisposable
 @rendermode InteractiveServer
 
 <PageTitle>Task Manager</PageTitle>
@@ -91,6 +91,7 @@
 
     [CascadingParameter]
     private Task<AuthenticationState>? authenticationState { get; set; }
+    private CancellationTokenSource? _cts = new();
 
     RadzenDataGrid<TaskListWithItemsDto> gridItemsProvider;
     IEnumerable<TaskListWithItemsDto> tasklistList;
@@ -164,7 +165,7 @@
 
             if (!string.IsNullOrEmpty(aspUserId))
             {
-                var response = await _taskListService.GetAllDataAsync($"tasklist/TaskListwithItemsByUserId/{aspUserId}");
+                var response = await _taskListService.GetAllDataAsync($"tasklist/TaskListwithItemsByUserId/{aspUserId}", _cts.Token);
 
                 if (response != null)
                 {
@@ -257,4 +258,10 @@
     }
 
     #endregion
+
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _cts?.Dispose();
+    }
 }

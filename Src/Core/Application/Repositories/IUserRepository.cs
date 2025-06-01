@@ -13,7 +13,7 @@ public interface IUserRepository : IRepository<User, int>
 
     Task<CustomResult<UserDto>> GetUserById(int Id);
     Task<CustomResult<User>> GetUserByEmail(string email);
-    
+
     Task<CustomResult<UserDto>> GetUserByAspId(string AspId);
     //Task<CustomResult<UserDto>> GetUserByUserGuidId(Guid UserGuidId);
 

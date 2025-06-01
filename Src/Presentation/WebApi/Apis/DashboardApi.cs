@@ -7,16 +7,17 @@ namespace WebApi.Apis
     public static class DashboardApi
     {
 
-        public static RouteGroupBuilder DashboardApiV1(this IEndpointRouteBuilder app)
+        
+        public static RouteGroupBuilder DashboardApiV1(this RouteGroupBuilder group)
         {
-            var api = app.MapGroup("api/v{apiVersion:apiVersion}/dashboard")
-                                         .HasApiVersion(1.0);
+            
             // Route for query task lists
-            api.MapGet("/GetTopWidget", GetTopWidget);
-            api.MapGet("/GetMonthlyAnalyse", GetMonthlyAnalyse);
-            api.MapGet("/GetTopTaskUsers", GetTopTaskUsers);
+            group.MapGet("/GetTopWidget", GetTopWidget);
+            group.MapGet("/GetMonthlyAnalyse", GetMonthlyAnalyse);
+            group.MapGet("/GetTopTaskUsers", GetTopTaskUsers);
 
-            return api;
+
+            return group;
         }
 
 

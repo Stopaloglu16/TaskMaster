@@ -17,6 +17,7 @@
 
 @attribute [Authorize(Roles = "AdminUser")]
 
+@implements IDisposable
 @rendermode InteractiveServer
 
 <PageTitle>User Manager</PageTitle>
@@ -77,6 +78,7 @@
 
     [CascadingParameter]
     private Task<AuthenticationState>? authenticationState { get; set; }
+    private CancellationTokenSource? _cts;
 
     RadzenDataGrid<UserDto> gridItemsProvider;
     IEnumerable<UserDto> userList;
@@ -173,7 +175,7 @@
             int pageNumber = ((int)args.Skip / itemsPerPage) + 1;
 
             var response = await _userService.GetPagingDataAsync(
-            $"Users/userlist?PageNumber={pageNumber}&PageSize={itemsPerPage}&OrderBy=Id&IsDescending=false", true);
+            $"Users/userlist?PageNumber={pageNumber}&PageSize={itemsPerPage}&OrderBy=Id&IsDescending=false", _cts.Token, true);
 
             if (response != null)
             {
@@ -364,4 +366,9 @@
 
     #endregion
 
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _cts?.Dispose();
+    }
 }

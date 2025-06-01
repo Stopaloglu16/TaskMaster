@@ -27,24 +27,21 @@ internal static class Extensions
         builder.Services.AddScoped(typeof(IApplicationDbContext), typeof(ApplicationDbContext));
 
         // Add the integration services that consume the DbContext
-        services.AddTransient<ITaskListRepository, TaskListRepository>();
-        services.AddTransient<ITaskListService, TaskListService>();
+        services.AddScoped<ITaskListRepository, TaskListRepository>();
+        services.AddScoped<ITaskListService, TaskListService>();
 
-        services.AddTransient<ITaskItemRepository, TaskItemRepository>();
-        services.AddTransient<ITaskItemService, TaskItemService>();
+        services.AddScoped<ITaskItemRepository, TaskItemRepository>();
+        services.AddScoped<ITaskItemService, TaskItemService>();
 
-        services.AddTransient<IDashboardRepository, DashboardRepository>();
-        services.AddTransient<IDashboardService, DashboardService>();
+        services.AddScoped<IDashboardRepository, DashboardRepository>();
+        services.AddScoped<IDashboardService, DashboardService>();
 
-
-
-        services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
-        
-        services.AddScoped<IUserService, UserService>();
+
         services.AddScoped<IUserRepository, UserRepository>();
-
-
+        services.AddScoped<IUserService, UserService>();
+        
+        services.AddHttpContextAccessor();
     }
 
 }

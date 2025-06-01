@@ -1,41 +1,47 @@
 ﻿using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
 using Application.Aggregates.TaskListAggregate.Queries;
 using Application.Common.Models;
+using Asp.Versioning;
+using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using ServiceLayer.TaskLists;
 using ServiceLayer.Users;
+using WebApi.Notification;
+using static WebApi.Notification.TaskProgressHub;
 
 namespace WebApi.Apis
 {
     public static class TaskListApi
     {
-        public static RouteGroupBuilder TaskListApiV1(this IEndpointRouteBuilder app)
+
+        public static RouteGroupBuilder TaskListApiV1(this RouteGroupBuilder group)
         {
-            var api = app.MapGroup("api/v{apiVersion:apiVersion}/tasklist")
-                                        .HasApiVersion(1.0);
 
             // Route for query task lists
-            api.MapGet("/", GetActiveTaskListWithPagination);
+            group.MapGet("/", GetActiveTaskListWithPagination);
 
-            api.MapGet("/GetTaskListForm/{id:int}", GetTaskListForm);
-            api.MapGet("/GetTaskList/{id:int}", GetTaskList);
+            group.MapGet("/GetTaskListForm/{id:int}", GetTaskListForm);
+            group.MapGet("/GetTaskList/{id:int}", GetTaskList);
 
             //TODO: Get tasklist assigned to user
-            api.MapGet("/TaskListwithItemsByUserId/{aspUserId}", GetTaskListWithItemsByUser);
+            group.MapGet("/TaskListwithItemsByUserId/{aspUserId}", GetTaskListWithItemsByUser);
 
 
             //TODO: Add paging (search page) 
 
             // Routes for modify
-            api.MapPost("/", CreateTaskList);
-            api.MapPut("/{id:int}", UpdateTaskList);
-            api.MapDelete("/{id:int}", DeleteTaskList);
+            group.MapPost("/", CreateTaskList);
+            group.MapPost("/Bulk", CreateTaskListBulk).MapToApiVersion(1.0);
+            group.MapPost("/Bulk", CreateTaskListBulkV2).MapToApiVersion(2.0);
+            group.MapPut("/{id:int}", UpdateTaskList);
+            group.MapDelete("/{id:int}", DeleteTaskList);
 
             //TODO: Assign to multi user
             //api.MapPatch("/{id}", AssignTaskListToUser);
 
-            return api;
+            return group;
         }
 
         public static async Task<Ok<PagingResponse<TaskListDto>>> GetActiveTaskListWithPagination(ITaskListService taskListService,
@@ -110,6 +116,66 @@ namespace WebApi.Apis
                 return TypedResults.BadRequest(customResult.Error);
             }
         }
+
+
+
+        public static async Task<Results<Ok<List<CreateTaskListResponse>>, BadRequest<string>>> CreateTaskListBulk([FromBody] IEnumerable<CreateTaskListRequest> createTaskListRequests,
+                                                                                                                   ITaskListService taskListService,
+                                                                                                                   CancellationToken cancellationToken)
+        {
+            var customResult = await taskListService.CreateTaskListBulk(createTaskListRequests, cancellationToken);
+            if (customResult.IsSuccess)
+            {
+                return TypedResults.Ok(customResult.Value);
+            }
+            else
+            {
+                return TypedResults.BadRequest("System issue");
+            }
+        }
+
+
+        public static async Task<IResult> CreateTaskListBulkV2([FromBody] IEnumerable<CreateTaskListRequest> createTaskListRequests,
+                                                                          IBackgroundTaskQueue backgroundTaskQueue,
+                                                                          CancellationToken cancellationToken)
+        {
+            var requestId = Guid.NewGuid().ToString();
+            backgroundTaskQueue.QueueTask(requestId, createTaskListRequests);
+
+            //backgroundTaskQueue.EnqueueAsync(new WorkItem(requestId, async () =>
+            //{
+            //    try
+            //    {
+            //        CustomResult<List<CreateTaskListResponse>> result = await taskListService.CreateTaskListBulk(createTaskListRequests, 
+            //                                                                                                     cancellationToken);
+            //        await hubContext.Clients.Group(requestId).SendAsync("ReceiveResult", requestId, result, cancellationToken);
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        await hubContext.Clients.Group(requestId).SendAsync("ReceiveResult", requestId, new List<CreateTaskListResponse>(), cancellationToken);
+            //        // Optionally log the exception
+            //    }
+            //}));
+
+            //_ = Task.Run(async () =>
+            //{
+            //    try
+            //    {
+            //        CustomResult<List<CreateTaskListResponse>> result = await taskListService.CreateTaskListBulk(createTaskListRequests, 
+            //                                                                                                     cancellationToken);
+
+            //        await hubContext.Clients.Group(requestId).SendAsync("ReceiveResult", requestId, result, cancellationToken);
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        await hubContext.Clients.Group(requestId).SendAsync("ReceiveResult", requestId, new List<CreateTaskListResponse>(), cancellationToken);
+            //        // Optionally log the exception
+            //    }
+            //});
+
+            return Results.Ok(new { RequestId = requestId });
+        }
+
 
         public static async Task<Results<Ok, BadRequest<string>>> UpdateTaskList(int id, TaskListFormRequest taskListFormRequest,
                                                                                  ITaskListService taskListService)
