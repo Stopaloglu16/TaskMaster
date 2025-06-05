@@ -1,6 +1,31 @@
-﻿<Router AppAssembly="typeof(Program).Assembly">
+﻿@* <Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
         <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
+</Router>
+ *@
+
+<Router AppAssembly="typeof(Program).Assembly">
+    <Found Context="routeData">
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+            <NotAuthorized>
+                    <h1>Access Denied</h1>
+                    <p>You do not have permission to view this page. Please contact your administrator if you believe this is an error.</p>
+            </NotAuthorized>
+            <Authorizing>
+                
+                    <h1>Authorizing...</h1>
+                    <p>Please wait while we verify your access.</p>
+                
+            </Authorizing>
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="typeof(Layout.MainLayout)">
+            <h1>Page Not Found</h1>
+            <p>Sorry, the page you are looking for does not exist.</p>
+        </LayoutView>
+    </NotFound>
 </Router>

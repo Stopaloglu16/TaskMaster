@@ -1,7 +1,8 @@
-using Microsoft.Data.SqlClient;
-using TaskMaster.ServiceDefaults;
+using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using WebApi.Apis;
 using WebApi.Extensions;
+using WebApi.Notification;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,32 +12,86 @@ builder.AddApplicationServices();
 builder.Services.AddProblemDetails();
 builder.Services.AddAuthorizationBuilder();
 
-var withApiVersioning = builder.Services.AddApiVersioning();
-builder.AddDefaultOpenApi(withApiVersioning);
 
 
+// Add API versioning and explorer
+builder.Services.AddApiVersioning(options =>
+{
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.ReportApiVersions = true;
+    options.ApiVersionReader = ApiVersionReader.Combine(
+        new UrlSegmentApiVersionReader(),
+        new QueryStringApiVersionReader("api-version"),
+        new HeaderApiVersionReader("X-Version")
+    );
+})
+.AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
 
+
+builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+builder.Services.AddHostedService<TaskProcessingWorker>();
+
+builder.Services.AddSignalR();
 builder.Services.AddHealthChecks();
+builder.Services.AddSwaggerGen();
 
 
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
+
+var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    //app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        foreach (var description in provider.ApiVersionDescriptions)
+        {
+            options.SwaggerEndpoint(
+                $"/swagger/{description.GroupName}/swagger.json",
+                description.GroupName.ToUpperInvariant());
+        }
+    });
 }
 
-var taskList = app.NewVersionedApi("TaskList");
+
+// Register versioned APIs using the versioned API explorer
+var apiVersionSet = app.NewApiVersionSet()
+    .HasApiVersion(new ApiVersion(1, 0))
+    .HasApiVersion(new ApiVersion(2, 0))
+    .ReportApiVersions()
+    .Build();
+
+var taskList = app.MapGroup("api/v{apiVersion:apiVersion}/tasklist")
+    .WithApiVersionSet(apiVersionSet)
+    .HasApiVersion(1.0)
+    .HasApiVersion(2.0);
 taskList.TaskListApiV1().RequireAuthorization();
 
-
-var taskItem = app.NewVersionedApi("TaskItem");
+var taskItem = app.MapGroup("api/v{apiVersion:apiVersion}/taskitem")
+    .WithApiVersionSet(apiVersionSet)
+    .HasApiVersion(1.0)
+    .HasApiVersion(2.0);
 taskItem.TaskItemApiV1().RequireAuthorization();
 
+var dashboard = app.MapGroup("api/v{apiVersion:apiVersion}/dashboard")
+    .WithApiVersionSet(apiVersionSet)
+    .HasApiVersion(1.0)
+    .HasApiVersion(2.0);
+dashboard.DashboardApiV1().RequireAuthorization();
+
+
+app.MapHub<TaskProgressHub>("processHub");
 
 //app.MapGet("/connectforecast", () =>
 //{
@@ -112,6 +167,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseHttpsRedirection();
+
+app.MapHub<TaskProgressHub>("notifications");
 
 app.Run();
 

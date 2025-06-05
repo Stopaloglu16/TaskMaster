@@ -10,32 +10,30 @@ namespace WebApi.Apis
 {
     public static class TaskItemApi
     {
-        public static RouteGroupBuilder TaskItemApiV1(this IEndpointRouteBuilder app)
+        public static RouteGroupBuilder TaskItemApiV1(this RouteGroupBuilder group)
         {
-            var api = app.MapGroup("api/v{apiVersion:apiVersion}/taskitem")
-                                        .HasApiVersion(1.0);
 
             // Route for query task items
-            api.MapGet("/", GetTaskItemListActive);
+            group.MapGet("/", GetTaskItemListActive);
 
-            api.MapGet("/{id:int}", GetTaskItem);
+            group.MapGet("/{id:int}", GetTaskItem);
 
 
 
             //TODO: Add paging (search page) 
 
 
-            api.MapPatch("/CompleteSingleItem/{id:int}", CompleteSingle);
+            group.MapPatch("/CompleteSingleItem/{id:int}", CompleteSingle);
 
             // Routes for modify
-            api.MapPost("/", CreateTaskItem);
-            api.MapPut("/{id:int}", UpdateTaskItem);
-            api.MapDelete("/{id:int}", DeleteTaskItem);
+            group.MapPost("/", CreateTaskItem);
+            group.MapPut("/{id:int}", UpdateTaskItem);
+            group.MapDelete("/{id:int}", DeleteTaskItem);
 
             //TODO: Assing to multi user
             //api.MapPatch("/{id}", AssignTaskItemToUser);
 
-            return api;
+            return group;
         }
 
 

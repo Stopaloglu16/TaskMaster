@@ -112,7 +112,7 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AspId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("varchar(450)");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
@@ -149,9 +149,6 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                         .IsRequired()
                         .HasColumnType("varchar(250)");
 
-                    b.Property<Guid>("UserGuidId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<int>("UserTypeId")
                         .HasColumnType("int");
 
@@ -167,10 +164,9 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                             FullName = "taskmaster@hotmail.co.uk",
                             IsDeleted = (byte)0,
                             RefreshTokenExpiryTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            RegisterToken = new Guid("33fc8420-4a15-45ad-aefc-f340d0e37382"),
+                            RegisterToken = new Guid("08296728-7b59-4cde-9373-c4c1528618ce"),
                             RegisterTokenExpieryTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             UserEmail = "taskmaster@hotmail.co.uk",
-                            UserGuidId = new Guid("e5e54b95-b224-418a-9640-8f6cc69b74d7"),
                             UserTypeId = 0
                         });
                 });

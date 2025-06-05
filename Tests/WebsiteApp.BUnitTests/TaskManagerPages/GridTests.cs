@@ -155,6 +155,41 @@ public class GridTests : TestContext
         {
             throw new NotImplementedException();
         }
+
+        public Task<SelectListItem> GetSingleDataAsync(string requestUri, bool requiresAuth = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpResponseMessage> PatchAsync(string requestUri, int Id, SelectListItem obj, bool requiresAuth = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<TaskListFormRequest> IWebApiService<TaskListFormRequest, TaskListFormRequest>.GetSingleDataAsync(string requestUri, bool requiresAuth)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpResponseMessage> PatchAsync(string requestUri, int Id, TaskListFormRequest obj, bool requiresAuth = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<HttpResponseMessage> IWebApiService<TaskListFormRequest, HttpResponseMessage>.GetSingleDataAsync(string requestUri, bool requiresAuth)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<TaskListDto> IWebApiService<TaskListDto, TaskListDto>.GetSingleDataAsync(string requestUri, bool requiresAuth)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpResponseMessage> PatchAsync(string requestUri, int Id, TaskListDto obj, bool requiresAuth = false)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     private class TestNotificationService : NotificationService

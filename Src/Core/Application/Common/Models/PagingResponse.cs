@@ -6,7 +6,7 @@ namespace Application.Common.Models;
 
 public class PagingResponse<T>
 {
-   
+
     public PagingResponse(IReadOnlyCollection<T> items)
     {
         Items = items;
@@ -30,8 +30,19 @@ public class PagingResponse<T>
     //    return new PagingResponse<T>(items) { PageNumber = pagingParameters.PageNumber, PageSize = pagingParameters.PageSize, TotalCount = count };
     //}
 
-    public static async Task<PagingResponse<T>> CreateAsync(IQueryable<T> source, PagingParameters pagingParameters)
+    public static async Task<PagingResponse<T>> CreateAsync(IQueryable<T> source, 
+                                                            PagingParameters pagingParameters, 
+                                                            CancellationToken cancellationToken = default)
     {
+
+        if(cancellationToken.IsCancellationRequested)
+            return new PagingResponse<T>(Array.Empty<T>())
+            {
+                PageNumber = pagingParameters.PageNumber,
+                PageSize = pagingParameters.PageSize,
+                TotalCount = 0
+            };
+
         // Check if the source supports async (is an IAsyncEnumerable)
         if (source.Provider is IAsyncQueryProvider)
         {
@@ -39,7 +50,7 @@ public class PagingResponse<T>
             var items = await source
                 .Skip((pagingParameters.PageNumber - 1) * pagingParameters.PageSize)
                 .Take(pagingParameters.PageSize)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return new PagingResponse<T>(items)
             {
@@ -50,8 +61,12 @@ public class PagingResponse<T>
         }
         else
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Fall back to synchronous if async not supported (in-memory list, etc.)
             var count = source.Count();
+            cancellationToken.ThrowIfCancellationRequested();
+
             var items = source
                 .Skip((pagingParameters.PageNumber - 1) * pagingParameters.PageSize)
                 .Take(pagingParameters.PageSize)

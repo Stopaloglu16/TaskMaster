@@ -14,4 +14,5 @@ public interface ITaskListRepository : IRepository<TaskList, int>
     Task<TaskListDto?> GetTaskListById(int Id, CancellationToken cancellationToken);
     Task<CustomResult<int>> CheckMaxTaskListPerUser(int userId);
     Task<CustomResult> CompleteTaskList(int Id, CancellationToken cancellationToken);
+
 }

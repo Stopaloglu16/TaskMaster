@@ -16,5 +16,5 @@ public class TaskList : BaseAuditableEntity<int>
     public int? AssignedToId { get; set; }
     public User? AssignedTo { get; set; }
 
-    public IList<TaskItem> TaskItems { get; private set; } = new List<TaskItem>();
+    public virtual IList<TaskItem> TaskItems { get; private set; } = new List<TaskItem>();
 }

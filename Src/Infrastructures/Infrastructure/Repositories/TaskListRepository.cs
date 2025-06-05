@@ -55,7 +55,7 @@ public class TaskListRepository : EfCoreRepository<TaskList, int>, ITaskListRepo
                                          .Where(qq => qq.IsCompleted == false)
                                          .Select(ss => ss.MapToDto());
 
-        return await PagingResponse<TaskListDto>.CreateAsync(query, pagingParameters);
+        return await PagingResponse<TaskListDto>.CreateAsync(query, pagingParameters, cancellationToken);
 
     }
 
@@ -94,7 +94,6 @@ public class TaskListRepository : EfCoreRepository<TaskList, int>, ITaskListRepo
 
     public async Task<CustomResult> CompleteTaskList(int Id, CancellationToken cancellationToken)
     {
-
         FormattableString queryString = $"""
         UPDATE [dbo].[TaskLists]
         SET [IsCompleted] = 1, [CompletedDate] = GETDATE()
@@ -102,13 +101,11 @@ public class TaskListRepository : EfCoreRepository<TaskList, int>, ITaskListRepo
             SELECT 1
             FROM [dbo].[TaskItems]
             WHERE TaskListId = {Id} AND IsCompleted = 0 AND IsDeleted = 0
-        )
-    """;
-
+        ) 
+        """;
 
         await _dbContext.Database.ExecuteSqlAsync(queryString, cancellationToken);
 
         return CustomResult.Success();
-
     }
 }

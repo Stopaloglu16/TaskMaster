@@ -1,4 +1,5 @@
 ﻿using Application.Common.Models;
+using Azure.Core;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Options;
@@ -10,10 +11,10 @@ namespace WebsiteApp.Services;
 
 public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResponse>
 {
-    public HttpClient _httpClient { get; }
-    public HttpClient _httpAuthClient { get; }
+    //public HttpClient _httpClient { get; }
+    //public HttpClient _httpAuthClient { get; }
 
-    private readonly IHttpClientFactory _httpClientFactory;
+    public readonly IHttpClientFactory _httpClientFactory;
     public ApiSettingConfig _apiSettingConfig { get; }
     public ILocalStorageService _localStorageService { get; }
     public AuthenticationStateProvider _authStateProvider { get; }
@@ -23,9 +24,9 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
     public WebApiService(IHttpClientFactory httpClientFactory,
                          IOptions<ApiSettingConfig> apiSettingConfig,
                          ILocalStorageService localStorageService,
-                         AuthenticationStateProvider authStateProvider,
-                         HttpClient httpClient,
-                         HttpClient httpAuthClient)
+                         AuthenticationStateProvider authStateProvider)
+                         //HttpClient httpClient)
+                         //HttpClient httpAuthClient)
     {
         _apiSettingConfig = apiSettingConfig.Value;
         _localStorageService = localStorageService;
@@ -34,18 +35,7 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
                              ?? throw new InvalidOperationException("AuthenticationStateProvider must be of type CustomAuthenticationStateProvider.");
 
         _httpClientFactory = httpClientFactory;
-
-
-        _httpClient = httpClient;
-        _httpAuthClient = httpAuthClient;
-        //httpClient.BaseAddress = new Uri(_apiSettingConfig.ApiUrl);
-        //httpClient.DefaultRequestHeaders.Add("User-Agent", "BlazorServer");
-
-        //httpAuthClient.BaseAddress = new Uri(_apiSettingConfig.ApiAuthUrl);
-        //httpAuthClient.DefaultRequestHeaders.Add("User-Agent", "BlazorServer");
-
         //_httpClient = httpClient;
-        //_httpAuthClient = httpAuthClient;
     }
 
     /// <summary>
@@ -55,6 +45,18 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
     {
         return _httpClientFactory.CreateClient("DefaultClient");
     }
+
+    private HttpClient GetLongRunningClient()
+    {
+        return _httpClientFactory.CreateClient("LongRunningClient");
+    }
+
+    //protected static string GetLongRunningUrl()
+    //{
+    //     _httpClientFactory.CreateClient("LongRunningClient");
+
+    //    return "";
+    //}
 
     /// <summary>
     /// Gets an instance of the authentication HTTP client.
@@ -80,7 +82,7 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
 
 
 
-    public async Task<PagingResponse<TResponse>> GetPagingDataAsync(string requestUri, bool requiresAuth = false)
+    public async Task<PagingResponse<TResponse>> GetPagingDataAsync(string requestUri, CancellationToken cancellationToken, bool requiresAuth = false)
     {
         var requestMessage = new HttpRequestMessage(HttpMethod.Get, Apitext + requestUri);
         var httpClientRequest = requiresAuth ? GetAuthClient() : GetDefaultClient();
@@ -91,7 +93,7 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
 
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {
-            var cc =  response.Content;
+            var cc = response.Content;
             var responseBody = await response.Content.ReadAsStringAsync();
             return await Task.FromResult(JsonConvert.DeserializeObject<PagingResponse<TResponse>>(responseBody));
         }
@@ -99,7 +101,7 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
             return default;
     }
 
-    public async Task<List<TResponse>> GetAllDataAsync(string requestUri, bool requiresAuth = false)
+    public async Task<List<TResponse>> GetAllDataAsync(string requestUri, CancellationToken cancellationToken, bool requiresAuth = false)
     {
         var httpClientRequest = requiresAuth ? GetAuthClient() : GetDefaultClient();
 
@@ -158,10 +160,6 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
 
         var requestMessage = new HttpRequestMessage(HttpMethod.Post, Apitext + requestUri);
 
-        //var token = await _localStorageService.GetItemAsync<string>("accessToken");
-        //requestMessage.Headers.Authorization
-        //    = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
         requestMessage.Content = new StringContent(serializedUser);
 
         requestMessage.Content.Headers.ContentType
@@ -172,30 +170,67 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
         return response;
     }
 
-    //public async Task<TResponse> SaveBulkAsync(string requestUri, List<TRequest> obj)
-    //{
-    //    string serializedUser = JsonConvert.SerializeObject(obj);
+    public async Task<HttpResponseMessage> SaveBulkAsync(string requestUri, List<TRequest> obj, CancellationToken cancellationToken, bool requiresAuth = false)
+    {
+        try
+        {
+            var httpClientRequest = GetLongRunningClient();
+            //httpClientRequest.Timeout = TimeSpan.FromMinutes(5);
 
-    //    var requestMessage = new HttpRequestMessage(HttpMethod.Post, Apitext + requestUri);
+            await SetAuthorizeHeader(httpClientRequest);
 
-    //    var token = await _localStorageService.GetItemAsync<string>("accessToken");
-    //    requestMessage.Headers.Authorization
-    //        = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            //httpClientRequest.CancelPendingRequests(); // Cancel any pending requests to ensure a fresh start
 
-    //    requestMessage.Content = new StringContent(serializedUser);
+            string serializedUser = JsonConvert.SerializeObject(obj);
 
-    //    requestMessage.Content.Headers.ContentType
-    //        = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, Apitext + requestUri);
+            
 
-    //    var response = await _httpClient.SendAsync(requestMessage);
+            requestMessage.Content = new StringContent(serializedUser);
 
-    //    var responseStatusCode = response.StatusCode;
-    //    var responseBody = await response.Content.ReadAsStringAsync();
+            requestMessage.Content.Headers.ContentType
+                = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
 
-    //    var returnedObj = JsonConvert.DeserializeObject<TResponse>(responseBody);
+            return await httpClientRequest.SendAsync(requestMessage, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
 
-    //    return await Task.FromResult(returnedObj);
-    //}
+
+    public async Task<HttpResponseMessage> SaveBulkV2Async(string requestUri, List<TRequest> obj, CancellationToken cancellationToken, bool requiresAuth = false)
+    {
+        try
+        {
+            var httpClientRequest = GetLongRunningClient();
+            
+            await SetAuthorizeHeader(httpClientRequest);
+
+            string serializedUser = JsonConvert.SerializeObject(obj);
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, "api/v2.0/" + requestUri);
+
+
+            requestMessage.Content = new StringContent(serializedUser);
+
+            requestMessage.Content.Headers.ContentType
+                = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+
+            var content = await httpClientRequest.SendAsync(requestMessage, cancellationToken);
+
+            var demodemo = await content.Content.ReadAsStringAsync(); // Ensure the request is fully processed
+
+            return content;
+
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
+
 
     public async Task<HttpResponseMessage> UpdateAsync(string requestUri, int Id, TRequest obj, bool requiresAuth = false)
     {
@@ -230,7 +265,7 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
 
         string serializedUser = JsonConvert.SerializeObject(obj);
 
-        var requestMessage = new HttpRequestMessage(HttpMethod.Patch , Apitext + requestUri + "/" + Id);
+        var requestMessage = new HttpRequestMessage(HttpMethod.Patch, Apitext + requestUri + "/" + Id);
 
         var token = await _localStorageService.GetItemAsync<string>("accessToken");
         requestMessage.Headers.Authorization
@@ -268,5 +303,10 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
         //return await Task.FromResult(JsonConvert.DeserializeObject<TResponse>(responseBody));
     }
 
-  
+    public Task<TResponse> GetSingleDataAsync(string requestUri, bool requiresAuth = false)
+    {
+        throw new NotImplementedException();
+    }
+
+   
 }

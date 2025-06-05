@@ -5,6 +5,7 @@
 @using Application.Common.Models
 @using Domain.Enums
 @using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
 @using WebsiteApp.Services
 ﻿@using Microsoft.AspNetCore.Components.QuickGrid
 
@@ -14,6 +15,9 @@
 @inject NavigationManager NavigationManager
 @inject NotificationService NotificationService
 
+@attribute [Authorize(Roles = "AdminUser")]
+
+@implements IDisposable
 @rendermode InteractiveServer
 
 <PageTitle>User Manager</PageTitle>
@@ -74,6 +78,7 @@
 
     [CascadingParameter]
     private Task<AuthenticationState>? authenticationState { get; set; }
+    private CancellationTokenSource? _cts;
 
     RadzenDataGrid<UserDto> gridItemsProvider;
     IEnumerable<UserDto> userList;
@@ -102,17 +107,17 @@
             NavigationManager.NavigateTo("/", true);
 
 
-        var userTypeClaim = user.FindFirst(ClaimTypes.Role);
+        // var userTypeClaim = user.FindFirst(ClaimTypes.Role);
         
-        if (userTypeClaim != null)
-        {
-            if (userTypeClaim.Value != nameof(UserType.AdminUser))
-                NavigationManager.NavigateTo("/", true);
-        }
-        else
-        {
-            Console.WriteLine("User type claim not found.");
-        }
+        // if (userTypeClaim != null)
+        // {
+        //     if (userTypeClaim.Value != nameof(UserType.AdminUser))
+        //         NavigationManager.NavigateTo("/", true);
+        // }
+        // else
+        // {
+        //     Console.WriteLine("User type claim not found.");
+        // }
 
         await base.OnInitializedAsync();
 
@@ -170,7 +175,7 @@
             int pageNumber = ((int)args.Skip / itemsPerPage) + 1;
 
             var response = await _userService.GetPagingDataAsync(
-            $"Users/userlist?PageNumber={pageNumber}&PageSize={itemsPerPage}&OrderBy=Id&IsDescending=false", true);
+            $"Users/userlist?PageNumber={pageNumber}&PageSize={itemsPerPage}&OrderBy=Id&IsDescending=false", _cts.Token, true);
 
             if (response != null)
             {
@@ -361,4 +366,9 @@
 
     #endregion
 
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _cts?.Dispose();
+    }
 }
