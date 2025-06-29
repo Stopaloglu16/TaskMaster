@@ -78,7 +78,7 @@
 
     [CascadingParameter]
     private Task<AuthenticationState>? authenticationState { get; set; }
-    private CancellationTokenSource? _cts;
+    private CancellationTokenSource? _cts = new();
 
     RadzenDataGrid<UserDto> gridItemsProvider;
     IEnumerable<UserDto> userList;
@@ -107,45 +107,8 @@
             NavigationManager.NavigateTo("/", true);
 
 
-        // var userTypeClaim = user.FindFirst(ClaimTypes.Role);
-        
-        // if (userTypeClaim != null)
-        // {
-        //     if (userTypeClaim.Value != nameof(UserType.AdminUser))
-        //         NavigationManager.NavigateTo("/", true);
-        // }
-        // else
-        // {
-        //     Console.WriteLine("User type claim not found.");
-        // }
-
         await base.OnInitializedAsync();
 
-        // Fetch paginated data
-        // pageNumber = pagination.CurrentPageIndex + 1; // Convert to 1-based index
-        // pagination.TotalItemCountChanged += (sender, eventArgs) => StateHasChanged();
-
-
-        // gridItemsProvider = async req =>
-        // {
-        //     var response = await _userService.GetPagingDataAsync(
-        //         $"Users/userlist?PageNumber={pageNumber}&PageSize={ItemsPerPage}&OrderBy=Id&IsDescending=false", true);
-
-        //     if (response != null)
-        //     {
-        //         // Update total item count for pagination
-        //         totalItemCount = response.TotalCount;
-
-        //         // Return the grid data
-        //         return GridItemsProviderResult.From(response.Items.ToList(), response.TotalCount);
-        //     }
-        //     else
-        //     {
-        //         // Log or handle the null response scenario
-        //         Console.Error.WriteLine("Failed to load task list data. API returned null.");
-        //         return GridItemsProviderResult.From<UserDto>((ICollection<UserDto>)Enumerable.Empty<UserDto>().ToList(), 0);
-        //     }
-        // };
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -193,9 +156,17 @@
 
             isLoading = false;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            throw;
+            NotificationMessage errorMessage = new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Error",
+                Detail = $"Failed to load data: {ex.Message}",
+                Duration = 4000
+            };
+
+            ShowNotification(errorMessage);
         }
     }
 

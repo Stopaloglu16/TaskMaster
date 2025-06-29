@@ -1,7 +1,10 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using RabbitMQ.Client;
+using Serilog;
 using WebApi.Apis;
 using WebApi.Extensions;
+using WebApi.Middlewares;
 using WebApi.Notification;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,12 +36,55 @@ builder.Services.AddApiVersioning(options =>
 });
 
 
+builder.AddRabbitMQClient(connectionName: "messaging");
+    //.WithParameter("HostName", builder.Configuration["Parameters:HostName"])
+    //.WithParameter("username", builder.Configuration["Parameters:username"])
+    //.WithParameter("password", builder.Configuration["Parameters:password"])
+    //.WithManagementPlugin();    
+
+
+//// Add RabbitMQ connection factory to DI
+//builder.Services.AddSingleton<IConnectionFactory>(sp =>
+//{
+//    var config = builder.Configuration.GetSection("Parameters");
+//    return new ConnectionFactory
+//    {
+//        HostName = config["HostName"],
+//        UserName = config["UserName"],
+//        Password = config["Password"]
+//    };
+//});
+
+//builder.Services.AddSingleton<IConnection>(sp =>
+//{
+//    var factory = sp.GetRequiredService<IConnectionFactory>();
+//    return factory.CreateConnection();
+//});
+
+
+// Replace the incorrect WithParameter usage with direct property assignment
+//builder.AddRabbitMQClient(connectionName: "messaging");
+
+
 builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 builder.Services.AddHostedService<TaskProcessingWorker>();
 
 builder.Services.AddSignalR();
 builder.Services.AddHealthChecks();
 builder.Services.AddSwaggerGen();
+
+
+Log.Logger  = new LoggerConfiguration()
+    //.WriteTo.Console()
+    .WriteTo.File("Logs/WebApiLog.txt", rollingInterval: RollingInterval.Day)
+    .MinimumLevel.Warning()
+    .CreateLogger();
+
+
+builder.Host.UseSerilog();
+
+// Register Serilog
+//builder.Logging.AddSerilog(logger);
 
 
 var app = builder.Build();
@@ -92,6 +138,10 @@ dashboard.DashboardApiV1().RequireAuthorization();
 
 
 app.MapHub<TaskProgressHub>("processHub");
+
+
+// Global error handling
+app.UseGlobalExceptionHandler();
 
 //app.MapGet("/connectforecast", () =>
 //{

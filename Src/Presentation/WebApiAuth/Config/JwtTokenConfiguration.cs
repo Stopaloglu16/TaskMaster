@@ -19,7 +19,7 @@ public static class JwtTokenConfiguration
 
         }).AddJwtBearer(x =>
         {
-            x.RequireHttpsMetadata = true;
+            x.RequireHttpsMetadata = false; //TODO close for local IIS development
             x.SaveToken = true;
             x.TokenValidationParameters = new TokenValidationParameters
             {

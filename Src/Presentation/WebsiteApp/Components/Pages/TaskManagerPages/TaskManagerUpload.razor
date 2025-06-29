@@ -4,6 +4,7 @@
 @using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate
 @using Application.Common.Models
 @using Newtonsoft.Json
+@using System.Text
 @using WebsiteApp.Services
 @using Microsoft.AspNetCore.SignalR.Client
 
@@ -11,24 +12,68 @@
 @inject NavigationManager NavigationManager
 @inject NotificationService NotificationService
 @inject IConfiguration Configuration
+@inject IJSRuntime JS
+@inject DialogService DialogService
 
 @implements IDisposable
 @rendermode InteractiveServer
 
 
-<RadzenCard Variant="Variant.Outlined">
-    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Select a file to upload and click Upload</RadzenText>
-    <RadzenUpload Auto="false" Multiple="false"
-                  Change="@OnFileSelected"
-                  Style="width: 100%" />
-    <RadzenButton Text="Upload" Click=@OnUpload class="rz-mt-4" />
-</RadzenCard>
+<PageTitle>Task Upload</PageTitle>
+
+<div class="container mt-3">
+    <div class="card">
+        <div class="card-header">
+            <RadzenBreadCrumb>
+                <RadzenBreadCrumbItem Path="/home" Text="Home" />
+                <RadzenBreadCrumbItem Path="/taskmanageradmin" Text="Task Manager" />
+                <RadzenBreadCrumbItem Text="Task Upload" />
+            </RadzenBreadCrumb>
+        </div>
+        <div class="card-header">
+            <RadzenCard Variant="Variant.Outlined">
+
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">
+                    Download a sample
+                    <RadzenButton id="CreateNewTaskButton" Icon="download" Text="Download Sample" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat" Size="ButtonSize.Small"
+                                  class="rz-my-1 rz-ms-1" Click=@DownloadCsvSample />
+                </RadzenText>
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Select a file to upload and click Upload</RadzenText>
+                <RadzenUpload Auto="false" Multiple="false"
+                              Change="@OnFileSelected"
+                              Style="width: 100%" />
+                <RadzenButton Text="Upload" Click=@OnUpload id="file-submit" class="rz-mt-4" />
+            </RadzenCard>
+        </div>
+        <div class="card-body">
+            <RadzenStack Gap="1rem">
+                <RadzenDataGrid AllowFiltering="false" AllowColumnResize="true" AllowAlternatingRows="false" 
+                                AllowSorting="false" PageSize="15" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                                Data="@employees" ColumnWidth="300px" SelectionMode="DataGridSelectionMode.Single" @bind-Value=@selectedEmployees>
+                    <Columns>
+                        <RadzenDataGridColumn Property="@nameof(CreateTaskListResponse.RowId)" Title="Task Name" Width="160px" />
+                        <RadzenDataGridColumn Property="@nameof(CreateTaskListResponse.CustomError)" Title="Error Name" Width="160px">
+                            <Template Context="data">
+                                @data.CustomError.error
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            </RadzenStack>
+        </div>
+    </div>
+</div>
+
+@* <div class="rz-p-12 rz-text-align-center">
+    <RadzenButton Text="Busy Dialog with markup" ButtonStyle="ButtonStyle.Secondary" Click=@(args => ShowBusyDialog(false)) />
+</div>
+ *@
 
 <RadzenCard>
     <RadzenText TextStyle="TextStyle.Body1" TagName="TagName.H4">@message</RadzenText>
 </RadzenCard>
 
-<p>Connection status: @_hubConnection?.State.ToString()</p>
+@* <p>Connection status: @_hubConnection?.State.ToString()</p>
 
 @foreach (var requestId in allRequestIds)
 {
@@ -57,6 +102,12 @@
     </ul>
 }
 
+<label>hub connections</label>
+@foreach (var hucConnecctItem in _connections)
+{
+    <p> @hucConnecctItem.State.ToString()</p>
+}
+ *@
 
 @code {
 
@@ -67,6 +118,13 @@
     private string requestId { get; set; }
 
     const int MAX_FILE_SIZE = 1024 * 1024 * 10; // 10 MB
+
+    IQueryable<CreateTaskListResponse> employees;
+    IList<CreateTaskListResponse> selectedEmployees;
+    private readonly List<HubConnection> _connections = new();
+    //private DialogReference? hubStatusDialog;
+
+    private int JobsCount { get; set; } = 0;
 
     private List<CreateTaskListResponse> createTaskListResponses = new List<CreateTaskListResponse>();
     private CancellationTokenSource? _cts = new(TimeSpan.FromMinutes(5));
@@ -115,12 +173,40 @@
         // Setup message handlers
         _hubConnection.On<string, List<CreateTaskListResponse>>("TaskCompleted", (id, data) =>
         {
-            Console.WriteLine($"📨 Message received for requestId: {id}");
-            if (id == requestId)
+            DateTime dd = DateTime.Now;
+
+            Console.WriteLine($"📨 Message received for requestId: {id} {dd.ToLongTimeString()} ");
+
+            if (allRequestIds.Any(rr => rr.Equals(id)))
+            //if (id == requestId)
             {
+                
+                Console.WriteLine($"📨 Message received for requestId: {id} - {data.ToList().Count.ToString()} ");
+
                 //data.IsSuccess
-                createTaskListResponses = data;
+                createTaskListResponses.AddRange(data);
+                allRequestIds.Remove(id);
+
+               
+                if(allRequestIds.Count == 0)
+                {
+                    employees = createTaskListResponses.AsQueryable();
+                    selectedEmployees = new List<CreateTaskListResponse>() { employees.FirstOrDefault() };
+
+
+                    message = "CSV upload completed successfully.";
+                    DialogService.Close();
+
+                    //InvokeAsync(StateHasChanged);
+                }
+                else
+                {
+                    JobsCount = allRequestIds.Count;
+                    message = $"CSV upload completed for requestId: {id}. Waiting for remaining requests...";
+                }
+                
                 InvokeAsync(StateHasChanged);
+                
             }
             return Task.CompletedTask;
         });
@@ -130,7 +216,36 @@
     }
 
 
- 
+    public async Task DownloadCsvSample()
+    {
+        // CSV header
+        var csv = new StringBuilder();
+        csv.AppendLine("TaskTitle,DueDate,AssignTo,Title,Description");
+
+        Random random = new Random();
+
+        // Add 10 sample rows
+        for (int i = 1; i <= 10; i++)
+        {
+            DateTime dateTime = new DateTime(2025, 6, 11, 0, 0, 0, DateTimeKind.Utc);
+
+            int randomTask = random.Next(10, 99);
+
+            dateTime = dateTime.AddDays(i);
+            var newTitle = $"Title{randomTask}";
+            var taskUser = i % 3 == 0 ? "TaskUser1" : "";
+
+            csv.AppendLine($"{newTitle},{dateTime:yyyy-MM-dd},{taskUser},{newTitle}{i},Description for task {i}");
+        }
+
+        // Convert to base64 for download
+        var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+        var base64 = Convert.ToBase64String(bytes);
+
+        // Use JS interop to trigger download
+        await JS.InvokeVoidAsync("downloadFileFromBase64", "tasklist-sample.csv", base64);
+    }
+
 
     public async Task OnUpload()
     {
@@ -197,8 +312,11 @@
 
                     if (_hubConnection?.State == HubConnectionState.Connected)
                     {
+                        _connections.Add(_hubConnection);
                         await _hubConnection.SendAsync("JoinGroup", requestId);
                     }
+
+                    validItems.Clear(); // Clear after sending
                 }
             }
 
@@ -214,12 +332,14 @@
 
                 if (_hubConnection?.State == HubConnectionState.Connected)
                 {
+                    _connections.Add(_hubConnection);
                     await _hubConnection.SendAsync("JoinGroup", requestId);
                 }
             }
 
-            message = "CSV uploaded and processingng...";
-
+            JobsCount = allRequestIds.Count;
+            message = "CSV uploaded and processing...";
+            await ShowBusyDialog();
         }
         catch (Exception ex)
         {
@@ -230,9 +350,6 @@
 
     private Task<CustomResult<CreateTaskListRequest?>> ParseCsvLineAsync(int rowId, string line)
     {
-        //TaskList -                TaskItem
-        //Title, DueDate, AssignTo, Title, Description?
-
         var parts = line.Split(',');
         if (parts.Length == 5)
         {
@@ -257,6 +374,68 @@
 
         // Invalid line
         return Task.FromResult<CustomResult<CreateTaskListRequest?>>(CustomResult<CreateTaskListRequest?>.Failure(new CustomError(false, $"Invalid line {parts.Length}")));
+    }
+
+
+
+    async Task ShowBusyDialog(string withMessageAsString = "")
+    {
+       @*  _ = InvokeAsync(async () =>
+        {
+            // Simulate background task
+            await Task.Delay(2000);
+
+            // Close the dialog
+            DialogService.Close();
+        }); *@
+
+        @* if (withMessageAsString)
+        {
+            await BusyDialog("Busy ...");
+        }
+        else
+        {
+            await BusyDialog();
+        }
+ *@
+        await BusyDialog(withMessageAsString);
+
+    }
+
+     // Busy dialog from markup
+    async Task BusyDialog(string withMessageAsString)
+    {
+        await DialogService.OpenAsync("", ds =>
+    @<RadzenStack AlignItems="AlignItems.Center" Gap="2rem" class="rz-p-12">
+         <RadzenIcon Icon="hourglass_top"></RadzenIcon>
+        <RadzenText TextStyle="TextStyle.H6">Loading, please wait...</RadzenText>
+            <RadzenText TextStyle="TextStyle.H6">@JobsCount</RadzenText>
+    </RadzenStack>, new DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;width:auto", CloseDialogOnEsc = false });
+    }
+
+    // Busy dialog from string
+    async Task BusyDialog(string message, int ii)
+    {
+        await DialogService.OpenAsync("", ds =>
+        {
+            RenderFragment content = dialogContent =>
+            {
+                dialogContent.OpenComponent<RadzenRow>(0);
+                dialogContent.AddComponentParameter(1, nameof(RadzenRow.ChildContent), (RenderFragment)(rowContent => 
+                {
+                    rowContent.OpenComponent<RadzenColumn>(0);
+                    rowContent.AddComponentParameter(1, nameof(RadzenColumn.Size), 12);
+                    rowContent.AddComponentParameter(2, nameof(RadzenRow.ChildContent), (RenderFragment)(columnContent => 
+                    {
+                        columnContent.AddContent(0, message);
+                    }));
+                    rowContent.CloseComponent();
+                }));
+
+                dialogContent.CloseComponent();
+            };
+            return content;
+        }, new DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;width:auto", CloseDialogOnEsc = false });
     }
 
     public void Dispose()

@@ -57,7 +57,8 @@ public class AuthService : IAuthService
             {
                 var rtnMessage = response.Content.ReadAsStringAsync();
 
-                return CustomResult<UserLoginResponse>.Failure(new CustomError(false, response.StatusCode.ToString() + ": " + rtnMessage.Result));
+                return CustomResult<UserLoginResponse>.Failure(new CustomError(false, 
+                    "Fail " + response.StatusCode.ToString() + ": " + rtnMessage.Result + response.Content ));
             }
         }
         catch (Exception ex)

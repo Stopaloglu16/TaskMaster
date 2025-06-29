@@ -1,6 +1,6 @@
 ﻿@page "/taskmanageradmin"
-
-@attribute [Authorize(Roles = "AdminUser")] 
+ 
+@* @attribute [Authorize(Roles = "AdminUser")]   *@
 
 @using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate
 @using Application.Aggregates.TaskListAggregate.Queries
@@ -35,7 +35,7 @@
         <div class="card-header">
             <RadzenButton id="CreateNewTaskButton" Icon="add" Text="New" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat" Size="ButtonSize.Medium"
                           class="rz-my-1 rz-ms-1" Click="@(args => EditTasklist(0))" />
-            <RadzenButton id="CreateNewTaskButton" Icon="upload" Text="New" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat" Size="ButtonSize.Medium"
+            <RadzenButton id="CreateNewTaskButton" Icon="upload" Text="Upload" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat" Size="ButtonSize.Medium"
                           class="rz-my-1 rz-ms-1" Click='() => NavigationManager.NavigateTo("taskmanagerupload")' />
         </div>
         <div class="card-body">
@@ -124,7 +124,7 @@
 
         var authState = await authenticationState;
         var user = authState.User;
-        if (!user.Identity.IsAuthenticated)
+        if (!user.Identity.IsAuthenticated || !user.IsInRole("AdminUser"))
             NavigationManager.NavigateTo("/", true);
 
         await base.OnInitializedAsync();
@@ -170,9 +170,15 @@
 
             isLoading = false;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            throw;
+            NotificationMessage errorMessage = new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Error",
+                Detail = $"Failed to load data: {ex.Message}",
+                Duration = 4000
+            };
         }
     }
 

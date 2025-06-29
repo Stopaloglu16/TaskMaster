@@ -103,7 +103,7 @@ public class TaskListService : ITaskListService
                     foreach (var taskItem in request.createTaskItemRequests)
                     {
                         //TODO testing performance
-                        await Task.Delay(5000);
+                        await Task.Delay(1000);
 
                         var newTaskItem = new TaskItem()
                         {

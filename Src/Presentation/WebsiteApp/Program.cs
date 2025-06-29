@@ -37,6 +37,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     jwtOptions.Audience = builder.Configuration["AppSettings:ApiAuthUrl"];
 });
 
+builder.Services.AddAuthorization();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
@@ -70,10 +71,17 @@ builder.Services.AddHttpClient("AuthClient", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["AppSettings:ApiAuthUrl"]);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
-}).AddStandardResilienceHandler(options =>
+})
+//.ConfigurePrimaryHttpMessageHandler(() =>
+//    new HttpClientHandler
+//    {
+//        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+//    })
+.AddStandardResilienceHandler(options =>
 {
     options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(45);
 });
+
 
 
 
@@ -108,8 +116,13 @@ app.UseHttpsRedirection();
 
 app.UseAntiforgery();
 
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
 
 app.Run();

@@ -1,6 +1,8 @@
 ﻿using Application.Aggregates.DashboardAggregate;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using ServiceLayer.Dashboards;
+using Serilog;
 
 namespace WebApi.Apis
 {
@@ -21,20 +23,28 @@ namespace WebApi.Apis
         }
 
 
+        
+
+
         public static async Task<Results<Ok<TopWidgetDto>, BadRequest<string>>> GetTopWidget(IDashboardService dashboardService,
-                                                             CancellationToken cancellationToken)
+            //ILogger logger,
+            CancellationToken cancellationToken)
         {
             try
             {
+                //logger.LogInformation("Fetching top widget data from the dashboard service.");
                 var topWidget = await dashboardService.GetTopWidget(cancellationToken);
                 if (topWidget == null)
                 {
                     return TypedResults.BadRequest("TopWidget not found.");
                 }
+
+                //throw new Exception("This is a test exception to check the error handling in the API.");
                 return TypedResults.Ok(topWidget);
             }
             catch (Exception ex)
             {
+                Log.Warning($"Fetching top widget data {ex.Message}");
                 return TypedResults.BadRequest($"An error occurred: {ex.Message}");
             }
         }

@@ -75,6 +75,7 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
 
 
                 await _localStorageService.SetItemAsync("accessToken", user.AccessToken);
+                
 
                 identity = new ClaimsIdentity(ParseJwtClaims(user.AccessToken), "testAuthType");
             }
