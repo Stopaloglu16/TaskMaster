@@ -14,4 +14,3 @@ Add-Migration InitialWebIdCreate -Context Infrastructure.Data.WebIdentityContext
 
 Update-Database -context Infrastructure.Data.ApplicationDbContext
 Update-Database -context Infrastructure.Data.WebIdentityContext
-

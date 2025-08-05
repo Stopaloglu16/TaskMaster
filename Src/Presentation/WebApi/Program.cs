@@ -1,11 +1,13 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using Microsoft.OpenApi.Models;
 using RabbitMQ.Client;
 using Serilog;
 using WebApi.Apis;
 using WebApi.Extensions;
 using WebApi.Middlewares;
 using WebApi.Notification;
+using WebApi.RabbitMq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,42 +38,52 @@ builder.Services.AddApiVersioning(options =>
 });
 
 
-builder.AddRabbitMQClient(connectionName: "messaging");
-    //.WithParameter("HostName", builder.Configuration["Parameters:HostName"])
-    //.WithParameter("username", builder.Configuration["Parameters:username"])
-    //.WithParameter("password", builder.Configuration["Parameters:password"])
-    //.WithManagementPlugin();    
-
-
-//// Add RabbitMQ connection factory to DI
-//builder.Services.AddSingleton<IConnectionFactory>(sp =>
-//{
-//    var config = builder.Configuration.GetSection("Parameters");
-//    return new ConnectionFactory
-//    {
-//        HostName = config["HostName"],
-//        UserName = config["UserName"],
-//        Password = config["Password"]
-//    };
-//});
-
-//builder.Services.AddSingleton<IConnection>(sp =>
-//{
-//    var factory = sp.GetRequiredService<IConnectionFactory>();
-//    return factory.CreateConnection();
-//});
-
-
-// Replace the incorrect WithParameter usage with direct property assignment
-//builder.AddRabbitMQClient(connectionName: "messaging");
-
-
 builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 builder.Services.AddHostedService<TaskProcessingWorker>();
 
 builder.Services.AddSignalR();
 builder.Services.AddHealthChecks();
-builder.Services.AddSwaggerGen();
+
+
+
+builder.AddRabbitMQClient("messaging");
+
+builder.Services.AddSingleton<ResultStore>();
+builder.Services.AddSingleton<RabbitPublisher>();
+builder.Services.AddHostedService<RabbitConsumer>();
+
+
+builder.Services.AddSwaggerGen(options =>
+{
+    // Add JWT Bearer definition
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter 'Bearer' [space] and then your valid token in the text input below.\r\n\r\nExample: \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6...\""
+    });
+
+    // Add global security requirement
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+
+    // (Optional) If you use API versioning, set up Swagger docs per version here
+});
 
 
 Log.Logger  = new LoggerConfiguration()
@@ -142,73 +154,6 @@ app.MapHub<TaskProgressHub>("processHub");
 
 // Global error handling
 app.UseGlobalExceptionHandler();
-
-//app.MapGet("/connectforecast", () =>
-//{
-
-//    string returnMessage = "";
-
-//    IConfigurationRoot configuration = new ConfigurationBuilder()
-//         .SetBasePath(Directory.GetCurrentDirectory())
-//         .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-//         .Build();
-
-//    // Read the connection string from the configuration
-//    string connectionString = configuration.GetConnectionString("SqlServerConnection");
-
-
-//    // The SQL query you want to execute
-//    string sqlQuery = "SELECT [FullName] FROM [TaskMaster].[dbo].[Users]";
-
-//    using (SqlConnection connection = new SqlConnection(connectionString))
-//    {
-//        try
-//        {
-//            // Open the connection
-//            connection.Open();
-//            returnMessage = "Successfully connected to the database.";
-
-//            // Create a SQL command object
-//            using (SqlCommand command = new SqlCommand(sqlQuery, connection))
-//            {
-//                // Execute the query and get a data reader
-//                using (SqlDataReader reader = command.ExecuteReader())
-//                {
-//                    // Check if there are any rows returned
-//                    if (reader.HasRows)
-//                    {
-//                        while (reader.Read())
-//                        {
-//                            returnMessage += reader["FullName"].ToString();
-//                        }
-
-//                    }
-//                    else
-//                    {
-//                        Console.WriteLine("\nNo rows were returned by the query.");
-//                    }
-//                }
-//            }
-//        }
-//        catch (SqlException ex)
-//        {
-//            returnMessage = $"Error connecting to or querying the database: {ex.Message}";
-//        }
-//        finally
-//        {
-//            // Ensure the connection is closed, even if an error occurred
-//            if (connection.State == System.Data.ConnectionState.Open)
-//            {
-//                connection.Close();
-//                Console.WriteLine("Connection closed.");
-//            }
-//        }
-//    }
-//    return returnMessage;
-
-//})
-//.WithName("ConnectForecast");
-
 
 
 app.MapHealthChecks("_health");

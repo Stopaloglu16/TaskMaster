@@ -29,7 +29,7 @@ public class GridTests : TestContext
             _data = data;
         }
 
-        public async Task<PagingResponse<TaskListDto>> GetPagingDataAsync(string requestUri, bool requiresAuth = false)
+        public async Task<PagingResponse<TaskListDto>> GetPagingDataAsync(string requestUri, CancellationToken cancellationToken, bool requiresAuth = false)
         {
             // Parse the request URI to extract paging parameters  
             var uriFields = ParseUri.ParsePagingUrl(requestUri);
@@ -54,7 +54,7 @@ public class GridTests : TestContext
             return await PagingResponse<TaskListDto>.CreateAsync(query, pagingParameters);
         }
 
-        Task<List<TaskListDto>> IWebApiService<TaskListDto, TaskListDto>.GetAllDataAsync(string requestUri, bool requiresAuth)
+        Task<List<TaskListDto>> IWebApiService<TaskListDto, TaskListDto>.GetAllDataAsync(string requestUri,  CancellationToken cancellationToken, bool requiresAuth)
         {
             return Task.FromResult(_data);
         }
@@ -91,12 +91,12 @@ public class GridTests : TestContext
             return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK));
         }
 
-        Task<PagingResponse<HttpResponseMessage>> IWebApiService<TaskListFormRequest, HttpResponseMessage>.GetPagingDataAsync(string requestUri, bool requiresAuth)
+        Task<PagingResponse<HttpResponseMessage>> IWebApiService<TaskListFormRequest, HttpResponseMessage>.GetPagingDataAsync(string requestUri, CancellationToken cancellationToken, bool requiresAuth)
         {
             throw new NotImplementedException();
         }
 
-        Task<List<HttpResponseMessage>> IWebApiService<TaskListFormRequest, HttpResponseMessage>.GetAllDataAsync(string requestUri, bool requiresAuth)
+        Task<List<HttpResponseMessage>> IWebApiService<TaskListFormRequest, HttpResponseMessage>.GetAllDataAsync(string requestUri, CancellationToken cancellationToken, bool requiresAuth)
         {
             throw new NotImplementedException();
         }
@@ -116,12 +116,12 @@ public class GridTests : TestContext
             throw new NotImplementedException();
         }
 
-        Task<PagingResponse<SelectListItem>> IWebApiService<SelectListItem, SelectListItem>.GetPagingDataAsync(string requestUri, bool requiresAuth)
+        Task<PagingResponse<SelectListItem>> IWebApiService<SelectListItem, SelectListItem>.GetPagingDataAsync(string requestUri, CancellationToken cancellationToken, bool requiresAuth)
         {
             throw new NotImplementedException();
         }
 
-        Task<List<SelectListItem>> IWebApiService<SelectListItem, SelectListItem>.GetAllDataAsync(string requestUri, bool requiresAuth)
+        Task<List<SelectListItem>> IWebApiService<SelectListItem, SelectListItem>.GetAllDataAsync(string requestUri, CancellationToken cancellationToken, bool requiresAuth)
         {
             throw new NotImplementedException();
         }
@@ -141,12 +141,12 @@ public class GridTests : TestContext
             throw new NotImplementedException();
         }
 
-        Task<PagingResponse<TaskListFormRequest>> IWebApiService<TaskListFormRequest, TaskListFormRequest>.GetPagingDataAsync(string requestUri, bool requiresAuth)
+        Task<PagingResponse<TaskListFormRequest>> IWebApiService<TaskListFormRequest, TaskListFormRequest>.GetPagingDataAsync(string requestUri, CancellationToken cancellationToken, bool requiresAuth)
         {
             throw new NotImplementedException();
         }
 
-        Task<List<TaskListFormRequest>> IWebApiService<TaskListFormRequest, TaskListFormRequest>.GetAllDataAsync(string requestUri, bool requiresAuth)
+        Task<List<TaskListFormRequest>> IWebApiService<TaskListFormRequest, TaskListFormRequest>.GetAllDataAsync(string requestUri, CancellationToken cancellationToken, bool requiresAuth)
         {
             throw new NotImplementedException();
         }
@@ -187,6 +187,36 @@ public class GridTests : TestContext
         }
 
         public Task<HttpResponseMessage> PatchAsync(string requestUri, int Id, TaskListDto obj, bool requiresAuth = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpResponseMessage> SaveBulkAsync(string requestUri, List<TaskListDto> obj, CancellationToken cancellationToken = default, bool requiresAuth = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpResponseMessage> SaveBulkV2Async(string requestUri, List<TaskListDto> obj, CancellationToken cancellationToken = default, bool requiresAuth = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpResponseMessage> SaveBulkAsync(string requestUri, List<TaskListFormRequest> obj, CancellationToken cancellationToken = default, bool requiresAuth = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpResponseMessage> SaveBulkV2Async(string requestUri, List<TaskListFormRequest> obj, CancellationToken cancellationToken = default, bool requiresAuth = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpResponseMessage> SaveBulkAsync(string requestUri, List<SelectListItem> obj, CancellationToken cancellationToken = default, bool requiresAuth = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpResponseMessage> SaveBulkV2Async(string requestUri, List<SelectListItem> obj, CancellationToken cancellationToken = default, bool requiresAuth = false)
         {
             throw new NotImplementedException();
         }

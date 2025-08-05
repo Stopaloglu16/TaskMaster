@@ -10,6 +10,8 @@ using ServiceLayer.TaskLists;
 using ServiceLayer.Users;
 using WebApi.Notification;
 using static WebApi.Notification.TaskProgressHub;
+using RabbitMQ.Client;
+using WebApi.RabbitMq;
 
 namespace WebApi.Apis
 {
@@ -35,6 +37,8 @@ namespace WebApi.Apis
             group.MapPost("/", CreateTaskList);
             group.MapPost("/Bulk", CreateTaskListBulk).MapToApiVersion(1.0);
             group.MapPost("/Bulk", CreateTaskListBulkV2).MapToApiVersion(2.0);
+            group.MapPost("/Bulk1/", CreateTaskListBulkRabbitMq).MapToApiVersion(1.0);
+            group.MapGet("/GetProcessrabbitMq", GetProcessrabbitMq).MapToApiVersion(1.0); ;
             group.MapPut("/{id:int}", UpdateTaskList);
             group.MapDelete("/{id:int}", DeleteTaskList);
 
@@ -142,40 +146,32 @@ namespace WebApi.Apis
             var requestId = Guid.NewGuid().ToString();
             backgroundTaskQueue.QueueTask(requestId, createTaskListRequests);
 
-            //backgroundTaskQueue.EnqueueAsync(new WorkItem(requestId, async () =>
-            //{
-            //    try
-            //    {
-            //        CustomResult<List<CreateTaskListResponse>> result = await taskListService.CreateTaskListBulk(createTaskListRequests, 
-            //                                                                                                     cancellationToken);
-            //        await hubContext.Clients.Group(requestId).SendAsync("ReceiveResult", requestId, result, cancellationToken);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        await hubContext.Clients.Group(requestId).SendAsync("ReceiveResult", requestId, new List<CreateTaskListResponse>(), cancellationToken);
-            //        // Optionally log the exception
-            //    }
-            //}));
+            return Results.Ok(new { RequestId = requestId });
+        }
 
-            //_ = Task.Run(async () =>
-            //{
-            //    try
-            //    {
-            //        CustomResult<List<CreateTaskListResponse>> result = await taskListService.CreateTaskListBulk(createTaskListRequests, 
-            //                                                                                                     cancellationToken);
+        public static async Task<IResult> CreateTaskListBulkRabbitMq(List<ProcessItem> items,
+                                                                     RabbitPublisher publisher,
+                                                                     ResultStore store,
+                                                                     CancellationToken cancellationToken)
+        {
+            var requestId = Guid.NewGuid().ToString();
+            store.EnsureRequest(requestId);
 
-            //        await hubContext.Clients.Group(requestId).SendAsync("ReceiveResult", requestId, result, cancellationToken);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        await hubContext.Clients.Group(requestId).SendAsync("ReceiveResult", requestId, new List<CreateTaskListResponse>(), cancellationToken);
-            //        // Optionally log the exception
-            //    }
-            //});
+            foreach (var item in items)
+            {
+                publisher.Publish(new ProcessMessage(requestId, item));
+            }
 
             return Results.Ok(new { RequestId = requestId });
         }
 
+        public static async Task<IResult> GetProcessrabbitMq(string requestId,
+                                                                                                ResultStore store,
+                                                                                                CancellationToken cancellationToken)
+        {
+            var results = store.Get(requestId);
+            return results is null ? Results.NotFound() : Results.Ok(results);
+        }
 
         public static async Task<Results<Ok, BadRequest<string>>> UpdateTaskList(int id, TaskListFormRequest taskListFormRequest,
                                                                                  ITaskListService taskListService)
