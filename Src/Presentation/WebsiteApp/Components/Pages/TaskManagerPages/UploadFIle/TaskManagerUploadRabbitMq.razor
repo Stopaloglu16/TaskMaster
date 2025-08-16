@@ -1,4 +1,4 @@
-﻿@page "/taskmanagerupload"
+﻿@page "/taskmanagerUploadRabbitMq"
 
 @using Application.Aggregates.TaskItemAggregate.Commands.CreateUpdate
 @using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate
@@ -33,11 +33,6 @@
         <div class="card-header">
             <RadzenCard Variant="Variant.Outlined">
 
-                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">
-                    Download a sample
-                    <RadzenButton id="CreateNewTaskButton" Icon="download" Text="Download Sample" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat" Size="ButtonSize.Small"
-                                  class="rz-my-1 rz-ms-1" Click=@DownloadCsvSample />
-                </RadzenText>
                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Select a file to upload and click Upload</RadzenText>
                 <RadzenUpload Auto="false" Multiple="false"
                               Change="@OnFileSelected"
@@ -216,36 +211,6 @@
     }
 
 
-    public async Task DownloadCsvSample()
-    {
-        // CSV header
-        var csv = new StringBuilder();
-        csv.AppendLine("TaskTitle,DueDate,AssignTo,Title,Description");
-
-        Random random = new Random();
-
-        // Add 10 sample rows
-        for (int i = 1; i <= 10; i++)
-        {
-            DateTime dateTime = new DateTime(2025, 6, 11, 0, 0, 0, DateTimeKind.Utc);
-
-            int randomTask = random.Next(10, 99);
-
-            dateTime = dateTime.AddDays(i);
-            var newTitle = $"Title{randomTask}";
-            var taskUser = i % 3 == 0 ? "TaskUser1" : "";
-
-            csv.AppendLine($"{newTitle},{dateTime:yyyy-MM-dd},{taskUser},{newTitle}{i},Description for task {i}");
-        }
-
-        // Convert to base64 for download
-        var bytes = Encoding.UTF8.GetBytes(csv.ToString());
-        var base64 = Convert.ToBase64String(bytes);
-
-        // Use JS interop to trigger download
-        await JS.InvokeVoidAsync("downloadFileFromBase64", "tasklist-sample.csv", base64);
-    }
-
 
     public async Task OnUpload()
     {
@@ -303,7 +268,7 @@
 
                 if (validItems.Count == 10)
                 {
-                    var apiReturn = await _taskListService.SaveBulkV2Async($"tasklist/bulk", validItems, cancellationToken);
+                    var apiReturn = await _taskListService.SaveBulkRabbitMqAsync($"tasklist/bulk", validItems, cancellationToken);
 
                     var demodemo = await apiReturn.Content.ReadFromJsonAsync<Dictionary<string, string>>();
 
@@ -323,7 +288,7 @@
             // Send remaining items
             if (validItems.Any())
             {
-                var apiReturn = await _taskListService.SaveBulkV2Async($"tasklist/bulk", validItems, cancellationToken);
+                var apiReturn = await _taskListService.SaveBulkRabbitMqAsync($"tasklist/bulk", validItems, cancellationToken);
 
                 var demodemo = await apiReturn.Content.ReadFromJsonAsync<Dictionary<string, string>>();
 

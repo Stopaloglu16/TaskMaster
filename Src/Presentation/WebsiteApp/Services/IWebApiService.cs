@@ -14,7 +14,7 @@ public interface IWebApiService<TRequest, TResponse>
     Task<HttpResponseMessage> SaveAsync(string requestUri, TRequest obj, bool requiresAuth = false);
 
     Task<HttpResponseMessage> SaveBulkAsync(string requestUri, List<TRequest> obj, CancellationToken cancellationToken = default, bool requiresAuth = false);
-    Task<HttpResponseMessage> SaveBulkV2Async(string requestUri, List<TRequest> obj, CancellationToken cancellationToken = default, bool requiresAuth = false);
+    Task<HttpResponseMessage> SaveBulkRabbitMqAsync(string requestUri, List<TRequest> obj, CancellationToken cancellationToken = default, bool requiresAuth = false);
 
 
     Task<HttpResponseMessage> UpdateAsync(string requestUri, int Id, TRequest obj, bool requiresAuth = false);

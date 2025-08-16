@@ -17,7 +17,9 @@ builder.AddApplicationServices();
 builder.Services.AddProblemDetails();
 builder.Services.AddAuthorizationBuilder();
 
-
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(m => m.AddMeter("TaskManagerMetrics"))
+    .WithTracing(m => m.AddSource("TaskManager"));
 
 // Add API versioning and explorer
 builder.Services.AddApiVersioning(options =>

@@ -196,7 +196,7 @@ public class GridTests : TestContext
             throw new NotImplementedException();
         }
 
-        public Task<HttpResponseMessage> SaveBulkV2Async(string requestUri, List<TaskListDto> obj, CancellationToken cancellationToken = default, bool requiresAuth = false)
+        public Task<HttpResponseMessage> SaveBulkRabbitMqAsync(string requestUri, List<TaskListDto> obj, CancellationToken cancellationToken = default, bool requiresAuth = false)
         {
             throw new NotImplementedException();
         }
@@ -206,7 +206,7 @@ public class GridTests : TestContext
             throw new NotImplementedException();
         }
 
-        public Task<HttpResponseMessage> SaveBulkV2Async(string requestUri, List<TaskListFormRequest> obj, CancellationToken cancellationToken = default, bool requiresAuth = false)
+        public Task<HttpResponseMessage> SaveBulkRabbitMqAsync(string requestUri, List<TaskListFormRequest> obj, CancellationToken cancellationToken = default, bool requiresAuth = false)
         {
             throw new NotImplementedException();
         }
@@ -216,7 +216,7 @@ public class GridTests : TestContext
             throw new NotImplementedException();
         }
 
-        public Task<HttpResponseMessage> SaveBulkV2Async(string requestUri, List<SelectListItem> obj, CancellationToken cancellationToken = default, bool requiresAuth = false)
+        public Task<HttpResponseMessage> SaveBulkRabbitMqAsync(string requestUri, List<SelectListItem> obj, CancellationToken cancellationToken = default, bool requiresAuth = false)
         {
             throw new NotImplementedException();
         }

@@ -175,11 +175,8 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
         try
         {
             var httpClientRequest = GetLongRunningClient();
-            //httpClientRequest.Timeout = TimeSpan.FromMinutes(5);
-
+            
             await SetAuthorizeHeader(httpClientRequest);
-
-            //httpClientRequest.CancelPendingRequests(); // Cancel any pending requests to ensure a fresh start
 
             string serializedUser = JsonConvert.SerializeObject(obj);
 
@@ -200,7 +197,7 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
     }
 
 
-    public async Task<HttpResponseMessage> SaveBulkV2Async(string requestUri, List<TRequest> obj, CancellationToken cancellationToken, bool requiresAuth = false)
+    public async Task<HttpResponseMessage> SaveBulkRabbitMqAsync(string requestUri, List<TRequest> obj, CancellationToken cancellationToken, bool requiresAuth = false)
     {
         try
         {

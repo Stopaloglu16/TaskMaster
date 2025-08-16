@@ -1,16 +1,11 @@
 ﻿using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
 using Application.Aggregates.TaskListAggregate.Queries;
 using Application.Common.Models;
-using Asp.Versioning;
-using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using ServiceLayer.TaskLists;
 using ServiceLayer.Users;
 using WebApi.Notification;
-using static WebApi.Notification.TaskProgressHub;
-using RabbitMQ.Client;
 using WebApi.RabbitMq;
 
 namespace WebApi.Apis
@@ -104,7 +99,7 @@ namespace WebApi.Apis
             return TypedResults.Ok(taskItem.AsEnumerable());
         }
 
-        #region Routes for modify
+        #region API Routes for modify
 
         public static async Task<Results<Created, BadRequest<string>>> CreateTaskList(TaskListFormRequest taskListFormRequest,
                                                                                       ITaskListService taskListService)
@@ -123,9 +118,44 @@ namespace WebApi.Apis
 
 
 
+       
+        public static async Task<Results<Ok, BadRequest<string>>> UpdateTaskList(int id, TaskListFormRequest taskListFormRequest,
+                                                                                 ITaskListService taskListService)
+        {
+            var customResult = await taskListService.UpdateTaskList(id, taskListFormRequest);
+
+            if (customResult.IsSuccess)
+            {
+                return TypedResults.Ok();
+            }
+            else
+            {
+                return TypedResults.BadRequest(customResult.Error);
+            }
+        }
+
+        public static async Task<Results<NoContent, BadRequest<string>>> DeleteTaskList(int id, ITaskListService taskListService)
+        {
+            var customResult = await taskListService.SoftDeleteTaskListById(id);
+
+            if (customResult.IsSuccess)
+            {
+                return TypedResults.NoContent();
+            }
+            else
+            {
+                return TypedResults.BadRequest(customResult.Error);
+            }
+        }
+
+        #endregion
+
+
+        #region API Routes bulk Upload
+
         public static async Task<Results<Ok<List<CreateTaskListResponse>>, BadRequest<string>>> CreateTaskListBulk([FromBody] IEnumerable<CreateTaskListRequest> createTaskListRequests,
-                                                                                                                   ITaskListService taskListService,
-                                                                                                                   CancellationToken cancellationToken)
+                                                                                                                  ITaskListService taskListService,
+                                                                                                                  CancellationToken cancellationToken)
         {
             var customResult = await taskListService.CreateTaskListBulk(createTaskListRequests, cancellationToken);
             if (customResult.IsSuccess)
@@ -173,40 +203,8 @@ namespace WebApi.Apis
             return results is null ? Results.NotFound() : Results.Ok(results);
         }
 
-        public static async Task<Results<Ok, BadRequest<string>>> UpdateTaskList(int id, TaskListFormRequest taskListFormRequest,
-                                                                                 ITaskListService taskListService)
-        {
-            var customResult = await taskListService.UpdateTaskList(id, taskListFormRequest);
-
-            if (customResult.IsSuccess)
-            {
-                return TypedResults.Ok();
-            }
-            else
-            {
-                return TypedResults.BadRequest(customResult.Error);
-            }
-        }
-
-        public static async Task<Results<NoContent, BadRequest<string>>> DeleteTaskList(int id, ITaskListService taskListService)
-        {
-            var customResult = await taskListService.SoftDeleteTaskListById(id);
-
-            if (customResult.IsSuccess)
-            {
-                return TypedResults.NoContent();
-            }
-            else
-            {
-                return TypedResults.BadRequest(customResult.Error);
-            }
-        }
-
         #endregion
 
-
-
-   
 
 
     }
