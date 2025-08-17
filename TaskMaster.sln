@@ -7,6 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{99F97F37-B
 	ProjectSection(SolutionItems) = preProject
 		Docs\design templates.png = Docs\design templates.png
 		Docs\EfCoreCommands.txt = Docs\EfCoreCommands.txt
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Src", "Src", "{B7357C94-AA0D-45DC-B51E-3C966FE991D4}"

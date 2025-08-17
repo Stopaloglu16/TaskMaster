@@ -138,6 +138,7 @@ var taskList = app.MapGroup("api/v{apiVersion:apiVersion}/tasklist")
     .HasApiVersion(2.0);
 taskList.TaskListApiV1().RequireAuthorization();
 
+
 var taskItem = app.MapGroup("api/v{apiVersion:apiVersion}/taskitem")
     .WithApiVersionSet(apiVersionSet)
     .HasApiVersion(1.0)

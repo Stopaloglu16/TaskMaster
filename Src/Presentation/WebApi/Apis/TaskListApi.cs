@@ -39,14 +39,17 @@ namespace WebApi.Apis
 
             //TODO: Assign to multi user
             //api.MapPatch("/{id}", AssignTaskListToUser);
-
+            
             return group;
         }
 
+        // Change ILogger<TaskListApi> to ILogger in GetActiveTaskListWithPagination method signature and usage
+
         public static async Task<Ok<PagingResponse<TaskListDto>>> GetActiveTaskListWithPagination(ITaskListService taskListService,
-                                                                                                 [AsParameters] PagingParameters pagingParameters,
-                                                                                                 CancellationToken cancellationToken)
+                                                                                                  [AsParameters] PagingParameters pagingParameters,
+                                                                                                  CancellationToken cancellationToken)
         {
+            
             var taskList = await taskListService.GetActiveTaskListWithPagination(pagingParameters, cancellationToken);
             return TypedResults.Ok(taskList);
         }

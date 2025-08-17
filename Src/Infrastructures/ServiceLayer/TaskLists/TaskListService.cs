@@ -3,7 +3,10 @@ using Application.Aggregates.TaskListAggregate.Queries;
 using Application.Common.Models;
 using Application.Repositories;
 using Domain.Entities;
+using Microsoft.Extensions.Logging;
+using ServiceLayer.Models.Diagnostic;
 using ServiceLayer.Users;
+using System.Diagnostics;
 
 namespace ServiceLayer.TaskLists;
 
@@ -11,14 +14,18 @@ public class TaskListService : ITaskListService
 {
     private readonly ITaskListRepository _taskListRepository;
     private readonly IUserService _userService;
+    private readonly ILogger<TaskListService> _logger;
 
-    public TaskListService(ITaskListRepository taskListRepository, IUserService userService)
+    public TaskListService(ITaskListRepository taskListRepository,
+                           IUserService userService,
+                           ILogger<TaskListService> logger)
     {
         _taskListRepository = taskListRepository;
         _userService = userService;
+        _logger = logger;
     }
 
-   
+
     #region Crud operations
 
     public async Task<CustomResult> CreateTaskList(TaskListFormRequest taskListFormRequest)
@@ -45,6 +52,9 @@ public class TaskListService : ITaskListService
         return CustomResult.Success();
     }
 
+
+    private static int taskCount = 0;
+
     public async Task<CustomResult<List<CreateTaskListResponse>>> CreateTaskListBulk(IEnumerable<CreateTaskListRequest> createTaskListRequests,
                                                                                      CancellationToken cancellationToken)
     {
@@ -53,10 +63,34 @@ public class TaskListService : ITaskListService
         try
         {
 
+            _logger.LogWarning("🚀 Starting bulk task creation for {Count} tasks", createTaskListRequests.Count());
+            _logger.LogError("🚨 Bulk task creation started with {Count} tasks", createTaskListRequests.Count());
+            _logger.LogInformation("📊 Bulk task creation started with {Count} tasks", createTaskListRequests.Count());
+
+
+            // Create a logging scope with structured data
+            using var logScope = _logger.BeginScope(new Dictionary<string, object>
+            {
+                ["ZoneId"] = createTaskListRequests.First().Title,
+                ["RequestNumber"] = Interlocked.Increment(ref taskCount)
+            });
+
+
+            // Record the request in diagnostics
+            TaskManagerDiagnostics.taskRequestCounter.Add(1);
+            var stopwatch = Stopwatch.StartNew();
+
+            // Create a trace activity
+            using var activity = TaskManagerDiagnostics.activitySource.StartActivity("GetTaskByZoneAsync");
+            activity?.SetTag("zone.id", createTaskListRequests.First().Title);
+
+            _logger.LogInformation("🚀 Starting task request for zone {ZoneId}", createTaskListRequests.First().Title);
+
+
             //Get users and map to dictionary
-            var users =  await _userService.GetUsers(true, Domain.Enums.UserType.TaskUser);
+            var users = await _userService.GetUsers(true, Domain.Enums.UserType.TaskUser);
             var userNameToId = users.ToDictionary(u => u.FullName, u => u.Id);
-            
+
             List<TaskList> taskLists = new List<TaskList>();
             CustomError customError;
 
@@ -75,6 +109,7 @@ public class TaskListService : ITaskListService
                         if (!validation.IsSuccess)
                         {
                             customError = new CustomError(false, validation.Error);
+                            TaskManagerDiagnostics.failedRequestCounter.Add(1);
                         }
                         else
                         {
@@ -135,6 +170,17 @@ public class TaskListService : ITaskListService
                 }
             }
 
+            stopwatch.Stop();
+
+            // Record the request duration
+            TaskManagerDiagnostics.taskRequestDuration.Record(stopwatch.Elapsed.TotalSeconds);
+            activity?.SetTag("request.success", true);
+
+            _logger.LogInformation(
+                    "📊 Retrieved forecast for zone {ZoneId} in {Duration:N0}ms with {PeriodCount} periods",
+                    createTaskListRequests.First().Title,
+                    stopwatch.Elapsed.Milliseconds,
+                    createTaskListResponseList?.Count ?? 0);
 
             var customResulTemp = await _taskListRepository.AddRangeAsync(taskLists);
 

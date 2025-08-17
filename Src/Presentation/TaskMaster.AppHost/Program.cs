@@ -17,6 +17,7 @@ var webapi = builder.AddProject<WebApi>("webapi").WithReference(cache)
 
 var webapiauth = builder.AddProject<WebApiAuth>("webapiauth");
 
+//builder.AddProject<ServiceLayer>("servicelayer");
 
 builder.AddProject<WebsiteApp>("websiteapp")
        .WithReference(webapiauth)
@@ -24,6 +25,5 @@ builder.AddProject<WebsiteApp>("websiteapp")
        .WithReference(webapi)
        .WaitFor(webapi);
 
-//builder.AddDockerComposePublisher();
 
 builder.Build().Run();
