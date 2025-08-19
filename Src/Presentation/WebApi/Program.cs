@@ -88,17 +88,16 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 
-Log.Logger  = new LoggerConfiguration()
-    //.WriteTo.Console()
-    .WriteTo.File("Logs/WebApiLog.txt", rollingInterval: RollingInterval.Day)
-    .MinimumLevel.Warning()
-    .CreateLogger();
 
+#region WriteIntoFile
+    //Log.Logger  = new LoggerConfiguration()
+    //    //.WriteTo.Console()
+    //    .WriteTo.File("Logs/WebApiLog.txt", rollingInterval: RollingInterval.Day)
+    //    .MinimumLevel.Warning()
+    //    .CreateLogger();
 
-builder.Host.UseSerilog();
-
-// Register Serilog
-//builder.Logging.AddSerilog(logger);
+    //builder.Host.UseSerilog();
+#endregion
 
 
 var app = builder.Build();

@@ -55,17 +55,22 @@ builder.Services.AddHttpClient("DefaultClient", client =>
     options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(45);
 });
 
+
 builder.Services.AddHttpClient("LongRunningClient", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["AppSettings:ApiUrl"]);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
-   
-}).AddStandardResilienceHandler(options =>
-{
-    options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(5);
-    //options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(30); // optional
-    options.Retry.MaxRetryAttempts = 3; // optional
-});
+
+}).RemoveAllResilienceHandlers() // Remove all resilience handlers
+.AddStandardHedgingHandler();
+
+//.AddStandardResilienceHandler(options =>
+//{
+//    options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(60);
+//    options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(120); // optional
+//    //options.Retry.MaxRetryAttempts = 3; // optional
+//});
+
 
 builder.Services.AddHttpClient("AuthClient", client =>
 {

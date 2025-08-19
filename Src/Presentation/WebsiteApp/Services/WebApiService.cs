@@ -188,7 +188,11 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
             requestMessage.Content.Headers.ContentType
                 = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
 
-            return await httpClientRequest.SendAsync(requestMessage, cancellationToken);
+            var rtnTask = await httpClientRequest.SendAsync(requestMessage, cancellationToken);
+
+            var rtnCode = rtnTask.IsSuccessStatusCode;
+
+            return rtnTask;
         }
         catch (Exception ex)
         {

@@ -2,6 +2,7 @@
 using Application.Aggregates.TaskListAggregate.Queries;
 using Application.Common.Models;
 using Application.Repositories;
+using Azure.Core;
 using Domain.Entities;
 using Microsoft.Extensions.Logging;
 using ServiceLayer.Models.Diagnostic;
@@ -62,12 +63,6 @@ public class TaskListService : ITaskListService
 
         try
         {
-
-            _logger.LogWarning("🚀 Starting bulk task creation for {Count} tasks", createTaskListRequests.Count());
-            _logger.LogError("🚨 Bulk task creation started with {Count} tasks", createTaskListRequests.Count());
-            _logger.LogInformation("📊 Bulk task creation started with {Count} tasks", createTaskListRequests.Count());
-
-
             // Create a logging scope with structured data
             using var logScope = _logger.BeginScope(new Dictionary<string, object>
             {
@@ -81,11 +76,8 @@ public class TaskListService : ITaskListService
             var stopwatch = Stopwatch.StartNew();
 
             // Create a trace activity
-            using var activity = TaskManagerDiagnostics.activitySource.StartActivity("GetTaskByZoneAsync");
-            activity?.SetTag("zone.id", createTaskListRequests.First().Title);
-
-            _logger.LogInformation("🚀 Starting task request for zone {ZoneId}", createTaskListRequests.First().Title);
-
+            using var activity = TaskManagerDiagnostics.activitySource.StartActivity("SetTaskAsync");
+           
 
             //Get users and map to dictionary
             var users = await _userService.GetUsers(true, Domain.Enums.UserType.TaskUser);
@@ -94,8 +86,15 @@ public class TaskListService : ITaskListService
             List<TaskList> taskLists = new List<TaskList>();
             CustomError customError;
 
+            Random random = new Random();
+
             foreach (var request in createTaskListRequests)
             {
+                activity?.SetTag("zone.id", request.Title);
+
+                _logger.LogInformation("🚀 Starting task request for zone {ZoneId}", request.Title);
+
+
                 customError = new CustomError(true);
 
                 if (!string.IsNullOrEmpty(request.AssignedTo) && !string.IsNullOrWhiteSpace(request.AssignedTo))
@@ -122,6 +121,7 @@ public class TaskListService : ITaskListService
                     {
                         //User not found, add error to response
                         customError = new CustomError(false, $"AssignedTo '{request.AssignedTo}' not found");
+                        TaskManagerDiagnostics.failedRequestCounter.Add(1);
                     }
                 }
 
@@ -137,8 +137,10 @@ public class TaskListService : ITaskListService
 
                     foreach (var taskItem in request.createTaskItemRequests)
                     {
+                        var rndNumber = random.Next(2, 5);
                         //TODO testing performance
-                        await Task.Delay(1000);
+                        await Task.Delay(1000 * rndNumber);
+
 
                         var newTaskItem = new TaskItem()
                         {
@@ -182,7 +184,9 @@ public class TaskListService : ITaskListService
                     stopwatch.Elapsed.Milliseconds,
                     createTaskListResponseList?.Count ?? 0);
 
-            var customResulTemp = await _taskListRepository.AddRangeAsync(taskLists);
+            // Replace this line in CreateTaskListBulk method
+            // var customResulTemp = await _taskListRepository.AddRangeAsync(taskLists);
+            var customResulTemp = await AddTaskListsBulkAsync(taskLists);
 
             return CustomResult<List<CreateTaskListResponse>>.Success(createTaskListResponseList);
         }
@@ -195,6 +199,26 @@ public class TaskListService : ITaskListService
             });
             return CustomResult<List<CreateTaskListResponse>>.Success(createTaskListResponseList);
         }
+    }
+
+    // Add this new private method to handle adding task lists in bulk
+    private async Task<CustomResult> AddTaskListsBulkAsync(List<TaskList> taskLists)
+    {
+        // Create a trace activity
+        using var activity = TaskManagerDiagnostics.activitySource.StartActivity("SaveTaskAsync");
+        activity?.SetTag("list.count", taskLists.Count.ToString());
+
+        var stopwatch = Stopwatch.StartNew();
+
+        var rtnResult = await _taskListRepository.AddRangeAsync(taskLists);
+
+        stopwatch.Stop();
+
+        // Record the request duration
+        TaskManagerDiagnostics.taskRequestDuration.Record(stopwatch.Elapsed.TotalSeconds);
+        activity?.SetTag("request.success", true);
+
+        return rtnResult;
     }
 
 
@@ -243,7 +267,7 @@ public class TaskListService : ITaskListService
 
     public async Task<PagingResponse<TaskListDto>> GetActiveTaskListWithPagination(PagingParameters pagingParameters, CancellationToken cancellationToken)
     {
-        return await _taskListRepository.GetActiveTaskListWithPagination(pagingParameters, cancellationToken);
+       return await _taskListRepository.GetActiveTaskListWithPagination(pagingParameters, cancellationToken);
     }
 
     public Task<TaskListDto> GetTaskListId(int Id)
@@ -283,6 +307,6 @@ public class TaskListService : ITaskListService
 
         return CustomResult<TaskListDto>.Success(taskListDto);
     }
-
+ 
 
 }

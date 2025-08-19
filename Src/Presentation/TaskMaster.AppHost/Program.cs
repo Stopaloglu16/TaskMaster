@@ -10,7 +10,8 @@ var password = builder.AddParameter("password", secret: true);
 var rabbitmq = builder.AddRabbitMQ("messaging", username, password)
                                                       .WithManagementPlugin();
 
-var webapi = builder.AddProject<WebApi>("webapi").WithReference(cache)
+var webapi = builder.AddProject<WebApi>("webapi")
+       .WithReference(cache)
        .WaitFor(cache)
        .WithReference(rabbitmq)
        .WaitFor(rabbitmq);
