@@ -220,6 +220,21 @@ public class GridTests : TestContext
         {
             throw new NotImplementedException();
         }
+
+        public Task<HttpResponseMessage> SaveBulkTickerQAsync(string requestUri, List<SelectListItem> obj, CancellationToken cancellationToken = default, bool requiresAuth = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpResponseMessage> SaveBulkTickerQAsync(string requestUri, List<TaskListFormRequest> obj, CancellationToken cancellationToken = default, bool requiresAuth = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpResponseMessage> SaveBulkTickerQAsync(string requestUri, List<TaskListDto> obj, CancellationToken cancellationToken = default, bool requiresAuth = false)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     private class TestNotificationService : NotificationService

@@ -10,6 +10,10 @@ public interface ITaskListService
 
     Task<CustomResult> CreateTaskList(TaskListFormRequest taskListFormRequest);
     Task<CustomResult<List<CreateTaskListResponse>>> CreateTaskListBulk(IEnumerable<CreateTaskListRequest> createTaskListRequests, CancellationToken cancellationToken);
+
+    Task<CustomResult<List<CreateTaskListResponse>>> CreateTaskListBulkAsync(CreateTaskListBulkRequest createTaskListBulkRequest, CancellationToken cancellationToken);
+    
+
     Task<CustomResult> UpdateTaskList(int Id, TaskListFormRequest taskListFormRequest);
     Task<CustomResult> SoftDeleteTaskListById(int Id);
 
