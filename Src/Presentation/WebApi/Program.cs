@@ -1,8 +1,10 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using Infrastructure.Data;
 using Microsoft.OpenApi.Models;
-using RabbitMQ.Client;
-using Serilog;
+using TickerQ.Dashboard.DependencyInjection;
+using TickerQ.DependencyInjection;
+using TickerQ.EntityFrameworkCore.DependencyInjection;
 using WebApi.Apis;
 using WebApi.Extensions;
 using WebApi.Middlewares;
@@ -54,6 +56,20 @@ builder.Services.AddSingleton<ResultStore>();
 builder.Services.AddSingleton<RabbitPublisher>();
 builder.Services.AddHostedService<RabbitConsumer>();
 
+builder.Services.AddTickerQ(opt =>
+{
+    opt.AddOperationalStore<ApplicationDbContext>(efOpt =>
+    {
+        efOpt.UseModelCustomizerForMigrations();
+        efOpt.CancelMissedTickersOnApplicationRestart();
+    });
+
+    //opt.SetInstanceIdentifier("TickerQ");
+
+    // Enable Dashboard https://localhost:7263/tickerq-dashboard
+    opt.AddDashboard(basePath: "/tickerq-dashboard");
+    opt.AddDashboardBasicAuth();
+});
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -90,13 +106,13 @@ builder.Services.AddSwaggerGen(options =>
 
 
 #region WriteIntoFile
-    //Log.Logger  = new LoggerConfiguration()
-    //    //.WriteTo.Console()
-    //    .WriteTo.File("Logs/WebApiLog.txt", rollingInterval: RollingInterval.Day)
-    //    .MinimumLevel.Warning()
-    //    .CreateLogger();
+//Log.Logger  = new LoggerConfiguration()
+//    //.WriteTo.Console()
+//    .WriteTo.File("Logs/WebApiLog.txt", rollingInterval: RollingInterval.Day)
+//    .MinimumLevel.Warning()
+//    .CreateLogger();
 
-    //builder.Host.UseSerilog();
+//builder.Host.UseSerilog();
 #endregion
 
 
@@ -152,6 +168,7 @@ dashboard.DashboardApiV1().RequireAuthorization();
 
 
 app.MapHub<TaskProgressHub>("processHub");
+app.MapHub<TaskProgressHub>("processTickerQ");
 
 
 // Global error handling
@@ -162,6 +179,9 @@ app.MapHealthChecks("_health");
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+
+app.UseTickerQ();
 
 app.UseHttpsRedirection();
 

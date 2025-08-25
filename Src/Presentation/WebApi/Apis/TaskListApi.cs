@@ -1,10 +1,14 @@
 ﻿using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
 using Application.Aggregates.TaskListAggregate.Queries;
+using Application.Common.Interfaces;
 using Application.Common.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using ServiceLayer.TaskLists;
 using ServiceLayer.Users;
+using TickerQ.Utilities;
+using TickerQ.Utilities.Interfaces.Managers;
+using TickerQ.Utilities.Models.Ticker;
 using WebApi.Notification;
 using WebApi.RabbitMq;
 
@@ -32,8 +36,10 @@ namespace WebApi.Apis
             group.MapPost("/", CreateTaskList);
             group.MapPost("/Bulk", CreateTaskListBulk).MapToApiVersion(1.0);
             group.MapPost("/Bulk", CreateTaskListBulkV2).MapToApiVersion(2.0);
-            group.MapPost("/Bulk1/", CreateTaskListBulkRabbitMq).MapToApiVersion(1.0);
-            group.MapGet("/GetProcessrabbitMq", GetProcessrabbitMq).MapToApiVersion(1.0); ;
+            //group.MapPost("/Bulk1/", CreateTaskListBulkRabbitMq).MapToApiVersion(1.0);
+            //group.MapGet("/GetProcessrabbitMq", GetProcessrabbitMq).MapToApiVersion(1.0); 
+            group.MapPost("/BulkTickerQ", CreateTaskListBulkTickerQ).MapToApiVersion(1.0);
+            
             group.MapPut("/{id:int}", UpdateTaskList);
             group.MapDelete("/{id:int}", DeleteTaskList);
 
@@ -182,29 +188,53 @@ namespace WebApi.Apis
             return Results.Ok(new { RequestId = requestId });
         }
 
-        public static async Task<IResult> CreateTaskListBulkRabbitMq(List<ProcessItem> items,
-                                                                     RabbitPublisher publisher,
-                                                                     ResultStore store,
-                                                                     CancellationToken cancellationToken)
-        {
-            var requestId = Guid.NewGuid().ToString();
-            store.EnsureRequest(requestId);
+        //public static async Task<IResult> CreateTaskListBulkRabbitMq(List<ProcessItem> items,
+        //                                                             RabbitPublisher publisher,
+        //                                                             ResultStore store,
+        //                                                             CancellationToken cancellationToken)
+        //{
+        //    var requestId = Guid.NewGuid().ToString();
+        //    store.EnsureRequest(requestId);
 
-            foreach (var item in items)
+        //    foreach (var item in items)
+        //    {
+        //        publisher.Publish(new ProcessMessage(requestId, item));
+        //    }
+
+        //    return Results.Ok(new { RequestId = requestId });
+        //}
+
+        //public static async Task<IResult> GetProcessrabbitMq(string requestId,
+        //                                                     ResultStore store,
+        //                                                     CancellationToken cancellationToken)
+        //{
+        //    var results = store.Get(requestId);
+        //    return results is null ? Results.NotFound() : Results.Ok(results);
+        //}
+
+        public static async Task<IResult> CreateTaskListBulkTickerQ(List<CreateTaskListRequest> items,
+                                                                   ITimeTickerManager<TimeTicker> timeTickerManager,
+                                                                   ICurrentUserService currentUserService,   
+                                                                   CancellationToken cancellationToken)
+        {
+            CreateTaskListBulkRequest createTaskListBulkRequest = new CreateTaskListBulkRequest(items, currentUserService.UserId, currentUserService.UserName);
+            
+
+            var timerId = await timeTickerManager.AddAsync(new TimeTicker
             {
-                publisher.Publish(new ProcessMessage(requestId, item));
-            }
-
-            return Results.Ok(new { RequestId = requestId });
+                Function = "ProcessBulkTaskList",
+                ExecutionTime = DateTime.UtcNow.AddSeconds(1),
+                Request = TickerHelper.CreateTickerRequest<CreateTaskListBulkRequest>(createTaskListBulkRequest),
+                Retries = 2,
+                RetryIntervals = new[] { 30, 60, 120 }, // Retry after 30s, 60s, then 2min
+                // Optional batching
+                //BatchParent = Guid.Parse("...."),
+                //BatchRunCondition = BatchRunCondition.OnSuccess
+            });
+            
+            return Results.Ok(new { RequestId = timerId.Result.Id });
         }
 
-        public static async Task<IResult> GetProcessrabbitMq(string requestId,
-                                                                                                ResultStore store,
-                                                                                                CancellationToken cancellationToken)
-        {
-            var results = store.Get(requestId);
-            return results is null ? Results.NotFound() : Results.Ok(results);
-        }
 
         #endregion
 

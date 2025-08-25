@@ -1,4 +1,4 @@
-﻿@page "/taskmanagerUploadRabbitMq"
+﻿@page "/taskmanagerUploadTickerQ"
 
 @using Application.Aggregates.TaskItemAggregate.Commands.CreateUpdate
 @using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate
@@ -68,41 +68,13 @@
     <RadzenText TextStyle="TextStyle.Body1" TagName="TagName.H4">@message</RadzenText>
 </RadzenCard>
 
-@* <p>Connection status: @_hubConnection?.State.ToString()</p>
+<RadzenCard>
+    @foreach (var item in allRequestIds)
+    {
+        <RadzenText TextStyle="TextStyle.Body1" TagName="TagName.H4">@item</RadzenText>
+    }
+</RadzenCard>
 
-@foreach (var requestId in allRequestIds)
-{
-    <h4>Request: @requestId</h4>
-    <p>Hub Status: @_hubConnection?.State.ToString()</p>
-
-    <ul>
-        @if (createTaskListResponses != null)
-        {
-            @foreach (var item in createTaskListResponses)
-            {
-                @if (@item.CustomError.isSuccess)
-                {
-                    <p>@item.RowId + " - " + @item.CustomError.isSuccess.ToString()</p>
-                }
-                else
-                {
-                    <p>@item.RowId + " - " + @item.CustomError.error </p>
-                }
-            }
-        }
-        else
-        {
-            <li><em>Waiting for result...</em></li>
-        }
-    </ul>
-}
-
-<label>hub connections</label>
-@foreach (var hucConnecctItem in _connections)
-{
-    <p> @hucConnecctItem.State.ToString()</p>
-}
- *@
 
 @code {
 
@@ -117,7 +89,7 @@
     IQueryable<CreateTaskListResponse> employees;
     IList<CreateTaskListResponse> selectedEmployees;
     private readonly List<HubConnection> _connections = new();
-
+    
     private int JobsCount { get; set; } = 0;
 
     private List<CreateTaskListResponse> createTaskListResponses = new List<CreateTaskListResponse>();
@@ -135,79 +107,82 @@
 
     protected override async Task OnInitializedAsync()
     {
-        apiUrl = Configuration["AppSettings:ApiUrl"];
 
-        _hubConnection = new HubConnectionBuilder()
-       .WithUrl($"{apiUrl}/processHub")
-       .WithAutomaticReconnect()
-       .Build();
+        await base.OnInitializedAsync();
+    }
 
+    // protected override async Task OnInitializedAsync()
+    // {
+        
+    //     apiUrl = Configuration["AppSettings:ApiUrl"];
 
-        _hubConnection.Closed += error =>
-        {
-            Console.WriteLine("🔴 Connection closed.");
-            if (error != null) Console.WriteLine(error.Message);
-
-            return Task.CompletedTask;
-        };
+    //     _hubConnection = new HubConnectionBuilder()
+    //    .WithUrl($"{apiUrl}/processTickerQ")
+    //    .WithAutomaticReconnect()
+    //    .Build();
 
 
-        _hubConnection.Reconnecting += error =>
-        {
-            Console.WriteLine("🟡 Reconnecting...");
-            return Task.CompletedTask;
-        };
+    //     _hubConnection.Closed += error =>
+    //     {
+    //         Console.WriteLine("🔴 Connection closed.");
+    //         if (error != null) Console.WriteLine(error.Message);
 
-        _hubConnection.Reconnected += connectionId =>
-        {
-            Console.WriteLine($"🟢 Reconnected with connectionId: {connectionId}");
-            return Task.CompletedTask;
-        };
+    //         return Task.CompletedTask;
+    //     };
 
-        // Setup message handlers
-        _hubConnection.On<string, List<CreateTaskListResponse>>("TaskCompleted", (id, data) =>
-        {
-            DateTime dd = DateTime.Now;
 
-            Console.WriteLine($"📨 Message received for requestId: {id} {dd.ToLongTimeString()} ");
+    //     _hubConnection.Reconnecting += error =>
+    //     {
+    //         Console.WriteLine("🟡 Reconnecting...");
+    //         return Task.CompletedTask;
+    //     };
 
-            if (allRequestIds.Any(rr => rr.Equals(id)))
-            //if (id == requestId)
-            {
+    //     _hubConnection.Reconnected += connectionId =>
+    //     {
+    //         Console.WriteLine($"🟢 Reconnected with connectionId: {connectionId}");
+    //         return Task.CompletedTask;
+    //     };
+
+    //     // Setup message handlers
+    //     _hubConnection.On<string, List<CreateTaskListResponse>>("TaskCompleted", (id, data) =>
+    //     {
+    //         DateTime dd = DateTime.Now;
+
+    //         Console.WriteLine($"📨 Message received for requestId: {id} {dd.ToLongTimeString()} ");
+
+    //         if (allRequestIds.Any(rr => rr.Equals(id)))
+    //         //if (id == requestId)
+    //         {
                 
-                Console.WriteLine($"📨 Message received for requestId: {id} - {data.ToList().Count.ToString()} ");
+    //             Console.WriteLine($"📨 Message received for requestId: {id} - {data.ToList().Count.ToString()} ");
 
-                //data.IsSuccess
-                createTaskListResponses.AddRange(data);
-                allRequestIds.Remove(id);
+    //             //data.IsSuccess
+    //             createTaskListResponses.AddRange(data);
+    //             allRequestIds.Remove(id);
 
                
-                if(allRequestIds.Count == 0)
-                {
-                    employees = createTaskListResponses.AsQueryable();
-                    selectedEmployees = new List<CreateTaskListResponse>() { employees.FirstOrDefault() };
+    //             if(allRequestIds.Count == 0)
+    //             {
+    //                 employees = createTaskListResponses.AsQueryable();
+    //                 selectedEmployees = new List<CreateTaskListResponse>() { employees.FirstOrDefault() };
 
-
-                    message = "CSV upload completed successfully.";
-                    DialogService.Close();
-
-                    //InvokeAsync(StateHasChanged);
-                }
-                else
-                {
-                    JobsCount = allRequestIds.Count;
-                    message = $"CSV upload completed for requestId: {id}. Waiting for remaining requests...";
-                }
+    //                 message = "CSV upload completed successfully.";
+    //                 DialogService.Close();
+    //             }
+    //             else
+    //             {
+    //                 JobsCount = allRequestIds.Count;
+    //                 message = $"CSV upload completed for requestId: {id}. Waiting for remaining requests...";
+    //             }
                 
-                InvokeAsync(StateHasChanged);
-                
-            }
-            return Task.CompletedTask;
-        });
+    //             InvokeAsync(StateHasChanged);
+    //         }
+    //         return Task.CompletedTask;
+    //     });
 
-        await _hubConnection.StartAsync();
-        Console.WriteLine("✅ SignalR connection started.");
-    }
+    //     await _hubConnection.StartAsync();
+    //     Console.WriteLine("✅ SignalR connection started.");
+    // }
 
 
 
@@ -267,18 +242,20 @@
 
                 if (validItems.Count == 10)
                 {
-                    var apiReturn = await _taskListService.SaveBulkRabbitMqAsync($"tasklist/bulk", validItems, cancellationToken);
+                    var apiReturn = await _taskListService.SaveBulkTickerQAsync($"tasklist/BulkTickerQ", validItems, cancellationToken);
 
                     var demodemo = await apiReturn.Content.ReadFromJsonAsync<Dictionary<string, string>>();
 
-                    requestId = demodemo["requestId"];
-                    allRequestIds.Add(requestId);
+                    //requestId = demodemo["requestId"];
+                    //apiReturn.RequestId
 
-                    if (_hubConnection?.State == HubConnectionState.Connected)
-                    {
-                        _connections.Add(_hubConnection);
-                        await _hubConnection.SendAsync("JoinGroup", requestId);
-                    }
+                    //allRequestIds.Add(apiReturn..RequestId);
+
+                    // if (_hubConnection?.State == HubConnectionState.Connected)
+                    // {
+                    //     _connections.Add(_hubConnection);
+                    //     await _hubConnection.SendAsync("JoinGroup", requestId);
+                    // }
 
                     validItems.Clear(); // Clear after sending
                 }
@@ -287,18 +264,20 @@
             // Send remaining items
             if (validItems.Any())
             {
-                var apiReturn = await _taskListService.SaveBulkRabbitMqAsync($"tasklist/bulk", validItems, cancellationToken);
+                var apiReturn = await _taskListService.SaveBulkTickerQAsync($"tasklist/BulkTickerQ", validItems, cancellationToken);
+
+                //{ "requestId":"06eaec6d-ca3b-4301-8bd0-bd1722bc1d80"}
 
                 var demodemo = await apiReturn.Content.ReadFromJsonAsync<Dictionary<string, string>>();
 
                 requestId = demodemo["requestId"];
                 allRequestIds.Add(requestId);
 
-                if (_hubConnection?.State == HubConnectionState.Connected)
-                {
-                    _connections.Add(_hubConnection);
-                    await _hubConnection.SendAsync("JoinGroup", requestId);
-                }
+                // if (_hubConnection?.State == HubConnectionState.Connected)
+                // {
+                //     _connections.Add(_hubConnection);
+                //     await _hubConnection.SendAsync("JoinGroup", requestId);
+                // }
             }
 
             JobsCount = allRequestIds.Count;
@@ -344,26 +323,7 @@
 
     async Task ShowBusyDialog(string withMessageAsString = "")
     {
-       @*  _ = InvokeAsync(async () =>
-        {
-            // Simulate background task
-            await Task.Delay(2000);
-
-            // Close the dialog
-            DialogService.Close();
-        }); *@
-
-        @* if (withMessageAsString)
-        {
-            await BusyDialog("Busy ...");
-        }
-        else
-        {
-            await BusyDialog();
-        }
- *@
         await BusyDialog(withMessageAsString);
-
     }
 
      // Busy dialog from markup

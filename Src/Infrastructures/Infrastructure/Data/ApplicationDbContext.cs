@@ -4,6 +4,7 @@ using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using System.Reflection.Emit;
+using TickerQ.EntityFrameworkCore.Configurations;
 
 namespace Infrastructure.Data;
 
@@ -28,6 +29,12 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
         builder.Entity<User>().HasQueryFilter(p => p.IsDeleted == 0);
 
         base.OnModelCreating(builder);
+
+        builder.ApplyConfiguration(new TimeTickerConfigurations());
+        builder.ApplyConfiguration(new CronTickerConfigurations());
+        builder.ApplyConfiguration(new CronTickerOccurrenceConfigurations());
+
+
         SeedAdminUser(builder);
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }

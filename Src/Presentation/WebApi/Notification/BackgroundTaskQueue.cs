@@ -47,7 +47,7 @@ namespace WebApi.Notification
                     await _hubContext.Clients.Group(item.TaskId).SendAsync("TaskCompleted", item.TaskId, result.Value);
                 }
 
-                await Task.Delay(100, stoppingToken);
+                await Task.Delay(1000, stoppingToken);
             }
         }
     }

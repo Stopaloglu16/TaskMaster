@@ -233,9 +233,46 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
     }
 
 
+  
+
+    public async Task<HttpResponseMessage> SaveBulkTickerQAsync(string requestUri, List<TRequest> obj, CancellationToken cancellationToken, bool requiresAuth = false)
+    {
+        try
+        {
+            var httpClientRequest = GetDefaultClient();
+
+            await SetAuthorizeHeader(httpClientRequest);
+
+            string serializedUser = JsonConvert.SerializeObject(obj);
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, "api/v1.0/" + requestUri);
+
+            var token = await _localStorageService.GetItemAsync<string>("accessToken");
+            requestMessage.Headers.Authorization
+                = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+
+            requestMessage.Content = new StringContent(serializedUser);
+
+            requestMessage.Content.Headers.ContentType
+                = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+
+            var content = await httpClientRequest.SendAsync(requestMessage, cancellationToken);
+
+            var demodemo = await content.Content.ReadAsStringAsync(); // Ensure the request is fully processed
+
+            return content;
+
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
+
+
     public async Task<HttpResponseMessage> UpdateAsync(string requestUri, int Id, TRequest obj, bool requiresAuth = false)
     {
-        //var httpClient = requiresAuth ? _httpAuthClient : _httpClient;
         var httpClientRequest = requiresAuth ? GetAuthClient() : GetDefaultClient();
 
         await SetAuthorizeHeader(httpClientRequest);
@@ -309,5 +346,5 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
         throw new NotImplementedException();
     }
 
-   
+
 }
