@@ -2,7 +2,6 @@
 using Application.Aggregates.TaskListAggregate.Queries;
 using Application.Common.Models;
 using Application.Repositories;
-using Azure.Core;
 using Domain.Entities;
 using Microsoft.Extensions.Logging;
 using ServiceLayer.Models.Diagnostic;
@@ -77,7 +76,7 @@ public class TaskListService : ITaskListService
 
             // Create a trace activity
             using var activity = TaskManagerDiagnostics.activitySource.StartActivity("SetTaskAsync");
-           
+
 
             //Get users and map to dictionary
             var users = await _userService.GetUsers(true, Domain.Enums.UserType.TaskUser);
@@ -414,7 +413,7 @@ public class TaskListService : ITaskListService
 
     public async Task<PagingResponse<TaskListDto>> GetActiveTaskListWithPagination(PagingParameters pagingParameters, CancellationToken cancellationToken)
     {
-       return await _taskListRepository.GetActiveTaskListWithPagination(pagingParameters, cancellationToken);
+        return await _taskListRepository.GetActiveTaskListWithPagination(pagingParameters, cancellationToken);
     }
 
     public Task<TaskListDto> GetTaskListId(int Id)
@@ -454,6 +453,6 @@ public class TaskListService : ITaskListService
 
         return CustomResult<TaskListDto>.Success(taskListDto);
     }
- 
+
 
 }

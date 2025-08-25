@@ -2,9 +2,6 @@
 using ServiceLayer.TaskLists;
 using TickerQ.Utilities.Base;
 using TickerQ.Utilities.Models;
-using Microsoft.Extensions.DependencyInjection;
-using Infrastructure.Data;
-using Application.Common.Interfaces;
 
 namespace WebApi.Services
 {

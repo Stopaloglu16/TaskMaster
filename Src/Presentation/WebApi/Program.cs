@@ -168,6 +168,7 @@ dashboard.DashboardApiV1().RequireAuthorization();
 
 
 app.MapHub<TaskProgressHub>("processHub");
+app.MapHub<TaskProgressHub>("processTickerQ");
 
 
 // Global error handling

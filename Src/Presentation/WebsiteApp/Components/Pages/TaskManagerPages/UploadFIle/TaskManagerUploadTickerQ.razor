@@ -89,8 +89,7 @@
     IQueryable<CreateTaskListResponse> employees;
     IList<CreateTaskListResponse> selectedEmployees;
     private readonly List<HubConnection> _connections = new();
-    //private DialogReference? hubStatusDialog;
-
+    
     private int JobsCount { get; set; } = 0;
 
     private List<CreateTaskListResponse> createTaskListResponses = new List<CreateTaskListResponse>();
@@ -114,10 +113,11 @@
 
     // protected override async Task OnInitializedAsync()
     // {
+        
     //     apiUrl = Configuration["AppSettings:ApiUrl"];
 
     //     _hubConnection = new HubConnectionBuilder()
-    //    .WithUrl($"{apiUrl}/processHub")
+    //    .WithUrl($"{apiUrl}/processTickerQ")
     //    .WithAutomaticReconnect()
     //    .Build();
 
@@ -166,11 +166,8 @@
     //                 employees = createTaskListResponses.AsQueryable();
     //                 selectedEmployees = new List<CreateTaskListResponse>() { employees.FirstOrDefault() };
 
-
     //                 message = "CSV upload completed successfully.";
     //                 DialogService.Close();
-
-    //                 //InvokeAsync(StateHasChanged);
     //             }
     //             else
     //             {
@@ -179,7 +176,6 @@
     //             }
                 
     //             InvokeAsync(StateHasChanged);
-                
     //         }
     //         return Task.CompletedTask;
     //     });
