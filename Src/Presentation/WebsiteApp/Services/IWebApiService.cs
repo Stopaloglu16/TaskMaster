@@ -18,10 +18,11 @@ public interface IWebApiService<TRequest, TResponse>
 
     Task<HttpResponseMessage> SaveBulkTickerQAsync(string requestUri, List<TRequest> obj, CancellationToken cancellationToken = default, bool requiresAuth = false);
 
+    Task<HttpResponseMessage> SaveBulkFileJobAsync(string requestUri, int FileJobId, List<TRequest> obj, CancellationToken cancellationToken = default, bool requiresAuth = false);
 
     Task<HttpResponseMessage> UpdateAsync(string requestUri, int Id, TRequest obj, bool requiresAuth = false);
     Task<HttpResponseMessage> PatchAsync(string requestUri, int Id, TRequest obj, bool requiresAuth = false);
-
+    Task<HttpResponseMessage> PatchAsync(string requestUri, int Id, bool requiresAuth = false);
     Task<HttpResponseMessage> DeleteAsync(string requestUri, int Id, bool requiresAuth = false);
 
 }

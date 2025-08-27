@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using ServiceLayer.Dashboards;
+using ServiceLayer.FileJobs;
 using ServiceLayer.TaskItems;
 using ServiceLayer.TaskLists;
 using ServiceLayer.Users;
@@ -35,6 +36,13 @@ internal static class Extensions
 
         services.AddScoped<IDashboardRepository, DashboardRepository>();
         services.AddScoped<IDashboardService, DashboardService>();
+
+        services.AddScoped<IFileJobRepository, FileJobRepository>();
+        services.AddScoped<IFileJobService, FileJobsService>();
+
+        services.AddScoped<IFileJobUploadRepository, FileJobUploadRepository>();    
+        //services.AddScoped<IFileJobUploadService, FileJobUploadService>();
+
 
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 

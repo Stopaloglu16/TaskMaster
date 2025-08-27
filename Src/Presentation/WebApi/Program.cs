@@ -166,6 +166,12 @@ var dashboard = app.MapGroup("api/v{apiVersion:apiVersion}/dashboard")
     .HasApiVersion(2.0);
 dashboard.DashboardApiV1().RequireAuthorization();
 
+var fileUpload = app.MapGroup("api/v{apiVersion:apiVersion}/fileupload")
+    .WithApiVersionSet(apiVersionSet)
+    .HasApiVersion(1.0)
+    .HasApiVersion(2.0);
+fileUpload.FileUploadApiV1().RequireAuthorization();
+
 
 app.MapHub<TaskProgressHub>("processHub");
 app.MapHub<TaskProgressHub>("processTickerQ");

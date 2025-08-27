@@ -1,4 +1,5 @@
 ﻿using Application.Common.Models;
+using Azure;
 using Azure.Core;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -319,6 +320,27 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
         return response;
     }
 
+    public async Task<HttpResponseMessage> PatchAsync(string requestUri, int Id, bool requiresAuth = false)
+    {
+        var httpClientRequest = requiresAuth ? GetAuthClient() : GetDefaultClient();
+
+        await SetAuthorizeHeader(httpClientRequest);
+
+        var requestMessage = new HttpRequestMessage(HttpMethod.Patch, Apitext + requestUri + "/" + Id);
+
+        var token = await _localStorageService.GetItemAsync<string>("accessToken");
+        requestMessage.Headers.Authorization
+            = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+
+        //requestMessage.Content.Headers.ContentType
+        //    = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+
+        var response = await httpClientRequest.SendAsync(requestMessage);
+
+        return response;
+    }
+
     public async Task<HttpResponseMessage> DeleteAsync(string requestUri, int Id, bool requiresAuth = false)
     {
         //var httpClient = requiresAuth ? _httpAuthClient : _httpClient;
@@ -346,5 +368,35 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
         throw new NotImplementedException();
     }
 
+    public async Task<HttpResponseMessage> SaveBulkFileJobAsync(string requestUri, int FileJobId, List<TRequest> obj, CancellationToken cancellationToken = default, bool requiresAuth = false)
+    {
+        try
+        {
+            var httpClientRequest = GetDefaultClient();
 
+            await SetAuthorizeHeader(httpClientRequest);
+
+            string serializedUser = JsonConvert.SerializeObject(obj);
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"api/v1.0/{requestUri}?FileJobId={FileJobId}");
+
+            var token = await _localStorageService.GetItemAsync<string>("accessToken");
+            requestMessage.Headers.Authorization
+                = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            requestMessage.Content = new StringContent(serializedUser);
+
+            requestMessage.Content.Headers.ContentType
+                = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+
+            var content = await httpClientRequest.SendAsync(requestMessage, cancellationToken);
+
+            return content;
+
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
 }

@@ -1,0 +1,531 @@
+﻿@page "/taskmanagerUploadFile"
+
+@using Application.Aggregates.FileJobAggregate.Commands
+@using Application.Aggregates.FileJobAggregate.Queries
+@using Application.Common.Models
+@using Newtonsoft.Json
+@using System.Text
+@using WebsiteApp.Services
+@using Microsoft.AspNetCore.SignalR.Client
+
+@inject IWebApiService<CreateFileJobUploadRequest, int> _fileJobUploadService
+@inject IWebApiService<CreateFileJobUploadRequest, FileJobUploadDto> _fileJobGetService
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+@inject IConfiguration Configuration
+@inject IJSRuntime JS
+@inject DialogService DialogService
+
+@implements IDisposable
+@rendermode InteractiveServer
+
+
+<PageTitle>Task Upload</PageTitle>
+
+<div class=" mt-3">
+    <div class="card">
+        <div class="card-header">
+            <RadzenBreadCrumb>
+                <RadzenBreadCrumbItem Path="/home" Text="Home" />
+                <RadzenBreadCrumbItem Path="/taskmanageradmin" Text="Task Manager" />
+                <RadzenBreadCrumbItem Text="File Upload" />
+            </RadzenBreadCrumb>
+        </div>
+        <div class="card-header">
+            <RadzenText TextStyle="TextStyle.H5" class="rz-my-6">Job Number @FileJobId</RadzenText>
+        </div>
+        <div class="card-body">
+
+            <RadzenSteps Change=@OnChange>
+                <Steps>
+                    <RadzenStepsItem Text="File Upload">
+                        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3" class="rz-my-6">1. Select a file to upload and click Upload (field mapping)</RadzenText>
+                        <RadzenCard Variant="Variant.Outlined">
+
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Select a file to upload and click Upload</RadzenText>
+                            <RadzenUpload Auto="false" Multiple="false"
+                                          Change="@OnFileSelected"
+                                          Style="width: 50%" />
+                            <RadzenButton Text="Upload" Click=@OnUpload id="file-submit" class="rz-mt-4" />
+                        </RadzenCard>
+                    </RadzenStepsItem>
+
+                    <RadzenStepsItem Text="Validate" Disabled="@(tabIndex == 1)">
+                        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3" class="rz-my-6">2. File validation results</RadzenText>
+                        <RadzenButton id="CreateNewTaskButton" Icon="data_check" Text="Validate" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                      class="rz-my-1 rz-ms-1" Click="@(args => ValidateFileJob())" />
+
+                        <RadzenStack Gap="1rem">
+                            <RadzenDataGrid id="TaskmanagerTableId" @ref=@gridItemsProvider TItem="FileJobUploadDto" Data="@fileJobUploadDtoList" LoadData="@LoadData" IsLoading="@isLoading"
+                                            AllowPaging="true" AllowSorting="false" PagerHorizontalAlign="HorizontalAlign.Center"
+                                            PageSizeOptions="@pageSizeOptions" ShowPagingSummary="@showPagerSummary"
+                                            Count="@totalItemCount">
+
+                                <PagingSummaryTemplate>
+                                    <RadzenIcon Icon="database" Style="color: var(--rz-primary); font-size: var(--rz-pager-summary-font-size);" />
+                                    Displaying page @context.CurrentPage of @context.NumberOfPages <b>(total @context.TotalCount records)</b>
+                                </PagingSummaryTemplate>
+                                <Columns>
+                                    <RadzenDataGridColumn Property="@nameof(FileJobUploadDto.TaskTitle)" Title="TaskTitle" />
+                                    <RadzenDataGridColumn Property="@nameof(FileJobUploadDto.DueDate)" Title="DueDate" />
+                                    <RadzenDataGridColumn Property="@nameof(FileJobUploadDto.AssignedTo)" Title="AssignedTo" />
+                                    <RadzenDataGridColumn Property="@nameof(FileJobUploadDto.Title)" Title="Title" />
+                                    <RadzenDataGridColumn Property="@nameof(FileJobUploadDto.Description)" Title="Description" />
+                                    <RadzenDataGridColumn Property="@nameof(FileJobUploadDto.FileRowStatus)" Title="Status" />
+                                    <RadzenDataGridColumn Property="@nameof(FileJobUploadDto.ErrorMessage)" Title="Message" />
+
+                                    <RadzenDataGridColumn TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+                                        <Template Context="task">
+                                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                                          class="rz-my-1 rz-ms-1" Click="@(async () => await EditTask(task.Id))" />
+                                            <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                                          class="rz-my-1 rz-ms-1" Click="@(() => DisableTask(task.Id))" />
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                </Columns>
+                            </RadzenDataGrid>
+                        </RadzenStack>
+
+                    </RadzenStepsItem>
+
+                    <RadzenStepsItem Text="Process" Disabled="@(tabIndex == 2)">
+
+                        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3" class="rz-my-6">3. Process items</RadzenText>
+
+
+                        <RadzenButton id="CreateNewTaskButton" Icon="rocket_launch" Text="Process" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                      class="rz-my-1 rz-ms-1" Click="@(args => ProcessFileJob())" />
+
+                        <RadzenStack Gap="1rem" class="rz-m-6">
+                            <RadzenProgressBar Value="156" Max="200" Unit=" process of 200" />
+                        </RadzenStack>
+
+
+
+                        <RadzenStack Gap="1rem">
+                            <RadzenDataGrid id="TaskmanagerTableId" @ref=@gridItemsProvider TItem="FileJobUploadDto" Data="@fileJobUploadDtoList" LoadData="@LoadFinalData" IsLoading="@isLoading"
+                                            AllowPaging="true" AllowSorting="false" PagerHorizontalAlign="HorizontalAlign.Center"
+                                            PageSizeOptions="@pageSizeOptions" ShowPagingSummary="@showPagerSummary"
+                                            Count="@totalItemCount">
+
+                                <PagingSummaryTemplate>
+                                    <RadzenIcon Icon="database" Style="color: var(--rz-primary); font-size: var(--rz-pager-summary-font-size);" />
+                                    Displaying page @context.CurrentPage of @context.NumberOfPages <b>(total @context.TotalCount records)</b>
+                                </PagingSummaryTemplate>
+                                <Columns>
+                                    <RadzenDataGridColumn Property="@nameof(FileJobUploadDto.TaskTitle)" Title="TaskTitle" />
+                                    <RadzenDataGridColumn Property="@nameof(FileJobUploadDto.DueDate)" Title="DueDate" />
+                                    <RadzenDataGridColumn Property="@nameof(FileJobUploadDto.AssignedTo)" Title="AssignedTo" />
+                                    <RadzenDataGridColumn Property="@nameof(FileJobUploadDto.Title)" Title="Title" />
+                                    <RadzenDataGridColumn Property="@nameof(FileJobUploadDto.Description)" Title="Description" />
+                                    <RadzenDataGridColumn Property="@nameof(FileJobUploadDto.FileRowStatus)" Title="Status" />
+                                    <RadzenDataGridColumn Property="@nameof(FileJobUploadDto.ErrorMessage)" Title="Message" />
+
+                                    <RadzenDataGridColumn TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+                                        <Template Context="task">
+                                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                                          class="rz-my-1 rz-ms-1" Click="@(async () => await EditTask(task.Id))" />
+                                            <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                                          class="rz-my-1 rz-ms-1" Click="@(() => DisableTask(task.Id))" />
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                </Columns>
+                            </RadzenDataGrid>
+                        </RadzenStack>
+
+                    </RadzenStepsItem>
+                </Steps>
+            </RadzenSteps>
+
+        </div>
+    </div>
+</div>
+
+<RadzenCard>
+    <RadzenText TextStyle="TextStyle.Body1" TagName="TagName.H4">@message</RadzenText>
+</RadzenCard>
+
+<RadzenCard>
+    @foreach (var item in allRequestIds)
+    {
+        <RadzenText TextStyle="TextStyle.Body1" TagName="TagName.H4">@item</RadzenText>
+    }
+</RadzenCard>
+
+
+@code {
+
+    private IBrowserFile selectedFile;
+    private string message;
+    private HubConnection? _hubConnection;
+
+    private int FileJobId = 0;
+
+    private string requestId { get; set; }
+    private int tabIndex = 0;
+
+    const int MAX_FILE_SIZE = 1024 * 1024 * 10; // 10 MB
+
+    private int JobsCount { get; set; } = 0;
+
+    private CancellationTokenSource? _cts = new(TimeSpan.FromMinutes(5));
+    private string? apiUrl;
+
+    RadzenDataGrid<FileJobUploadDto> gridItemsProvider;
+    IEnumerable<FileJobUploadDto> fileJobUploadDtoList;
+    ODataEnumerable<FileJobUploadDto> fileJobUploadDtos;
+
+    bool showPagerSummary = true;
+
+
+    bool isLoading;
+    private int totalItemCount = 0;
+    private int pageNumber = 1;
+    private int itemsPerPage = 10;
+    IEnumerable<int> pageSizeOptions = new int[] { 5, 10, 20, 30 };
+
+    private void OnFileSelected(UploadChangeEventArgs e)
+    {
+        selectedFile = e.Files.FirstOrDefault();
+        message = selectedFile == null ? "No file selected." : null;
+    }
+
+    public record InvalidRow(int RowId, string Title, string ErrorMessage);
+    private List<string> allRequestIds = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    void OnChange(int index)
+    {
+        tabIndex = index;
+
+        //FileJobId = 20; // For testing only, remove later
+
+        Task.Run(async () =>
+        {
+            await gridItemsProvider.RefreshDataAsync();
+        });
+    }
+
+
+    #region FileUpload Process
+
+    public async Task OnUpload()
+    {
+        try
+        {
+            if (selectedFile == null)
+            {
+                Console.WriteLine("No file selected.");
+                return;
+            }
+
+
+            using var reader = new StreamReader(selectedFile.OpenReadStream(MAX_FILE_SIZE));
+
+
+            var validItems = new List<CreateFileJobUploadRequest>();
+            var invalidRows = new List<InvalidRow>();
+
+            bool isFirstLine = true;
+            string line;
+            int rowId = 1;
+
+            _cts = new CancellationTokenSource();
+            var cancellationToken = _cts.Token;
+
+            while ((line = await reader.ReadLineAsync()) != null)
+            {
+                if (isFirstLine)
+                {
+                    isFirstLine = false; // skip header
+                    continue;
+                }
+
+                var result = await ParseCsvLineAsync(rowId, line);
+                if (result.IsSuccess)
+                {
+                    // If the title already exists, add the task items to the existing task list
+                    validItems.Add(result.Value!);
+
+                    rowId++;
+                }
+                else
+                {
+                    invalidRows.Add(new InvalidRow(rowId++, line.Substring(0, line.Length >= 10 ? 10 : line.Length), result.CustomError.error));
+                }
+
+                if (validItems.Count == 10)
+                {
+                    var apiReturn = await _fileJobUploadService.SaveBulkFileJobAsync($"fileupload/Bulk", FileJobId, validItems, cancellationToken);
+
+                    if (apiReturn.IsSuccessStatusCode)
+                    {
+                        FileJobId = await apiReturn.Content.ReadFromJsonAsync<int>();
+
+                    }
+
+                    validItems.Clear(); // Clear after sending
+                }
+            }
+
+            // Send remaining items
+            if (validItems.Any())
+            {
+                var apiReturn = await _fileJobUploadService.SaveBulkFileJobAsync($"fileupload/Bulk", FileJobId, validItems, cancellationToken);
+
+                if (apiReturn.IsSuccessStatusCode)
+                {
+                    FileJobId = await apiReturn.Content.ReadFromJsonAsync<int>();
+
+                }
+            }
+
+            //JobsCount = allRequestIds.Count;
+            message = "CSV uploaded and processing...";
+            //await ShowBusyDialog();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            message = $"Error: {ex.Message}";
+        }
+    }
+
+
+    private Task<CustomResult<CreateFileJobUploadRequest?>> ParseCsvLineAsync(int rowId, string line)
+    {
+        var parts = line.Split(',');
+        if (parts.Length == 5)
+        {
+            var newTaskList = new CreateFileJobUploadRequest()
+            {
+                TaskTitle = parts[0],
+                DueDate = DateOnly.FromDateTime(DateTime.TryParse(parts[1].Trim(), out var dueDate) ? dueDate : DateTime.Now),
+                AssignedTo = parts[2].Trim() ?? "",
+                Title = parts[3].Trim(),
+                Description = parts.Length > 4 ? parts[4].Trim() : null
+            };
+
+            return Task.FromResult<CustomResult<CreateFileJobUploadRequest?>>(CustomResult<CreateFileJobUploadRequest?>.Success(newTaskList));
+        }
+
+        // Invalid line
+        return Task.FromResult<CustomResult<CreateFileJobUploadRequest?>>(CustomResult<CreateFileJobUploadRequest?>.Failure(new CustomError(false, $"Invalid line {parts.Length}")));
+    }
+
+    #endregion
+
+
+    #region Validate
+
+    private async Task LoadData(LoadDataArgs args)
+    {
+        try
+        {
+            isLoading = true;
+            itemsPerPage = args.Top ?? 10;
+
+            int pageNumber = ((int)args.Skip / itemsPerPage) + 1;
+
+            var response = await _fileJobGetService.GetPagingDataAsync(
+            $"fileupload?FileJobId={FileJobId}&PageNumber={pageNumber}&PageSize={itemsPerPage}&OrderBy=Id&IsDescending=false",
+            _cts.Token);
+
+            if (response != null)
+            {
+                totalItemCount = response.TotalCount;
+
+                fileJobUploadDtos = response.Items.AsODataEnumerable();
+                // Return the grid data
+                fileJobUploadDtoList = response.Items;
+            }
+            else
+            {
+                // Log or handle the null response scenario
+                Console.Error.WriteLine("Failed to load task list data. API returned null.");
+            }
+
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            NotificationMessage errorMessage = new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Error",
+                Detail = $"Failed to load data: {ex.Message}",
+                Duration = 4000
+            };
+        }
+    }
+
+
+    protected async Task ValidateFileJob()
+    {
+        var returnnValid = await _fileJobUploadService.PatchAsync($"fileUpload/Validate", FileJobId, false);
+
+        await gridItemsProvider.RefreshDataAsync();
+    }
+
+
+
+
+
+
+    #endregion
+
+    #region Process
+
+    protected async Task ProcessFileJob()
+    {
+        //var returnnValid = await _fileJobUploadService.PatchAsync($"fileUpload/Process", FileJobId, false);
+        await Task.Delay(1000);
+        //OnChange(2);
+        //await gridItemsProvider.RefreshDataAsync();
+    }
+
+    private async Task LoadFinalData(LoadDataArgs args)
+    {
+        try
+        {
+            isLoading = true;
+            itemsPerPage = args.Top ?? 10;
+
+            int pageNumber = ((int)args.Skip / itemsPerPage) + 1;
+
+            var response = await _fileJobGetService.GetPagingDataAsync(
+            $"fileupload?FileJobId={FileJobId}&PageNumber={pageNumber}&PageSize={itemsPerPage}&OrderBy=Id&IsDescending=false",
+            _cts.Token);
+
+            if (response != null)
+            {
+                totalItemCount = response.TotalCount;
+
+                fileJobUploadDtos = response.Items.AsODataEnumerable();
+                // Return the grid data
+                fileJobUploadDtoList = response.Items;
+            }
+            else
+            {
+                // Log or handle the null response scenario
+                Console.Error.WriteLine("Failed to load task list data. API returned null.");
+            }
+
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            NotificationMessage errorMessage = new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Error",
+                Detail = $"Failed to load data: {ex.Message}",
+                Duration = 4000
+            };
+        }
+    }
+
+
+    #endregion
+
+
+
+    async Task ShowBusyDialog(string withMessageAsString = "")
+    {
+        await BusyDialog(withMessageAsString);
+    }
+
+    // Busy dialog from markup
+    async Task BusyDialog(string withMessageAsString)
+    {
+        await DialogService.OpenAsync("", ds =>
+    @<RadzenStack AlignItems="AlignItems.Center" Gap="2rem" class="rz-p-12">
+    <RadzenIcon Icon="hourglass_top"></RadzenIcon>
+    <RadzenText TextStyle="TextStyle.H6">Loading, please wait...</RadzenText>
+    <RadzenText TextStyle="TextStyle.H6">@JobsCount</RadzenText>
+</RadzenStack>
+    , new DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;width:auto", CloseDialogOnEsc = false });
+    }
+
+    // Busy dialog from string
+    async Task BusyDialog(string message, int ii)
+    {
+        await DialogService.OpenAsync("", ds =>
+        {
+            RenderFragment content = dialogContent =>
+            {
+                dialogContent.OpenComponent<RadzenRow>(0);
+                dialogContent.AddComponentParameter(1, nameof(RadzenRow.ChildContent), (RenderFragment)(rowContent =>
+                {
+                    rowContent.OpenComponent<RadzenColumn>(0);
+                    rowContent.AddComponentParameter(1, nameof(RadzenColumn.Size), 12);
+                    rowContent.AddComponentParameter(2, nameof(RadzenRow.ChildContent), (RenderFragment)(columnContent =>
+                    {
+                        columnContent.AddContent(0, message);
+                    }));
+                    rowContent.CloseComponent();
+                }));
+
+                dialogContent.CloseComponent();
+            };
+            return content;
+        }, new DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;width:auto", CloseDialogOnEsc = false });
+    }
+
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _cts?.Dispose();
+        _hubConnection?.DisposeAsync();
+    }
+
+
+
+    #region ValidateTab
+
+    protected async Task EditTask(int Id)
+    {
+
+        // taskUserList = await _taskListSelectService.GetAllDataAsync("Users/taskuserselectlist", _cts.Token, true);
+
+        // if (Id > 0)
+        // {
+        //     var apiReturn = await _taskListFormService.GetDataByIdAsync($"tasklist/GetTaskListForm/{Id}");
+        //     taskListFormRequest = apiReturn;
+        // }
+        // else
+        // {
+        //     taskListFormRequest = new TaskListFormRequest() { Title = "", DueDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1)) };
+        // }
+
+        // TaskListModalOpen = true;
+
+    }
+
+    protected async Task DisableTask(int Id)
+    {
+        await Task.Delay(100);
+    }
+
+    #endregion
+
+
+
+
+
+}
