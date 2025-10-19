@@ -22,6 +22,75 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Domain.Entities.FileJob", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("FileJobType")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte>("IsDeleted")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FileJobs");
+                });
+
+            modelBuilder.Entity("Domain.Entities.FileJobUpload", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AssignedTo")
+                        .HasColumnType("varchar(60)");
+
+                    b.Property<int?>("AssignedToId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("varchar(350)");
+
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("varchar(350)");
+
+                    b.Property<int>("FileJobId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FileRowType")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("IsDeleted")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("TaskTitle")
+                        .IsRequired()
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("varchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileJobId");
+
+                    b.ToTable("FileJobUploads");
+                });
+
             modelBuilder.Entity("Domain.Entities.TaskItem", b =>
                 {
                     b.Property<int>("Id")
@@ -164,7 +233,7 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                             FullName = "taskmaster@hotmail.co.uk",
                             IsDeleted = (byte)0,
                             RefreshTokenExpiryTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            RegisterToken = new Guid("184c5b11-c859-4f0c-86fe-be2c5b0f0453"),
+                            RegisterToken = new Guid("770175be-5965-49ce-b0f0-b73325ceb678"),
                             RegisterTokenExpieryTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             UserEmail = "taskmaster@hotmail.co.uk",
                             UserTypeId = 0
@@ -337,6 +406,17 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                     b.ToTable("TimeTickers", "ticker");
                 });
 
+            modelBuilder.Entity("Domain.Entities.FileJobUpload", b =>
+                {
+                    b.HasOne("Domain.Entities.FileJob", "FileJob")
+                        .WithMany("FileJobUploads")
+                        .HasForeignKey("FileJobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FileJob");
+                });
+
             modelBuilder.Entity("Domain.Entities.TaskItem", b =>
                 {
                     b.HasOne("Domain.Entities.TaskList", "TaskList")
@@ -376,6 +456,11 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ParentJob");
+                });
+
+            modelBuilder.Entity("Domain.Entities.FileJob", b =>
+                {
+                    b.Navigation("FileJobUploads");
                 });
 
             modelBuilder.Entity("Domain.Entities.TaskList", b =>

@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Infrastructures\ServiceLayer\ServiceLayer.csproj" />
+    <ProjectReference Include="..\..\WorkerServiceProcess\WorkerServiceProcess.csproj" />
     <ProjectReference Include="..\WebApiAuth\WebApiAuth.csproj" />
     <ProjectReference Include="..\WebApi\WebApi.csproj" />
     <ProjectReference Include="..\WebsiteApp\WebsiteApp.csproj" />

@@ -4,7 +4,8 @@
     {
         NewUpload = 0,
         Validated = 1,
-        MovedToLive = 2
+        Running = 2,
+        MovedToLive = 3
     }
 
 }

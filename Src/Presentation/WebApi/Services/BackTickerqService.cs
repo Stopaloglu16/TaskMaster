@@ -5,13 +5,13 @@ using TickerQ.Utilities.Models;
 
 namespace WebApi.Services
 {
-    public class BackgroundService
+    public class BackTickerqService
     {
 
         private readonly ITaskListService _taskListService;
         private readonly IServiceScopeFactory _scopeFactory;
 
-        public BackgroundService(ITaskListService taskListService, IServiceScopeFactory scopeFactory)
+        public BackTickerqService(ITaskListService taskListService, IServiceScopeFactory scopeFactory)
         {
             _taskListService = taskListService;
             _scopeFactory = scopeFactory;

@@ -1,9 +1,10 @@
 ﻿using Domain.Common;
+using Domain.Enums;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities
 {
-    public class TaskListFileUpload : BaseEntity<int>
+    public class FileJobUpload : BaseEntity<int>
     {
         [Column(TypeName = "varchar(150)")]
         public required string TaskTitle { get; set; }
@@ -21,12 +22,12 @@ namespace Domain.Entities
         public string? Description { get; set; }
 
 
-        public RowStatus Status { get; set; } = RowStatus.New;
+        public FileRowStatus FileRowType { get; set; } = FileRowStatus.NewUpload;
         [Column(TypeName = "varchar(350)")]
         public string? ErrorMessage { get; set; }
         
 
-        public int TaskListFileJobId { get; set; }
-        public TaskListFileJob TaskListFileJob { get; set; }
+        public int FileJobId { get; set; }
+        public FileJob FileJob { get; set; }
     }
 }

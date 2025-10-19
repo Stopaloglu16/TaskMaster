@@ -52,14 +52,26 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<WebIdentityContext>()
 .AddDefaultTokenProviders();
 
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    // Lock the account for 5 minutes if there are 5 failed login attempts
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    options.Lockout.MaxFailedAccessAttempts = 5;
 
+    options.Lockout.AllowedForNewUsers = false;
+});
 
 builder.Services.AddScoped(typeof(IRepository<,>), typeof(EfCoreRepository<,>));
 
 
 builder.Services.AddUserServices();
 
-
+builder.Services.AddHsts(options =>
+{
+    options.Preload = true; 
+    options.IncludeSubDomains = true;
+    options.MaxAge = TimeSpan.FromDays(365); 
+});
 
 var appSettings = new AppSettings();
 builder.Configuration.Bind(nameof(AppSettings), appSettings);
@@ -121,6 +133,9 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+
+
+app.UseHsts();
 
 //app.MapHealthChecks("/health");
 

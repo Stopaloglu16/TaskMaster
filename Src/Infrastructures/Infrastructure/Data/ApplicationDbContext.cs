@@ -3,7 +3,6 @@ using Domain.Common;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
-using System.Reflection.Emit;
 using TickerQ.EntityFrameworkCore.Configurations;
 
 namespace Infrastructure.Data;
@@ -18,8 +17,17 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
         _currentUserService = currentUserService;
     }
 
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+    {
+        
+    }
+
     public DbSet<TaskList> TaskLists { get; set; }
     public DbSet<TaskItem> TaskItems { get; set; }
+
+    public DbSet<FileJob> FileJobs { get; set; }
+    public DbSet<FileJobUpload> FileJobUploads { get; set; }
+
     public DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -89,5 +97,5 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
         });
     }
 
- 
+
 }

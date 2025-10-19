@@ -14,9 +14,3 @@ Add-Migration InitialWebIdCreate -Context Infrastructure.Data.WebIdentityContext
 
 Update-Database -context Infrastructure.Data.ApplicationDbContext
 Update-Database -context Infrastructure.Data.WebIdentityContext
-
-
-https://github.com/csharpfritz/dotnet-aspire-workshop/blob/main/workshop/6-telemetry.md
-
-https://www.youtube.com/watch?v=L1CaApEZswA&t=26065s
-4:26:30

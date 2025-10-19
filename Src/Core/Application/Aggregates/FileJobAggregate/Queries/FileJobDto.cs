@@ -4,13 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Enums
+namespace Application.Aggregates.FileJobAggregate.Queries
 {
-    
-    public enum FileRowType
+    public class FileJobDto
     {
-        NewUpload = 0,
-        Validated = 1,
-        MovedToLive = 2
+        public int Id { get; set; }
+
     }
 }
