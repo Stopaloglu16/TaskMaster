@@ -18,13 +18,15 @@ var webapi = builder.AddProject<WebApi>("webapi")
 
 var webapiauth = builder.AddProject<WebApiAuth>("webapiauth");
 
-//builder.AddProject<ServiceLayer>("servicelayer");
 
 builder.AddProject<WebsiteApp>("websiteapp")
        .WithReference(webapiauth)
        .WaitFor(webapiauth)
        .WithReference(webapi)
        .WaitFor(webapi);
+
+
+builder.AddProject<WorkerServiceProcess>("workerserviceprocess");
 
 
 builder.Build().Run();

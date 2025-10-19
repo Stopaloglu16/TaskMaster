@@ -76,7 +76,8 @@ public class WebApiService<TRequest, TResponse> : IWebApiService<TRequest, TResp
         var token = await _localStorageService.GetItemAsync<string>("accessToken");
 
         // Set the Authorization header
-        httpClientRequest.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        httpClientRequest.DefaultRequestHeaders.Authorization = 
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         //https://github.com/hieudose/BlazorApp.git
     }

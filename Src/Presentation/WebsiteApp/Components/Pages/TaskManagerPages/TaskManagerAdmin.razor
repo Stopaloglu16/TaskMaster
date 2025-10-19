@@ -204,10 +204,16 @@
         }
     }
 
-    
+
 
     void NavigateTo(RadzenSplitButtonItem item)
     {
+        if(item.Value == "taskmanagerUploadFile")
+        {
+            var urlTxt = $"/{item.Value}/0";
+            NavigationManager.NavigateTo(urlTxt);
+        }
+        
         NavigationManager.NavigateTo($"/{item.Value}");
     }
 

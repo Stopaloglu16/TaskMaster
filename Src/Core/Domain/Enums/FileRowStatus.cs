@@ -6,6 +6,8 @@
         NewUpload = 0,
         ValidateIssue = 1,
         Validated = 2,
-        MovedToLive = 3
+        Processed = 3,
+        ProcessIssue = 4,
+        MovedToLive = 5
     }
 }

@@ -1,7 +1,9 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using Infrastructure.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using TickerQ.Dashboard.DependencyInjection;
 using TickerQ.DependencyInjection;
 using TickerQ.EntityFrameworkCore.DependencyInjection;
@@ -18,6 +20,20 @@ builder.AddServiceDefaults();
 builder.AddApplicationServices();
 builder.Services.AddProblemDetails();
 builder.Services.AddAuthorizationBuilder();
+
+//builder.Services.AddAuthentication(options =>
+//{
+//    // JWT Bearer 
+//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+//})
+//.AddJwtBearer(options =>
+//{
+    
+//    options.Authority = "https://securetoken.google.com/yourprojectid";
+//    options.Audience = "yourprojectid";
+//});
+
 
 builder.Services.AddOpenTelemetry()
     .WithMetrics(m => m.AddMeter("TaskManagerMetrics"))
@@ -106,13 +122,15 @@ builder.Services.AddSwaggerGen(options =>
 
 
 #region WriteIntoFile
-//Log.Logger  = new LoggerConfiguration()
-//    //.WriteTo.Console()
-//    .WriteTo.File("Logs/WebApiLog.txt", rollingInterval: RollingInterval.Day)
-//    .MinimumLevel.Warning()
-//    .CreateLogger();
+#if !DEBUG
+Log.Logger = new LoggerConfiguration()
+    //.WriteTo.Console()
+    .WriteTo.File("Logs/WebApiLog.txt", rollingInterval: RollingInterval.Day)
+    .MinimumLevel.Warning()
+    .CreateLogger();
 
-//builder.Host.UseSerilog();
+builder.Host.UseSerilog();
+#endif
 #endregion
 
 

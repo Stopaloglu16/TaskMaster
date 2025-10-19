@@ -11,13 +11,15 @@ namespace WebApi.Apis
     {
         public static RouteGroupBuilder FileUploadApiV1(this RouteGroupBuilder group)
         {
-
             // Route for query task lists
             group.MapGet("/", GetFileJobUploadsWithPagination);
+
+            group.MapGet("/GetStatusOfJob/{id:int}", GetFileJobUploadsGroupedByRowType);
 
             // Routes for modify
             group.MapPost("/Bulk", CreateFileJob);
             group.MapPatch("/Validate/{FileJobId:int}", ValidateFileJob);
+            group.MapPatch("/Process/{FileJobId:int}", ProcessFileJob);
 
             return group;
         }
@@ -33,7 +35,11 @@ namespace WebApi.Apis
             return TypedResults.Ok(taskList);
         }
 
-
+        public static async Task<Ok<Dictionary<string, int>>> GetFileJobUploadsGroupedByRowType(int id, IFileJobService fileJobService,
+                                                                                                       CancellationToken cancellationToken)
+        {
+            return TypedResults.Ok(await fileJobService.GetFileJobUploadsGroupedByRowType(id, cancellationToken));
+        }
         #region API Routes for modify
 
         public static async Task<Results<Created<int>, BadRequest<string>>> CreateFileJob(int FileJobId,
@@ -70,6 +76,24 @@ namespace WebApi.Apis
                 return TypedResults.BadRequest(customResult.Error);
             }
         }
+
+
+        public static async Task<Results<Ok, BadRequest<string>>> ProcessFileJob(int FileJobId,
+                                                                                  IFileJobService fileJobService,
+                                                                                  CancellationToken cancellationToken)
+        {
+            var customResult = await fileJobService.ProcessFileJob(FileJobId, cancellationToken);
+
+            if (customResult.IsSuccess)
+            {
+                return TypedResults.Ok();
+            }
+            else
+            {
+                return TypedResults.BadRequest(customResult.Error);
+            }
+        }
+
         #endregion
     }
 }

@@ -6,13 +6,11 @@ using Application.Common.Models;
 using Application.Repositories;
 using Domain.Entities;
 using Domain.Enums;
-using Microsoft.EntityFrameworkCore.Sqlite.Query.Internal;
 using Microsoft.Extensions.Logging;
 using ServiceLayer.TaskLists;
 using ServiceLayer.Users;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ServiceLayer.FileJobs
 {
@@ -69,7 +67,7 @@ namespace ServiceLayer.FileJobs
 
         public async Task<PagingResponse<FileJobUploadDto>> GetFileJobUploadsWithPagination(int FileJobId, PagingParameters pagingParameters, CancellationToken cancellationToken)
         {
-            return await _fileJobRepository.GetFileJobUploadsWithPagination(FileJobId, pagingParameters, cancellationToken);
+            return await _fileJobUploadRepository.GetFileJobUploadsWithPagination(FileJobId, pagingParameters, cancellationToken);
         }
 
         public async Task<CustomResult> ValidateFileJob(int FileJobId, CancellationToken cancellationToken)
@@ -107,26 +105,30 @@ namespace ServiceLayer.FileJobs
                         continue; // Skip to next item if current one has validation errors
                     }
 
-                    CreateTaskItemRequest createTaskItemRequest = new CreateTaskItemRequest()
+                    if (errors.Length == 0)
                     {
-                        Title = fileJob.Title,
-                        Description = fileJob.Description
-                    };
-
-                    // Validate the CreateTaskItemRequest
-                    validationContext = new ValidationContext(createTaskItemRequest);
-                    validationResults.Clear();
-
-                    if (!Validator.TryValidateObject(createTaskItemRequest, validationContext, validationResults, validateAllProperties: true))
-                    {
-                        foreach (var validationResult in validationResults)
+                        CreateTaskItemRequest createTaskItemRequest = new CreateTaskItemRequest()
                         {
-                            errors.Append(validationResult.ErrorMessage);
+                            Title = fileJob.Title,
+                            Description = fileJob.Description
+                        };
+
+                        // Validate the CreateTaskItemRequest
+                        validationContext = new ValidationContext(createTaskItemRequest);
+                        validationResults.Clear();
+
+                        if (!Validator.TryValidateObject(createTaskItemRequest, validationContext, validationResults, validateAllProperties: true))
+                        {
+                            foreach (var validationResult in validationResults)
+                            {
+                                errors.Append(validationResult.ErrorMessage);
+                            }
                         }
                     }
 
+                       
                     //fileJob.Id
-                    if(errors.Length == 0)
+                    if (errors.Length == 0)
                     {
                         fileJob.FileRowType = FileRowStatus.Validated;
                     }
@@ -146,7 +148,54 @@ namespace ServiceLayer.FileJobs
             {
                 return CustomResult.Failure("Error in validating the file job");
             }
+        }
 
+        public async Task<CustomResult> ProcessFileJob(int FileJobId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var fileJob = await _fileJobRepository.GetByIdAsync(FileJobId);
+
+                fileJob.FileJobType = FileJobType.Running;
+
+                await _fileJobRepository.UpdateAsync(fileJob);
+
+                return CustomResult.Success();
+            }
+            catch (Exception)
+            {
+                return CustomResult.Failure("Error in validating the file job");
+            }
+        }
+
+        public async Task<IReadOnlyList<int>> GetFileJobListRunning(CancellationToken cancellationToken)
+        {
+            return await _fileJobRepository.GetFileJobListRunning(cancellationToken);
+        }
+
+        public async Task<List<FileJobUpload>> GetFileJobUploadList(int fileJobId, CancellationToken cancellationToken)
+        {
+            return await _fileJobUploadRepository.GetFileJobUploadList(fileJobId, cancellationToken);
+        }
+
+        public async Task<int> UpdateFileJobUploadRangeAsync(List<FileJobUpload> fileJobUploads, CancellationToken cancellationToken = default)
+        {
+            return await _fileJobUploadRepository.UpdateFileJobUploadRangeAsync(fileJobUploads, cancellationToken);
+        }
+
+        public async Task<int> CompleteFileJobAsync(int fileJobId, CancellationToken cancellationToken = default)
+        {
+            return await _fileJobRepository.CompleteFileJobAsync(fileJobId, cancellationToken);
+        }
+
+        public async Task<int> MoveToLiveAsync(int fileJobId, CancellationToken cancellationToken = default)
+        {
+            return await _fileJobRepository.MoveToLiveAsync(fileJobId, cancellationToken);
+        }
+
+        public async Task<Dictionary<string, int>> GetFileJobUploadsGroupedByRowType(int FileJobId, CancellationToken cancellationToken)
+        {
+            return await _fileJobRepository.GetFileJobUploadsGroupedByRowType(FileJobId, cancellationToken);
         }
     }
 }

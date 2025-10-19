@@ -235,6 +235,26 @@ public class GridTests : TestContext
         {
             throw new NotImplementedException();
         }
+
+        public Task<HttpResponseMessage> SaveBulkFileJobAsync(string requestUri, int FileJobId, List<SelectListItem> obj, CancellationToken cancellationToken = default, bool requiresAuth = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpResponseMessage> PatchAsync(string requestUri, int Id, bool requiresAuth = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpResponseMessage> SaveBulkFileJobAsync(string requestUri, int FileJobId, List<TaskListFormRequest> obj, CancellationToken cancellationToken = default, bool requiresAuth = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpResponseMessage> SaveBulkFileJobAsync(string requestUri, int FileJobId, List<TaskListDto> obj, CancellationToken cancellationToken = default, bool requiresAuth = false)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     private class TestNotificationService : NotificationService
