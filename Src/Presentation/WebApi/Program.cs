@@ -2,7 +2,7 @@ using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Serilog;
 using TickerQ.Dashboard.DependencyInjection;
 using TickerQ.DependencyInjection;
@@ -66,25 +66,25 @@ builder.Services.AddHealthChecks();
 
 
 
-builder.AddRabbitMQClient("messaging");
+//builder.AddRabbitMQClient("messaging");
 
 builder.Services.AddSingleton<ResultStore>();
-builder.Services.AddSingleton<RabbitPublisher>();
-builder.Services.AddHostedService<RabbitConsumer>();
+//builder.Services.AddSingleton<RabbitPublisher>();
+//builder.Services.AddHostedService<RabbitConsumer>();
 
 builder.Services.AddTickerQ(opt =>
 {
     opt.AddOperationalStore<ApplicationDbContext>(efOpt =>
     {
         efOpt.UseModelCustomizerForMigrations();
-        efOpt.CancelMissedTickersOnApplicationRestart();
+        efOpt.CancelMissedTickersOnAppStart();
     });
 
     //opt.SetInstanceIdentifier("TickerQ");
 
     // Enable Dashboard https://localhost:7263/tickerq-dashboard
-    opt.AddDashboard(basePath: "/tickerq-dashboard");
-    opt.AddDashboardBasicAuth();
+    //opt.AddDashboard(configureDashboard basePath: "/tickerq-dashboard");
+    opt.AddDashboard();
 });
 
 builder.Services.AddSwaggerGen(options =>
@@ -101,19 +101,9 @@ builder.Services.AddSwaggerGen(options =>
     });
 
     // Add global security requirement
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
     {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
+        [new OpenApiSecuritySchemeReference("bearer", document)] = []
     });
 
     // (Optional) If you use API versioning, set up Swagger docs per version here

@@ -13,7 +13,7 @@ namespace WebApi.RabbitMq
         private readonly IConfiguration _config;
         private readonly IServiceProvider _serviceProvider;
         private IConnection? _messageConnection;
-        private IModel? _messageChannel;
+        private IChannel? _channel;
 
 
         public RabbitConsumer(ILogger<RabbitConsumer> logger, IConfiguration config, IServiceProvider serviceProvider, IConnection? messageConnection)
@@ -24,27 +24,53 @@ namespace WebApi.RabbitMq
         }
 
 
-        protected override Task ExecuteAsync(CancellationToken ct)
+
+        protected override async Task ExecuteAsync(CancellationToken ct)
         {
             string queueName = "catalogEvents";
 
             _messageConnection = _serviceProvider.GetService<IConnection>();
 
-            _messageChannel = _messageConnection!.CreateModel();
-            _messageChannel.QueueDeclare(queue: queueName,
+            _channel = await _messageConnection!.CreateChannelAsync();
+            await _channel.QueueDeclareAsync(queue: queueName,
                 durable: false,
                 exclusive: false,
                 autoDelete: false,
                 arguments: null);
 
-            var consumer = new EventingBasicConsumer(_messageChannel);
-            consumer.Received += OnReceivedAsync;
+            
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+            consumer.ReceivedAsync += async (model, ea) =>
+            {
+                try
+                {
+                    var message = Encoding.UTF8.GetString(ea.Body.ToArray());
 
-            _messageChannel.BasicConsume(queue: queueName,
-                autoAck: true,
-                consumer: consumer);
+                    _logger.LogInformation("Message received: {message}", message);
 
-            return Task.CompletedTask;
+                    // Process message here
+                    await HandleMessageAsync(message);
+
+                    // ACK when processing is successful
+                    await _channel.BasicAckAsync(ea.DeliveryTag, multiple: false);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error processing message");
+
+                    // NACK and requeue
+                    await _channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: true);
+                }
+            };
+
+            // Start consuming
+            await _channel.BasicConsumeAsync(
+                queue: "",
+                autoAck: false,
+                consumer: consumer
+            );
+
+            //return null;
 
 
             //// 1. open a long‑lived channel from the injected connection
@@ -77,6 +103,12 @@ namespace WebApi.RabbitMq
             //{
             //    await Task.Delay(1000, ct);
             //}
+        }
+
+        private Task HandleMessageAsync(string message)
+        {
+            // Your processing logic here
+            return Task.CompletedTask;
         }
 
         private void OnReceivedAsync(object sender, BasicDeliverEventArgs args)

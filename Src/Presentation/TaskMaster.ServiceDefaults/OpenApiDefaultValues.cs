@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.OpenApi.Models;
+//using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text.Json;
 
@@ -49,10 +50,10 @@ internal sealed class OpenApiDefaultValues : IOperationFilter
                 description.ModelMetadata is ModelMetadata modelMetadata)
             {
                 var json = JsonSerializer.Serialize(description.DefaultValue, modelMetadata.ModelType);
-                parameter.Schema.Default = OpenApiAnyFactory.CreateFromJson(json);
+                //parameter.Schema.Default = OpenApiAnyFactory.CreateFromJson(json);
             }
 
-            parameter.Required |= description.IsRequired;
+            //parameter.Required |= description.IsRequired;
         }
     }
 }

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text;
 
@@ -143,28 +143,38 @@ internal sealed class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOpti
         //var identityUrlExternal = identitySection.GetRequiredValue("Url");
         //var scopes = identitySection.GetRequiredSection("Scopes").GetChildren().ToDictionary(p => p.Key, p => p.Value);
 
-        var securityScheme = new OpenApiSecurityScheme()
+        //var securityScheme = new OpenApiSecurityScheme()
+        //{
+        //    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        //    Name = "Authorization",
+        //    In = ParameterLocation.Header,
+        //    Type = SecuritySchemeType.Http,
+        //    Scheme = "bearer",
+        //    //Reference = new OpenApiReference
+        //    //{
+        //    //    Type = ReferenceType.SecurityScheme,
+        //    //    Id = "Bearer"
+        //    //}
+        //};
+
+        options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
         {
-            Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
-            Name = "Authorization",
-            In = ParameterLocation.Header,
             Type = SecuritySchemeType.Http,
             Scheme = "bearer",
-            Reference = new OpenApiReference
-            {
-                Type = ReferenceType.SecurityScheme,
-                Id = "Bearer"
-            }
-        };
+            In = ParameterLocation.Header,
+            BearerFormat = "JWT",
+            Description = "JWT Authorization header using the Bearer scheme.",
+            Name = "Authorization"
+        });
 
-        var securityReq = new OpenApiSecurityRequirement
+        options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
         {
-            { securityScheme, new[] { "Bearer" } }
-        };
+            [new OpenApiSecuritySchemeReference("bearer", document)] = []
+        });
 
 
-        options.AddSecurityDefinition("Bearer", securityScheme);
-        options.AddSecurityRequirement(securityReq);
+        //options.AddSecurityDefinition("Bearer", securityScheme);
+        //options.AddSecurityRequirement(securityReq);
 
         //options.OperationFilter<AuthorizeCheckOperationFilter>([scopes.Keys.ToArray()]);
     }
@@ -183,18 +193,18 @@ internal sealed class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOpti
             operation.Responses.TryAdd("401", new OpenApiResponse { Description = "Unauthorized" });
             operation.Responses.TryAdd("403", new OpenApiResponse { Description = "Forbidden" });
 
-            var oAuthScheme = new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "oauth2" }
-            };
+            //var oAuthScheme = new OpenApiSecurityScheme
+            //{
+            //    Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "oauth2" }
+            //};
 
-            operation.Security = new List<OpenApiSecurityRequirement>
-        {
-            new()
-            {
-                [ oAuthScheme ] = scopes
-            }
-        };
+            //    operation.Security = new List<OpenApiSecurityRequirement>
+            //{
+            //    new()
+            //    {
+            //        [ oAuthScheme ] = scopes
+            //    }
+            //};
         }
     }
 }

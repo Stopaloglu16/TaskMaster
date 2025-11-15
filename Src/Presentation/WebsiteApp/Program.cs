@@ -61,7 +61,8 @@ builder.Services.AddHttpClient("LongRunningClient", client =>
     client.BaseAddress = new Uri(builder.Configuration["AppSettings:ApiUrl"]);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
-}).RemoveAllResilienceHandlers() // Remove all resilience handlers
+})
+    //.RemoveAllResilienceHandlers() // Remove all resilience handlers
 .AddStandardHedgingHandler();
 
 //.AddStandardResilienceHandler(options =>
