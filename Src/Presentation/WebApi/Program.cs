@@ -87,29 +87,31 @@ builder.Services.AddTickerQ(opt =>
     opt.AddDashboard();
 });
 
-builder.Services.AddSwaggerGen(options =>
-{
-    // Add JWT Bearer definition
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Enter 'Bearer' [space] and then your valid token in the text input below.\r\n\r\nExample: \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6...\""
-    });
+// Enable middleware to serve generated Swagger as a JSON endpoint.
+//builder.Services.AddSwaggerGen(options =>
+//{
+//    // Add JWT Bearer definition
+//    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+//    {
+//        Name = "Authorization",
+//        Type = SecuritySchemeType.Http,
+//        Scheme = "bearer",
+//        BearerFormat = "JWT",
+//        In = ParameterLocation.Header,
+//        Description = "Enter 'Bearer' [space] and then your valid token in the text input below.\r\n\r\nExample: \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6...\""
+//    });
 
-    // Add global security requirement
-    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
-    {
-        [new OpenApiSecuritySchemeReference("bearer", document)] = []
-    });
+//    // Add global security requirement
+//    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+//    {
+//        [new OpenApiSecuritySchemeReference("bearer", document)] = []
+//    });
 
-    // (Optional) If you use API versioning, set up Swagger docs per version here
-});
+//    // (Optional) If you use API versioning, set up Swagger docs per version here
+//});
 
-
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddOpenApi();
 
 #region WriteIntoFile
 #if !DEBUG
@@ -134,17 +136,21 @@ var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>()
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    //app.UseSwaggerUI();
-    app.UseSwaggerUI(options =>
-    {
-        foreach (var description in provider.ApiVersionDescriptions)
-        {
-            options.SwaggerEndpoint(
-                $"/swagger/{description.GroupName}/swagger.json",
-                description.GroupName.ToUpperInvariant());
-        }
-    });
+    app.MapOpenApi();
+
+    
+    // Enable middleware to serve generated Swagger as a JSON endpoint.
+    //app.UseSwagger();
+    ////app.UseSwaggerUI();
+    //app.UseSwaggerUI(options =>
+    //{
+    //    foreach (var description in provider.ApiVersionDescriptions)
+    //    {
+    //        options.SwaggerEndpoint(
+    //            $"/swagger/{description.GroupName}/swagger.json",
+    //            description.GroupName.ToUpperInvariant());
+    //    }
+    //});
 }
 
 
