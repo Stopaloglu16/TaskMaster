@@ -1,11 +1,6 @@
 ﻿using Application.Aggregates.TaskItemAggregate.Commands.CreateUpdate;
 using Application.Aggregates.TaskItemAggregate.Commands.Update;
-using Application.Aggregates.TaskItemAggregate.Queries;
 using Application.Aggregates.TaskListAggregate.Queries;
-using Application.Common.Models;
-using Asp.Versioning;
-using Domain.Entities;
-using Google.Protobuf.WellKnownTypes;
 using SharedTestDataLibrary.TaskDataSample;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;

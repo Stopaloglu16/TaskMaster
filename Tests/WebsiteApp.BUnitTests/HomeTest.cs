@@ -5,13 +5,13 @@ using WebsiteApp.Components.Pages;
 namespace WebsiteApp.BUnitTests
 {
 
-    public class HomeTest : TestContext
+    public class HomeTest : BunitContext
     {
         [Fact(Skip = "asdsa")]
         public void Home_Valid_Test()
         {
             // Act
-            var cut = RenderComponent<Home>();
+            var cut = Render<Home>();
 
             // Act: find and click the <button> element to increment
             // the counter in the <p> element

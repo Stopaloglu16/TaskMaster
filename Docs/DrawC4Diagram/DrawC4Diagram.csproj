@@ -2,13 +2,10 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-   
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="C4Sharp" Version="8.0.199" />
+    <PackageReference Include="C4Sharp" />
   </ItemGroup>
 
   <ItemGroup>

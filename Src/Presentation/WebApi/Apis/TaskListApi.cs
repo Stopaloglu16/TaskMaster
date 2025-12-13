@@ -7,8 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using ServiceLayer.TaskLists;
 using ServiceLayer.Users;
 using TickerQ.Utilities;
+using TickerQ.Utilities.Entities;
 using TickerQ.Utilities.Interfaces.Managers;
-using TickerQ.Utilities.Models.Ticker;
 using WebApi.Notification;
 using WebApi.RabbitMq;
 
@@ -213,14 +213,14 @@ namespace WebApi.Apis
         //}
 
         public static async Task<IResult> CreateTaskListBulkTickerQ(List<CreateTaskListRequest> items,
-                                                                   ITimeTickerManager<TimeTicker> timeTickerManager,
+                                                                   ITimeTickerManager<TimeTickerEntity> timeTickerManager,
                                                                    ICurrentUserService currentUserService,   
                                                                    CancellationToken cancellationToken)
         {
             CreateTaskListBulkRequest createTaskListBulkRequest = new CreateTaskListBulkRequest(items, currentUserService.UserId, currentUserService.UserName);
             
 
-            var timerId = await timeTickerManager.AddAsync(new TimeTicker
+            var timerId = await timeTickerManager.AddAsync(new TimeTickerEntity
             {
                 Function = "ProcessBulkTaskList",
                 ExecutionTime = DateTime.UtcNow.AddSeconds(1),

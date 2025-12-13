@@ -1,14 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
- 
-
   <ItemGroup>
     <SupportedPlatform Include="browser" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0" />
-    <PackageReference Include="Radzen.Blazor" Version="8.3.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web"/>
+    <PackageReference Include="Radzen.Blazor" />
   </ItemGroup>
 
 </Project>

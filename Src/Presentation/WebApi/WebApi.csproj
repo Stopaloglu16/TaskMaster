@@ -5,18 +5,25 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Asp.Versioning.Http" Version="8.1.0" />
-    <PackageReference Include="Aspire.RabbitMQ.Client" Version="13.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
-    <PackageReference Include="Serilog" Version="4.3.0" />
-    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
-    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
-    <PackageReference Include="TickerQ" Version="2.5.3" />
-    <PackageReference Include="TickerQ.Dashboard" Version="2.5.3" />
-    <PackageReference Include="TickerQ.Utilities" Version="2.5.3" />
+      <PackageReference Include="Asp.Versioning.Http" />
+      <PackageReference Include="Aspire.RabbitMQ.Client" />
+      <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+      <PackageReference Include="Serilog" />
+      <PackageReference Include="Serilog.AspNetCore" />
+      <PackageReference Include="Serilog.Sinks.File" />
+      <PackageReference Include="TickerQ" />
+      <PackageReference Include="TickerQ.Dashboard" />
+      <PackageReference Include="TickerQ.EntityFrameworkCore" />
+      <PackageReference Include="TickerQ.Utilities" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Infrastructures\Infrastructure.SqliteMigrations\Infrastructure.SqliteMigrations.csproj" />
+    <ProjectReference Include="..\..\Infrastructures\Infrastructure.SqlServerMigrations\Infrastructure.SqlServerMigrations.csproj" />
     <ProjectReference Include="..\..\Infrastructures\ServiceLayer\ServiceLayer.csproj" />
     <ProjectReference Include="..\TaskMaster.ServiceDefaults\TaskMaster.ServiceDefaults.csproj" />
   </ItemGroup>

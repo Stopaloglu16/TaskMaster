@@ -1,19 +1,16 @@
-﻿<Project Sdk="Aspire.AppHost.Sdk/13.0.0">
+﻿<Project Sdk="Aspire.AppHost.Sdk/13.0.2">
 	
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-  
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <IsAspireHost>true</IsAspireHost>
     <UserSecretsId>8e3c181d-62e4-447b-bc42-34cf12a11b96</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.Docker" Version="9.3.1-preview.1.25305.6" />
-    <PackageReference Include="Aspire.Hosting.Redis" Version="13.0.0" />
-    <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="13.0.0" />
-    <PackageReference Include="Scalar.Aspire" Version="0.7.3" />
+    <PackageReference Include="Aspire.Hosting.Docker" />
+    <PackageReference Include="Aspire.Hosting.Redis" />
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" />
+    <PackageReference Include="Scalar.Aspire" />
   </ItemGroup>
 
   <ItemGroup>

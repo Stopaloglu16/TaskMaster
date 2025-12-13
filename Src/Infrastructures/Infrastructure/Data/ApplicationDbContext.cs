@@ -38,9 +38,9 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
         base.OnModelCreating(builder);
 
-        builder.ApplyConfiguration(new TimeTickerConfigurations());
-        builder.ApplyConfiguration(new CronTickerConfigurations());
-        builder.ApplyConfiguration(new CronTickerOccurrenceConfigurations());
+        //builder.ApplyConfiguration(new TimeTickerConfigurations(  "ticker"));
+        //builder.ApplyConfiguration(new CronTickerConfigurations("ticker"));
+        //builder.ApplyConfiguration(new CronTickerOccurrenceConfigurations("ticker"));
 
 
         SeedAdminUser(builder);

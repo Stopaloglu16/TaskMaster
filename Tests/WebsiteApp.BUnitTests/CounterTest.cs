@@ -9,7 +9,7 @@ public class CounterTest:TestContext
     public void Counter_Valid_Test()
     {
         // Act
-        var cut = RenderComponent<Counter>();
+        var cut = Render<Counter>();
 
         // Act: find and click the <button> element to increment
         // the counter in the <p> element

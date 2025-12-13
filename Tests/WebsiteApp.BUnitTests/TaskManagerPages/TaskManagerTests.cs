@@ -14,7 +14,7 @@ using WebsiteApp.Services;
 
 namespace WebsiteApp.BUnitTests.TaskManagerPages;
 
-public class TaskManagerTests : TestContext
+public class TaskManagerTests : BunitContext
 {
 
     [Fact(Skip ="In Progress")]
@@ -55,7 +55,7 @@ public class TaskManagerTests : TestContext
         Services.AddSingleton<AuthenticationStateProvider>(new TestAuthenticationStateProvider(authenticationStateTask));
 
         // Render the component
-        var cut = RenderComponent<TaskManagerAdmin>(parameters => parameters
+        var cut = Render<TaskManagerAdmin>(parameters => parameters
             .AddCascadingValue(authenticationStateTask)
         );
 

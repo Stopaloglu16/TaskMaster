@@ -1,19 +1,12 @@
 ﻿using OpenQA.Selenium;
-using OpenQA.Selenium.BiDi.Modules.Script;
+
 using OpenQA.Selenium.Support.UI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WebsiteApp.SeleniumTests.Utilities;
 
 namespace WebsiteApp.SeleniumTests.TaskManager
 {
     public class TaskManagerUploadTest : BaseTest
     {
-
-
 
         IWebElement BtnNewButton => _webDriver.FindElement(By.Id("CreateNewTaskButton"));
         IWebElement TxtTaskTitle => _webDriver.FindElement(By.Id("Title"));

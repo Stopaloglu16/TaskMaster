@@ -1,11 +1,9 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using Infrastructure.Data;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.OpenApi;
-using Serilog;
-using TickerQ.Dashboard.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using TickerQ.DependencyInjection;
+using TickerQ.EntityFrameworkCore.DbContextFactory;
 using TickerQ.EntityFrameworkCore.DependencyInjection;
 using WebApi.Apis;
 using WebApi.Extensions;
@@ -21,6 +19,22 @@ builder.AddApplicationServices();
 builder.Services.AddProblemDetails();
 builder.Services.AddAuthorizationBuilder();
 
+var configuration = builder.Configuration;
+//var provider = builder.Configuration.GetValue("Provider", "SqlServer");
+
+//builder.Services.AddDbContext<ApplicationDbContext>(options => _ = provider switch
+//{
+//    "Sqlite" => options.UseSqlite(
+//        configuration.GetConnectionString("SqliteConnection"),
+//    x => x.MigrationsAssembly(@"Infrastructure.SqliteMigrations")),
+
+//    "SqlServer" => options.UseSqlServer(
+//        configuration.GetConnectionString("SqlServerConnection"),
+//    x => x.MigrationsAssembly(@"Infrastructure.SqlServerMigrations")),
+
+//    _ => throw new Exception($"Unsupported provider: {provider}")
+//});
+
 //builder.Services.AddAuthentication(options =>
 //{
 //    // JWT Bearer 
@@ -29,7 +43,7 @@ builder.Services.AddAuthorizationBuilder();
 //})
 //.AddJwtBearer(options =>
 //{
-    
+
 //    options.Authority = "https://securetoken.google.com/yourprojectid";
 //    options.Audience = "yourprojectid";
 //});
@@ -72,20 +86,47 @@ builder.Services.AddSingleton<ResultStore>();
 //builder.Services.AddSingleton<RabbitPublisher>();
 //builder.Services.AddHostedService<RabbitConsumer>();
 
-builder.Services.AddTickerQ(opt =>
+
+var sqlCon = configuration.GetConnectionString("SqlServerConnection");
+
+builder.Services.AddTickerQ(options =>
 {
-    opt.AddOperationalStore<ApplicationDbContext>(efOpt =>
+    options.AddOperationalStore(efOptions =>
     {
-        efOpt.UseModelCustomizerForMigrations();
-        efOpt.CancelMissedTickersOnAppStart();
+        //efOptions.UseTickerQDbContext<TickerQDbContext>(optionsBuilder =>
+        //{
+        //    optionsBuilder.UseSqlServer(sqlCon);
+        //});
+        //efOptions.SetDbContextPoolSize(34);
+
+        efOptions.UseTickerQDbContext<TickerQDbContext>(optionsBuilder =>
+        {
+            optionsBuilder.UseSqlServer(sqlCon,
+                cfg =>
+                {
+                    cfg.MigrationsAssembly("WebApi");
+                    cfg.EnableRetryOnFailure(3);
+                });
+        }, schema: "ticker");
     });
-
-    //opt.SetInstanceIdentifier("TickerQ");
-
-    // Enable Dashboard https://localhost:7263/tickerq-dashboard
-    //opt.AddDashboard(configureDashboard basePath: "/tickerq-dashboard");
-    opt.AddDashboard();
 });
+
+//builder.Services.AddTickerQ(options =>
+//{
+//    options.AddOperationalStore<ApplicationDbContext>(efOpt =>
+//    {
+//        efOptions.UseApplicationDbContext<ApplicationDbContext>(ConfigurationType.UseModelCustomizer);
+//        efOptions.SetDbContextPoolSize(128);
+//        efOpt.UseModelCustomizerForMigrations();
+//        efOpt.CancelMissedTickersOnAppStart();
+//    });
+
+//    //opt.SetInstanceIdentifier("TickerQ");
+
+//    // Enable Dashboard https://localhost:7263/tickerq-dashboard
+//    //opt.AddDashboard(configureDashboard basePath: "/tickerq-dashboard");
+//    //opt.AddDashboard();
+//});
 
 // Enable middleware to serve generated Swagger as a JSON endpoint.
 //builder.Services.AddSwaggerGen(options =>
@@ -131,14 +172,14 @@ var app = builder.Build();
 app.MapDefaultEndpoints();
 
 
-var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+//var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 
-    
+
     // Enable middleware to serve generated Swagger as a JSON endpoint.
     //app.UseSwagger();
     ////app.UseSwaggerUI();

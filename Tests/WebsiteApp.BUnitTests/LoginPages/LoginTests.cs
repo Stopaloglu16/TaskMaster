@@ -13,7 +13,7 @@ using WebsiteApp.Services;
 
 namespace WebsiteApp.BUnitTests.LoginPages;
 
-public class LoginTests : TestContext
+public class LoginTests : BunitContext
 {
 
     /// <summary>
@@ -23,17 +23,22 @@ public class LoginTests : TestContext
     [Fact]
     public void Login_Raises_LoginEvent()
     {
-        using var ctx = new TestContext();
-
-        var component = ctx.RenderComponent<RadzenLogin>();
+        using var ctx = new BunitContext();
 
         var clicked = false;
 
-        component.SetParametersAndRender(parameters => {
+        var component = ctx.Render<RadzenLogin>(parameters => {
             parameters.Add(p => p.Username, "user");
             parameters.Add(p => p.Password, "pwd");
             parameters.Add(p => p.Login, args => { clicked = true; });
         });
+
+        
+        //component.SetParametersAndRender(parameters => {
+        //    parameters.Add(p => p.Username, "user");
+        //    parameters.Add(p => p.Password, "pwd");
+        //    parameters.Add(p => p.Login, args => { clicked = true; });
+        //});
 
         component.Find("button").Click();
 
@@ -71,7 +76,7 @@ public class LoginTests : TestContext
         Services.AddSingleton<AuthenticationStateProvider>(new TestAuthenticationStateProvider(authenticationStateTask));
 
         // Render the component
-        var cut = RenderComponent<Login>(parameters => parameters
+        var cut = Render<Login>(parameters => parameters
             .AddCascadingValue(authenticationStateTask)
         );
 
@@ -81,7 +86,7 @@ public class LoginTests : TestContext
         loginButton.Click();
 
 
-        var fakeNavigationManager = Services.GetRequiredService<FakeNavigationManager>();
+        var fakeNavigationManager = Services.GetRequiredService<BunitNavigationManager>();
 
         // Assert: Verify the alert visibility and content
         Assert.False(cut.Instance.IsVisibleAlert, "The alert should be visible after clicking the button.");
@@ -120,7 +125,7 @@ public class LoginTests : TestContext
         Services.AddSingleton<AuthenticationStateProvider>(new TestAuthenticationStateProvider(authenticationStateTask));
 
         // Render the component
-        var cut = RenderComponent<Login>(parameters => parameters
+        var cut = Render<Login>(parameters => parameters
             .AddCascadingValue(authenticationStateTask)
         );
 
