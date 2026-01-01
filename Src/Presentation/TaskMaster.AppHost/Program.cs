@@ -15,25 +15,38 @@ var cache = builder.AddRedis("cache");
 var webapi = builder.AddProject<WebApi>("webapi")
     .WithReference(cache)
     .WaitFor(cache);
-  //.WithReference(rabbitmq)
-  //.WaitFor(rabbitmq);
+//.WithReference(rabbitmq)
+//.WaitFor(rabbitmq);
 
-// Add Scalar API Reference
-var scalar = builder.AddScalarApiReference();
+// Add Scalar API Reference Header: Authorization Bearer "Token"
+var scalar = builder.AddScalarApiReference(options =>
+{
+    options.WithTheme(ScalarTheme.BluePlanet);
+    //options.AddDocument("asd");
+});
+
 
 var webapiauth = builder.AddProject<WebApiAuth>("webapiauth");
 
 // Register services with the API Reference
-scalar.WithApiReference(webapi);
+scalar.WithApiReference(webapi)
+      .WithApiReference(webapiauth);
+
+
+var papercut = builder.AddPapercutSmtp("papercut");
+
 
 builder.AddProject<WebsiteApp>("websiteapp")
        .WithReference(webapiauth)
        .WaitFor(webapiauth)
        .WithReference(webapi)
-       .WaitFor(webapi);
+       .WaitFor(webapi)
+       .WithReference(papercut)
+       .WaitFor(papercut);
 
 
 builder.AddProject<WorkerServiceProcess>("workerserviceprocess").WithExplicitStart();
+
 
 
 builder.Build().Run();

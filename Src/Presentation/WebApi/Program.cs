@@ -20,20 +20,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddAuthorizationBuilder();
 
 var configuration = builder.Configuration;
-//var provider = builder.Configuration.GetValue("Provider", "SqlServer");
 
-//builder.Services.AddDbContext<ApplicationDbContext>(options => _ = provider switch
-//{
-//    "Sqlite" => options.UseSqlite(
-//        configuration.GetConnectionString("SqliteConnection"),
-//    x => x.MigrationsAssembly(@"Infrastructure.SqliteMigrations")),
-
-//    "SqlServer" => options.UseSqlServer(
-//        configuration.GetConnectionString("SqlServerConnection"),
-//    x => x.MigrationsAssembly(@"Infrastructure.SqlServerMigrations")),
-
-//    _ => throw new Exception($"Unsupported provider: {provider}")
-//});
 
 //builder.Services.AddAuthentication(options =>
 //{
@@ -89,16 +76,11 @@ builder.Services.AddSingleton<ResultStore>();
 
 var sqlCon = configuration.GetConnectionString("SqlServerConnection");
 
+//"/tickerq-dashboard"
 builder.Services.AddTickerQ(options =>
 {
     options.AddOperationalStore(efOptions =>
     {
-        //efOptions.UseTickerQDbContext<TickerQDbContext>(optionsBuilder =>
-        //{
-        //    optionsBuilder.UseSqlServer(sqlCon);
-        //});
-        //efOptions.SetDbContextPoolSize(34);
-
         efOptions.UseTickerQDbContext<TickerQDbContext>(optionsBuilder =>
         {
             optionsBuilder.UseSqlServer(sqlCon,
@@ -111,22 +93,6 @@ builder.Services.AddTickerQ(options =>
     });
 });
 
-//builder.Services.AddTickerQ(options =>
-//{
-//    options.AddOperationalStore<ApplicationDbContext>(efOpt =>
-//    {
-//        efOptions.UseApplicationDbContext<ApplicationDbContext>(ConfigurationType.UseModelCustomizer);
-//        efOptions.SetDbContextPoolSize(128);
-//        efOpt.UseModelCustomizerForMigrations();
-//        efOpt.CancelMissedTickersOnAppStart();
-//    });
-
-//    //opt.SetInstanceIdentifier("TickerQ");
-
-//    // Enable Dashboard https://localhost:7263/tickerq-dashboard
-//    //opt.AddDashboard(configureDashboard basePath: "/tickerq-dashboard");
-//    //opt.AddDashboard();
-//});
 
 // Enable middleware to serve generated Swagger as a JSON endpoint.
 //builder.Services.AddSwaggerGen(options =>

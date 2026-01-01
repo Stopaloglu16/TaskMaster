@@ -77,6 +77,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebsiteApp.PlaywrightTests"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Mermaids", "Mermaids", "{F19EEAB9-C8C4-4341-A026-D1C6ED2B37AF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject1.TestContainers", "Tests\TestProject1.TestContainers\TestProject1.TestContainers.csproj", "{38FAC070-2AEB-44F9-A31F-0692585283EB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -179,6 +181,10 @@ Global
 		{D47D098F-8692-4A72-9602-B5FEFF02B039}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D47D098F-8692-4A72-9602-B5FEFF02B039}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D47D098F-8692-4A72-9602-B5FEFF02B039}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38FAC070-2AEB-44F9-A31F-0692585283EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38FAC070-2AEB-44F9-A31F-0692585283EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38FAC070-2AEB-44F9-A31F-0692585283EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38FAC070-2AEB-44F9-A31F-0692585283EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -212,6 +218,7 @@ Global
 		{8E3DAA54-0998-414C-9D87-AF991670EED5} = {D1071BB3-2C6B-45C2-B538-707D462B9F5C}
 		{D47D098F-8692-4A72-9602-B5FEFF02B039} = {AC84E431-EC65-415A-B649-736F0A044467}
 		{F19EEAB9-C8C4-4341-A026-D1C6ED2B37AF} = {99F97F37-B2BB-4D45-899F-190F5CA61CC6}
+		{38FAC070-2AEB-44F9-A31F-0692585283EB} = {AC84E431-EC65-415A-B649-736F0A044467}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5B8B3F2C-AE0B-4C1D-824D-9EC8F8E6C8C5}

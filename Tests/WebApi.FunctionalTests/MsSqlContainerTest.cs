@@ -6,7 +6,6 @@ using JetBrains.Annotations;
 
 namespace WebApi.FunctionalTests;
 
-
 public abstract class MsSqlContainerTest : IAsyncLifetime
 {
     private readonly MsSqlContainer _msSqlContainer;
@@ -46,13 +45,16 @@ public abstract class MsSqlContainerTest : IAsyncLifetime
         // Given
         const string scriptContent = "SELECT 1;";
 
-        // When
-        var execResult = await _msSqlContainer.ExecScriptAsync(scriptContent)
-            .ConfigureAwait(true);
+        // When: execute the script via ADO.NET against the container's SQL Server instead of using container exec APIs
+        await using var connection = new SqlConnection(_msSqlContainer.GetConnectionString());
+        await connection.OpenAsync().ConfigureAwait(false);
+
+        await using var command = new SqlCommand(scriptContent, connection);
+        var result = await command.ExecuteScalarAsync().ConfigureAwait(false);
 
         // Then
-        Assert.True(0L.Equals(execResult.ExitCode), execResult.Stderr);
-        Assert.Empty(execResult.Stderr);
+        Assert.NotNull(result);
+        Assert.Equal(1, Convert.ToInt32(result));
     }
     // # --8<-- [end:UseMsSqlContainer]
 
