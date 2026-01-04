@@ -3,7 +3,7 @@ using Scalar.Aspire;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-var cache = builder.AddRedis("cache");
+var redis = builder.AddRedis("redis");
 
 //var username = builder.AddParameter("username", secret: true);
 //var password = builder.AddParameter("password", secret: true);
@@ -11,12 +11,15 @@ var cache = builder.AddRedis("cache");
 //var rabbitmq = builder.AddRabbitMQ("messaging", username, password)
 //                                                      .WithManagementPlugin();
 
+var papercut = builder.AddPapercutSmtp("papercut", 80, 25);
 
 var webapi = builder.AddProject<WebApi>("webapi")
-    .WithReference(cache)
-    .WaitFor(cache);
-  //.WithReference(rabbitmq)
-  //.WaitFor(rabbitmq);
+    .WithReference(redis)
+    .WaitFor(redis)
+    .WithReference(papercut)
+    .WaitFor(papercut);
+//.WithReference(rabbitmq)
+//.WaitFor(rabbitmq);
 
 // Add Scalar API Reference
 var scalar = builder.AddScalarApiReference();

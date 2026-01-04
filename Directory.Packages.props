@@ -3,6 +3,8 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="Aspire.Hosting.Azure.Redis" Version="13.1.0" />
+    <PackageVersion Include="CommunityToolkit.Aspire.Hosting.PapercutSmtp" Version="13.0.0" />
     <PackageVersion Include="JetBrains.Annotations" Version="2025.2.4" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.1" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.1" />
@@ -35,9 +37,9 @@
     <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
     <PackageVersion Include="Aspire.RabbitMQ.Client" Version="13.0.2" />
     <PackageVersion Include="Aspire.Hosting.Docker" Version="9.3.1-preview.1.25305.6" />
-    <PackageVersion Include="Aspire.Hosting.Redis" Version="13.0.2" />
-    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="13.0.2" />
-    <PackageVersion Include="Scalar.Aspire" Version="0.8.5" />
+    <PackageVersion Include="Aspire.Hosting.Redis" Version="13.1.0" />
+    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="13.1.0" />
+    <PackageVersion Include="Scalar.Aspire" Version="0.8.8" />
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.1.0" />
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.1.0" />
     <PackageVersion Include="OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore" Version="1.0.0-beta2" />

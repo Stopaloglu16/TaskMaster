@@ -12,8 +12,8 @@ using TickerQ.EntityFrameworkCore.DbContextFactory;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(TickerQDbContext))]
-    [Migration("20251213151325_tickerq2")]
-    partial class tickerq2
+    [Migration("20260104133225_InitialTickerq")]
+    partial class InitialTickerq
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

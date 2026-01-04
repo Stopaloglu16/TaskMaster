@@ -1,7 +1,10 @@
 ﻿using Application.Common.Interfaces;
 using Domain.Common;
 using Domain.Entities;
+using Domain.Enums;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Reflection;
 using TickerQ.EntityFrameworkCore.Configurations;
 
@@ -43,7 +46,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
         //builder.ApplyConfiguration(new CronTickerOccurrenceConfigurations("ticker"));
 
 
-        SeedAdminUser(builder);
+        //SeedAdminUser(builder);
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
 
@@ -84,18 +87,20 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
         }
     }
 
-    private void SeedAdminUser(ModelBuilder builder)
-    {
-        const string adminUserName = "taskmaster@hotmail.co.uk";
-
-        builder.Entity<User>().HasData(new User
-        {
-            Id = 1,
-            FullName = adminUserName,
-            UserEmail = adminUserName,
-            UserTypeId = Domain.Enums.UserType.AdminUser
-        });
-    }
+    //private void SeedAdminUser(ModelBuilder builder)
+    //{
+    //    foreach (var userType in Enum.GetValues(typeof(UserType)))
+    //    {
+    //        builder.Entity<User>().HasData(new User
+    //        {
+    //            FullName = userType + " user",
+    //            UserEmail = $"{userType}@hotmail.co.uk",
+    //            UserTypeId = userType is UserType.AdminUser ? Domain.Enums.UserType.AdminUser :
+    //                             userType is UserType.TaskUser ? Domain.Enums.UserType.TaskUser :
+    //                             Domain.Enums.UserType.ReadOnly
+    //        });
+    //    }
+    //}
 
 
 }

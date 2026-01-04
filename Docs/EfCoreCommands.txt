@@ -17,6 +17,6 @@ Update-Database -context Infrastructure.Data.WebIdentityContext
 
 
 TickerQ Db
-Add-Migration tickerq2 -Context TickerQDbContext -Args "--Provider SqlServer"
+Add-Migration InitialTickerq -Context TickerQDbContext -Args "--Provider SqlServer"
 Update-Database -context TickerQDbContext
 
