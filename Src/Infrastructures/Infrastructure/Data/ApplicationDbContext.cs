@@ -1,8 +1,12 @@
 ﻿using Application.Common.Interfaces;
 using Domain.Common;
 using Domain.Entities;
+using Domain.Enums;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Reflection;
+using TickerQ.EntityFrameworkCore.Configurations;
 
 namespace Infrastructure.Data;
 
@@ -16,28 +20,43 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
         _currentUserService = currentUserService;
     }
 
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+    {
+        
+    }
+
     public DbSet<TaskList> TaskLists { get; set; }
     public DbSet<TaskItem> TaskItems { get; set; }
+
+    public DbSet<FileJob> FileJobs { get; set; }
+    public DbSet<FileJobUpload> FileJobUploads { get; set; }
+
     public DbSet<User> Users { get; set; }
-    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
+        builder.Entity<TaskList>().HasQueryFilter(p => p.IsDeleted == 0);
+        builder.Entity<TaskItem>().HasQueryFilter(p => p.IsDeleted == 0);
+        builder.Entity<User>().HasQueryFilter(p => p.IsDeleted == 0);
+
         base.OnModelCreating(builder);
-        SeedAdminUser(builder);
+
+        //builder.ApplyConfiguration(new TimeTickerConfigurations(  "ticker"));
+        //builder.ApplyConfiguration(new CronTickerConfigurations("ticker"));
+        //builder.ApplyConfiguration(new CronTickerOccurrenceConfigurations("ticker"));
+
+
+        //SeedAdminUser(builder);
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
 
-
-    public virtual async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            //Console.WriteLine( _currentUserService.UserName );
-
             if (_currentUserService != null)
             {
-                if (!String.IsNullOrEmpty(_currentUserService.UserId) && !String.IsNullOrEmpty(_currentUserService.UserName))
+                if (!string.IsNullOrEmpty(_currentUserService.UserId) && !string.IsNullOrEmpty(_currentUserService.UserName))
                 {
                     var userId = _currentUserService.UserId;
 
@@ -66,21 +85,22 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
         {
             throw new Exception($"SaveChangesAsync {ex.Message}");
         }
-
     }
 
+    //private void SeedAdminUser(ModelBuilder builder)
+    //{
+    //    foreach (var userType in Enum.GetValues(typeof(UserType)))
+    //    {
+    //        builder.Entity<User>().HasData(new User
+    //        {
+    //            FullName = userType + " user",
+    //            UserEmail = $"{userType}@hotmail.co.uk",
+    //            UserTypeId = userType is UserType.AdminUser ? Domain.Enums.UserType.AdminUser :
+    //                             userType is UserType.TaskUser ? Domain.Enums.UserType.TaskUser :
+    //                             Domain.Enums.UserType.ReadOnly
+    //        });
+    //    }
+    //}
 
-    private void SeedAdminUser(ModelBuilder builder)
-    {
-        const string adminUserName = "taskmaster@hotmail.co.uk";
 
-
-        builder.Entity<User>().HasData(new User
-        {
-            Id = 1,
-            FullName = adminUserName,
-            UserEmail = adminUserName,
-            UserTypeId = Domain.Enums.UserType.AdminUser
-        });
-    }
 }

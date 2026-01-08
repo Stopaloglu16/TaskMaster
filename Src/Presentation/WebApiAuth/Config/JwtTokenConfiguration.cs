@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
+using System.Reflection.Metadata;
 using System.Text;
 using WebApiAuth.Models;
 
@@ -19,13 +20,15 @@ public static class JwtTokenConfiguration
 
         }).AddJwtBearer(x =>
         {
-            x.RequireHttpsMetadata = true;
+            //x.Audience = "",
+            //x.Authority = "",
+            x.RequireHttpsMetadata = false; //TODO close for local IIS development
             x.SaveToken = true;
             x.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.SecretKey)),
-                ValidateIssuer = true,
+                ValidateIssuer = false,
                 ValidateAudience = false,
                 ClockSkew = TimeSpan.Zero
             };
@@ -38,17 +41,18 @@ public static class JwtTokenConfiguration
             In = ParameterLocation.Header,
             Type = SecuritySchemeType.Http,
             Scheme = "bearer",
-            Reference = new OpenApiReference
-            {
-                Type = ReferenceType.SecurityScheme,
-                Id = "Bearer"
-            }
+            BearerFormat = "JWT"
         };
+
+        OpenApiDocument document = new OpenApiDocument();
+
+        // TODO inspect document usage
 
         var securityReq = new OpenApiSecurityRequirement
         {
-            { securityScheme, new[] { "Bearer" } }
+            [new OpenApiSecuritySchemeReference("bearer", document)] = []
         };
+
 
         var contact = new OpenApiContact()
         {
@@ -71,7 +75,10 @@ public static class JwtTokenConfiguration
         {
             o.SwaggerDoc("v1", info);
             o.AddSecurityDefinition("Bearer", securityScheme);
-            o.AddSecurityRequirement(securityReq);
+            o.AddSecurityRequirement((document => new OpenApiSecurityRequirement
+            {
+                [new OpenApiSecuritySchemeReference("bearer", document)] = []
+            }));
         });
 
 

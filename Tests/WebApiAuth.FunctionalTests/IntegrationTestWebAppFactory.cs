@@ -88,7 +88,7 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
     }
 
 
-    public async Task<IdentityUser> RegisterUser()
+    public async Task<IdentityUser> GetAdminUser()
     {
         using var scope = Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<WebIdentityContext>();

@@ -15,7 +15,7 @@ public class WebIdentityContext : IdentityDbContext
     {
         base.OnModelCreating(builder);
 
-        SeedAdminUser(builder);
+        //SeedAdminUser(builder);
 
         //if (!Database.IsSqlite())
         //{
@@ -24,29 +24,27 @@ public class WebIdentityContext : IdentityDbContext
     }
 
 
-    private void SeedAdminUser(ModelBuilder builder)
-    {
+    //private void SeedAdminUser(ModelBuilder builder)
+    //{
+    //    const string seedPassword = "SuperStrongPassword+123";
 
-        const string seedPassword = "SuperStrongPassword+123";
+    //    var hasher = new PasswordHasher<IdentityUser>();
 
-        var hasher = new PasswordHasher<IdentityUser>();
+    //    foreach (var userType in Enum.GetValues(typeof(UserType)))
+    //    {
+    //        string seedUserName = $"{userType}@hotmail.co.uk";
 
-        foreach (var userType in Enum.GetValues(typeof(UserType)))
-        {
-            string seedUserName = $"{userType}@hotmail.co.uk";
-
-            builder.Entity<IdentityUser>().HasData(new IdentityUser
-            {
-                Id = Guid.NewGuid().ToString(),
-                UserName = userType.ToString(),
-                NormalizedUserName = seedUserName.ToUpper(),
-                Email = seedUserName,
-                NormalizedEmail = seedUserName.ToUpper(),
-                EmailConfirmed = true,
-                PasswordHash = hasher.HashPassword(null, seedPassword)
-            });
-        }
-
-    }
+    //        builder.Entity<IdentityUser>().HasData(new IdentityUser
+    //        {
+    //            Id = Guid.NewGuid().ToString(),
+    //            UserName = userType.ToString(),
+    //            NormalizedUserName = seedUserName.ToUpper(),
+    //            Email = seedUserName,
+    //            NormalizedEmail = seedUserName.ToUpper(),
+    //            EmailConfirmed = true,
+    //            PasswordHash = hasher.HashPassword(null, seedPassword)
+    //        });
+    //    }
+    //}
 
 }

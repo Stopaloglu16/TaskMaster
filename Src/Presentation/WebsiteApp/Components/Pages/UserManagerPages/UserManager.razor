@@ -1,0 +1,345 @@
+﻿@page "/usermanager"
+
+@using Application.Aggregates.UserAggregate.Commands
+@using Application.Aggregates.UserAggregate.Queries
+@using Application.Common.Models
+@using Domain.Enums
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using WebsiteApp.Services
+﻿@using Microsoft.AspNetCore.Components.QuickGrid
+
+@inject IWebApiService<UserDto, UserDto> _userService
+@inject IWebApiService<CreateUserRequest, CreateUserRequest> _createUserService
+@inject IWebApiService<UpdateUserRequest, UpdateUserRequest> _updateUserService
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+
+@attribute [Authorize(Roles = "AdminUser")]
+
+@implements IDisposable
+@rendermode InteractiveServer
+
+<PageTitle>User Manager</PageTitle>
+
+<div class="container mt-3">
+
+    <div class="card">
+        <div class="card-header">
+            <RadzenBreadCrumb>
+                <RadzenBreadCrumbItem Path="/home" Text="Home" />
+                <RadzenBreadCrumbItem Text="User Manager" />
+
+            </RadzenBreadCrumb>
+
+        </div>
+        <div class="card-header">
+            <RadzenButton Icon="add" Text="New" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                          class="rz-my-1 rz-ms-1" Click="@(args => EditUser(0))" />
+        </div>
+        <div class="card-body">
+            <RadzenStack Gap="1rem">
+                <RadzenDataGrid @ref=@gridItemsProvider TItem="UserDto" Data="@userList" LoadData="@LoadData" IsLoading="@isLoading"
+                                AllowPaging="true" AllowSorting="false" PagerHorizontalAlign="HorizontalAlign.Center"
+                                PageSizeOptions="@pageSizeOptions" ShowPagingSummary="@showPagerSummary"
+                                Count="@totalItemCount">
+                    <PagingSummaryTemplate>
+                        <RadzenIcon Icon="database" Style="color: var(--rz-primary); font-size: var(--rz-pager-summary-font-size);" />
+                        Displaying page @context.CurrentPage of @context.NumberOfPages <b>(total @context.TotalCount records)</b>
+                    </PagingSummaryTemplate>
+                    <Columns>
+                        <RadzenDataGridColumn Property="@nameof(UserDto.FullName)" Title="FullName" />
+                        <RadzenDataGridColumn Property="@nameof(UserDto.UserType)" Title="UserType" />
+                        <RadzenDataGridColumn TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+                            <Template>
+                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                              class="rz-my-1 rz-ms-1" Click="@(async () => await EditUser(context.Id))" />
+                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                              class="rz-my-1 rz-ms-1" Click="@(() => ActionItem(context , 1))" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            </RadzenStack>
+        </div>
+    </div>
+</div>
+
+
+@if (UserModalOpen)
+{
+    <UserModal userFormRequest="@userFormRequest" userTypeList="@userTypeList"
+               OnClose="@SaveUserModel">
+    </UserModal>
+}
+
+
+@code {
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+    private CancellationTokenSource? _cts = new();
+
+    RadzenDataGrid<UserDto> gridItemsProvider;
+    IEnumerable<UserDto> userList;
+    ODataEnumerable<UserDto> userListDtos;
+
+    bool showPagerSummary = true;
+
+    bool isLoading;
+    private int totalItemCount = 0;
+    private int pageNumber = 1;
+    private int itemsPerPage = 10;
+    IEnumerable<int> pageSizeOptions = new int[] { 5, 10, 20, 30 };
+
+    public bool UserModalOpen = false;
+    public UserFormRequest userFormRequest { get; set; }
+    private List<UserType> userTypeList { get; set; } = new List<UserType>();
+
+
+    protected async override Task OnInitializedAsync()
+    {
+        var authState = await authenticationState;
+        var user = authState.User;
+
+
+        if (!user.Identity.IsAuthenticated)
+            NavigationManager.NavigateTo("/", true);
+
+
+        await base.OnInitializedAsync();
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            userTypeList = new List<UserType>();
+
+            foreach (UserType userType in Enum.GetValues(typeof(UserType)))
+            {
+                userTypeList.Add(userType);
+            }
+
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task LoadData(LoadDataArgs args)
+    {
+        try
+        {
+            isLoading = true;
+            itemsPerPage = args.Top ?? 10;
+
+            int pageNumber = ((int)args.Skip / itemsPerPage) + 1;
+
+            var response = await _userService.GetPagingDataAsync(
+            $"Users/userlist?PageNumber={pageNumber}&PageSize={itemsPerPage}&OrderBy=Id&IsDescending=false", _cts.Token, true);
+
+            if (response != null)
+            {
+                totalItemCount = response.TotalCount;
+
+                userListDtos = response.Items.AsODataEnumerable();
+                // Return the grid data
+                userList = response.Items;
+            }
+            else
+            {
+                // Log or handle the null response scenario
+                Console.Error.WriteLine("Failed to load task list data. API returned null.");
+            }
+
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            NotificationMessage errorMessage = new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Error",
+                Detail = $"Failed to load data: {ex.Message}",
+                Duration = 4000
+            };
+
+            ShowNotification(errorMessage);
+        }
+    }
+
+
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+
+
+
+    #region Modal
+
+    private async Task ModalSuccess()
+    {
+        UserModalOpen = false;
+        await gridItemsProvider.RefreshDataAsync();  // Reload data with the updated page size
+        StateHasChanged();
+    }
+
+    protected async Task EditUser(int Id)
+    {
+        if (Id > 0)
+        {
+            var apiReturn = await _userService.GetDataByIdAsync($"users/user/{Id}", true);
+
+            userFormRequest = new UserFormRequest()
+                {
+                    Id = apiReturn.Id,
+                    FullName = apiReturn.FullName,
+                    UserEmail = apiReturn.UserEmail,
+                    UserType = apiReturn.UserType
+                };
+        }
+        else
+        {
+            userFormRequest = new UserFormRequest() { Id = 0, FullName = "", UserEmail = "" };
+        }
+
+        UserModalOpen = true;
+    }
+
+    protected async Task SaveUserModel(UserFormRequest userFormRequest)
+    {
+        if (userFormRequest == null)
+        {
+            UserModalOpen = false;
+        }
+        else
+        {
+            HttpResponseMessage apiReturn;
+
+            if (userFormRequest.Id > 0)
+            {
+                UpdateUserRequest updateUserRequest = new UpdateUserRequest()
+                    {
+                        Id = userFormRequest.Id,
+                        FullName = userFormRequest.FullName,
+                        UserEmail = userFormRequest.UserEmail
+                    };
+
+                apiReturn = await _updateUserService.UpdateAsync("users", userFormRequest.Id, updateUserRequest, true);
+            }
+            else
+            {
+                CreateUserRequest createUserRequest = new CreateUserRequest()
+                    {
+                        FullName = userFormRequest.FullName,
+                        UserEmail = userFormRequest.UserEmail,
+                        UserType = userFormRequest.UserType
+                    };
+                apiReturn = await _createUserService.SaveAsync("users", createUserRequest, true);
+            }
+
+            //UserModalOpen = false;
+
+            if (apiReturn.IsSuccessStatusCode)
+            {
+                ShowNotification(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Summary = ActionNameModel.Saved,
+                        Detail = $"{userFormRequest.FullName} is {ActionNameModel.Saved}",
+                        Duration = 4000
+                    });
+
+                await ModalSuccess();
+            }
+            else
+            {
+                ShowNotification(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Error",
+                        Detail = apiReturn.StatusCode.ToString(),
+                        Duration = 4000
+                    });
+            }
+
+        }
+
+        //StateHasChanged();
+
+    }
+
+    #endregion
+
+
+    #region ActionPerItemModal
+
+    private bool ActionPerItemModalOpen { get; set; } = false;
+
+    private int ItemIdAction;
+    private string ActionItemText = "";
+    public string ActionName { get; set; }
+    private int ActionTypeId { get; set; }
+
+    public void ActionItem(UserDto userDto, int _ActionTypeId)
+    {
+        ItemIdAction = userDto.Id;
+        ActionItemText = userDto.FullName;
+        ActionTypeId = _ActionTypeId;
+
+        if (ActionTypeId == 1)
+        {
+            ActionName = ActionNameModel.Delete;
+        }
+
+        ActionPerItemModalOpen = true;
+    }
+
+
+
+    private async Task OnActionPerItemModalClose(bool RtnAction)
+    {
+        if (RtnAction == false)
+        {
+            ActionPerItemModalOpen = false;
+        }
+        else
+        {
+
+            bool IsSuccess = false;
+
+            if (ActionTypeId == 1)
+            {
+                var apiReturn = await _userService.DeleteAsync($"user", ItemIdAction);
+                IsSuccess = apiReturn.IsSuccessStatusCode;
+            }
+
+
+            if (IsSuccess)
+            {
+                //toastService.ShowSuccess($"{ActionItemText} {ActionName}d");
+
+                ShowNotification(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Warning,
+                        Summary = "Deleted",
+                        Detail = $"{ActionItemText} {ActionName}d",
+                        Duration = 4000
+                    });
+
+                await ModalSuccess();
+            }
+        }
+    }
+
+    #endregion
+
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _cts?.Dispose();
+    }
+}

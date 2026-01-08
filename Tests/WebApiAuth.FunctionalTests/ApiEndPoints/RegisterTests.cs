@@ -8,9 +8,9 @@ using SharedUtilityTestMethods;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace WebApiAuth.FunctionalTests.ApiEndPoints;
-
 
 public class RegisterTests : BaseIntegrationTest
 {
@@ -26,7 +26,7 @@ public class RegisterTests : BaseIntegrationTest
     public async Task Create_RegisterUser_Success()
     {
 
-        var identityUserMock = await _factory.RegisterUser();
+        var identityUserMock = await _factory.GetAdminUser();
 
         var userMock = await _dbContext.Users.FirstAsync();
 
@@ -76,18 +76,24 @@ public class RegisterTests : BaseIntegrationTest
 
         foreach (var message in mailResponse1.Messages)
         {
-            mailId = mailResponse1.Messages[0].Id;
-            var request = new FetchMessageRequest() { Domain = MailinatorDomain, MessageId = mailId };
-            var responseFetch = await mailinatorClient.MessagesClient.FetchMessageAsync(request);
-
-            var textArray = responseFetch.Text.Split('|');
-
-            if (createUserRequest.UserEmail == textArray[0].ToString())
+            if(message.Subject == "Register")
             {
-                mockRegisterUserEmail = textArray[0].ToString();
-                mockRegisterUserToken = textArray[1].ToString();
+                mailId = mailResponse1.Messages[0].Id;
+                var request = new FetchMessageRequest() { Domain = MailinatorDomain, MessageId = mailId };
+                var responseFetch = await mailinatorClient.MessagesClient.FetchMessageAsync(request);
 
-                break;
+                string urlPattern = @"<a href='([^']*)'>";
+                Match match = Regex.Match(responseFetch.Text.ToString(), urlPattern);
+
+                var textArray = match.Groups[1].Value.Split('/');
+
+                if (createUserRequest.UserEmail == textArray[4].ToString())
+                {
+                    mockRegisterUserEmail = textArray[4].ToString();
+                    mockRegisterUserToken = textArray[5].ToString();
+
+                    break;
+                }
             }
         }
 

@@ -1,4 +1,6 @@
-﻿using Application.Aggregates.TaskItemAggregate.Queries;
+﻿using Application.Aggregates.TaskItemAggregate.Commands.CreateUpdate;
+using Application.Aggregates.TaskItemAggregate.Commands.Update;
+using Application.Aggregates.TaskListAggregate.Queries;
 using SharedTestDataLibrary.TaskDataSample;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -7,7 +9,6 @@ using WebApi.FunctionalTests.Utility;
 
 namespace WebApi.FunctionalTests.TaskItemTests;
 
-
 [TestCaseOrderer(
     ordererTypeName: "WebApi.FunctionalTests.Utility.PriorityOrderer",
     ordererAssemblyName: "WebApi.FunctionalTests")]
@@ -15,6 +16,9 @@ public class TaskItemApiTests : BaseIntegrationTest
 {
 
     private string token { get; set; }
+    private string apiVersion = "v1.0";
+    const int pageNumber = 1;
+    const int ItemsPerPage = 10;
 
     public TaskItemApiTests(IntegrationTestWebAppFactory factory) : base(factory)
     {
@@ -22,7 +26,6 @@ public class TaskItemApiTests : BaseIntegrationTest
 
         // Set JWT Token in the Authorization header
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
     }
 
 
@@ -57,23 +60,43 @@ public class TaskItemApiTests : BaseIntegrationTest
         var response = await _httpClient.PutAsync($"/api/v1.0/taskitem/1", HttpHelper.GetJsonHttpContent(mockTaskItem));
 
         // Assert
-        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        Assert.True(System.Net.HttpStatusCode.OK == response.StatusCode, $"Put taskitem {response.StatusCode}");
 
-
-        var response1 = await _httpClient.GetAsync($"/api/v1.0/taskitem?taskItemId=1");
+        var response1 = await _httpClient.GetAsync($"/api/v1.0/taskitem/1");
         Assert.Equal(System.Net.HttpStatusCode.OK, response1.StatusCode);
 
-        var result = await response1.Content.ReadFromJsonAsync<List<TaskItemDto>>();
+        var result = await response1.Content.ReadFromJsonAsync<TaskItemFormRequest>();
 
-        Assert.Equal(mockTitle, result[0].Title);
-        Assert.Equal(mockDescription, result[0].Description);
+        Assert.Equal(mockTitle, result.Title);
+        Assert.Equal(mockDescription, result.Description);
     }
 
 
     [Fact, TestPriority(3)]
-    public async Task RemoveTaskItem_ValidTaskItem_RemoveSuccess()
+    public async Task CompleteTaskItem_ValidTaskItem_CompleteSuccess()
     {
 
+        // Arrange
+        CompleteTaskItemRequest completeTaskItemRequest = new CompleteTaskItemRequest(taskListId: 1, taskItemId: 1);
+
+        // Act
+        var response = await _httpClient.PatchAsJsonAsync($"/api/v1.0/taskitem/CompleteSingleItem", completeTaskItemRequest);
+
+        // Assert
+        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+
+        var response1 = await _httpClient.GetAsync($"/api/v1.0/tasklist/GetTaskList/1");
+        Assert.Equal(System.Net.HttpStatusCode.OK, response1.StatusCode);
+
+        var result = await response1.Content.ReadFromJsonAsync<TaskListDto>();
+
+        Assert.Equal(1, result.TaskItemCompletedCount);
+    }
+
+
+    [Fact, TestPriority(4)]
+    public async Task RemoveTaskItem_ValidTaskItem_RemoveSuccess()
+    {
         // Arrange
 
         // Act
@@ -82,10 +105,9 @@ public class TaskItemApiTests : BaseIntegrationTest
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.NoContent, response.StatusCode);
 
-        var response1 = await _httpClient.GetAsync($"/api/v1.0/taskitem?taskItemId=1");
-        var result = await response1.Content.ReadFromJsonAsync<List<TaskItemDto>>();
+        var response1 = await _httpClient.GetAsync($"/api/v1.0/taskitem/1");
 
-        Assert.Equal(0, result.Count);
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response1.StatusCode);
     }
 
 }

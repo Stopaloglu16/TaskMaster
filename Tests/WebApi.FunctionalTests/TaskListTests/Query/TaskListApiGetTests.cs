@@ -7,7 +7,6 @@ using WebApi.FunctionalTests.Helpers;
 
 namespace WebApi.FunctionalTests.TaskListTests.Query;
 
-
 public class TaskListApiGetTests : BaseIntegrationTest
 {
 
@@ -64,7 +63,6 @@ public class TaskListApiGetTests : BaseIntegrationTest
                 Assert.Equal(4, taskList.TaskItemCount);
                 Assert.Equal(4, taskList.TaskItemCompletedCount);
             }
-
         }
     }
 

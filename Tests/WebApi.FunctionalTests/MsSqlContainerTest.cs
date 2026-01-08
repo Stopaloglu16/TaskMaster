@@ -1,8 +1,8 @@
-﻿using JetBrains.Annotations;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Data.Common;
 using Testcontainers.MsSql;
+using JetBrains.Annotations;
 
 namespace WebApi.FunctionalTests;
 
@@ -65,5 +65,6 @@ public abstract class MsSqlContainerTest : IAsyncLifetime
         {
         }
     }
+
     // # --8<-- [end:CreateMsSqlContainer]
 }

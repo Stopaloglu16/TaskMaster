@@ -2,17 +2,15 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="C4Sharp" Version="7.0.189" />
+    <PackageReference Include="C4Sharp" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Images\" />
+    <Folder Include="Properties\" />
   </ItemGroup>
 
 </Project>

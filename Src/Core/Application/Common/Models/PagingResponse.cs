@@ -1,20 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace Application.Common.Models;
 
 
 public class PagingResponse<T>
 {
-    //public PagingResponse(IReadOnlyCollection<T> items, int count, int pageNumber, int pageSize)
-    //{
-    //    PageNumber = pageNumber;
-    //    TotalPages = (int)Math.Ceiling(count / (double)pageSize);
-    //    TotalCount = count;
-    //    Items = items;
-    //}
-
-    // public PagingResponse() { }
 
     public PagingResponse(IReadOnlyCollection<T> items)
     {
@@ -31,11 +22,62 @@ public class PagingResponse<T>
     public bool HasNextPage => PageNumber < TotalPages;
 
 
-    public static async Task<PagingResponse<T>> CreateAsync(IQueryable<T> source, PagingParameters pagingParameters)
-    {
-        var count = await source.CountAsync();
-        var items = await source.Skip((pagingParameters.PageNumber - 1) * pagingParameters.PageSize).Take(pagingParameters.PageSize).ToListAsync();
+    //public static async Task<PagingResponse<T>> CreateAsync(IQueryable<T> source, PagingParameters pagingParameters)
+    //{
+    //    var count = await source.CountAsync();
+    //    var items = await source.Skip((pagingParameters.PageNumber - 1) * pagingParameters.PageSize).Take(pagingParameters.PageSize).ToListAsync();
 
-        return new PagingResponse<T>(items) { PageNumber = pagingParameters.PageNumber, PageSize = pagingParameters.PageSize, TotalCount = count};
+    //    return new PagingResponse<T>(items) { PageNumber = pagingParameters.PageNumber, PageSize = pagingParameters.PageSize, TotalCount = count };
+    //}
+
+    public static async Task<PagingResponse<T>> CreateAsync(IQueryable<T> source, 
+                                                            PagingParameters pagingParameters, 
+                                                            CancellationToken cancellationToken = default)
+    {
+
+        if(cancellationToken.IsCancellationRequested)
+            return new PagingResponse<T>(Array.Empty<T>())
+            {
+                PageNumber = pagingParameters.PageNumber,
+                PageSize = pagingParameters.PageSize,
+                TotalCount = 0
+            };
+
+        // Check if the source supports async (is an IAsyncEnumerable)
+        if (source.Provider is IAsyncQueryProvider)
+        {
+            var count = await source.CountAsync();
+            var items = await source
+                .Skip((pagingParameters.PageNumber - 1) * pagingParameters.PageSize)
+                .Take(pagingParameters.PageSize)
+                .ToListAsync(cancellationToken);
+
+            return new PagingResponse<T>(items)
+            {
+                PageNumber = pagingParameters.PageNumber,
+                PageSize = pagingParameters.PageSize,
+                TotalCount = count
+            };
+        }
+        else
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Fall back to synchronous if async not supported (in-memory list, etc.)
+            var count = source.Count();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var items = source
+                .Skip((pagingParameters.PageNumber - 1) * pagingParameters.PageSize)
+                .Take(pagingParameters.PageSize)
+                .ToList();
+
+            return new PagingResponse<T>(items)
+            {
+                PageNumber = pagingParameters.PageNumber,
+                PageSize = pagingParameters.PageSize,
+                TotalCount = count
+            };
+        }
     }
 }

@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities;
 
-
 public class User : BaseAuditableEntity<int>
 {
     [Column(TypeName = "varchar(100)")]
@@ -15,15 +14,15 @@ public class User : BaseAuditableEntity<int>
 
     public UserType UserTypeId { get; set; }
 
+    [Column(TypeName = "varchar(450)")]
     public string? AspId { get; set; }
+    //public Guid UserGuidId { get; set; } = Guid.NewGuid();
 
     public Guid RegisterToken { get; set; } = Guid.NewGuid();
-    public DateTime RegisterTokenValid { get; set; }
+    public DateTime RegisterTokenExpieryTime { get; set; }
+
+    public string? RefreshToken { get; set; }
+    public DateTime RefreshTokenExpiryTime { get; set; }
 
     public virtual ICollection<TaskList>? TaskLists { get; set; } = new List<TaskList>();
-
-
-    [InverseProperty(nameof(RefreshToken.User))]
-    public virtual ICollection<RefreshToken> RefreshTokens { get; set; }
-
 }

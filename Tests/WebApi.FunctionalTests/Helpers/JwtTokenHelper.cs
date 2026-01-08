@@ -33,6 +33,7 @@ namespace WebApi.FunctionalTests.Helpers
                 expires: DateTime.Now.AddMinutes(30),
                 signingCredentials: creds);
 
+
             return new JwtSecurityTokenHandler().WriteToken(token);
 
 

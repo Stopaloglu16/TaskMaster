@@ -26,7 +26,7 @@ public class UserService : IUserService
             FullName = createUserRequest.FullName,
             UserEmail = createUserRequest.UserEmail,
             UserTypeId = createUserRequest.UserType,
-            RegisterTokenValid = DateTime.UtcNow.AddHours(2)
+            RegisterTokenExpieryTime = DateTime.UtcNow.AddHours(2)
         };
 
         var newUserRepo = await _userRepository.AddAsync(newUser);
@@ -44,7 +44,7 @@ public class UserService : IUserService
 
         if (currentUser == null) return CustomResult.Failure("Not found user");
 
-        currentUser.FullName = updateUserRequest.FullName;  
+        currentUser.FullName = updateUserRequest.FullName;
 
         return await _userRepository.UpdateAsync(currentUser);
     }
@@ -56,7 +56,7 @@ public class UserService : IUserService
         if (currentUser == null) return CustomResult<Guid>.Failure(new CustomError(false, "Not found user"));
 
         var newGuid = Guid.NewGuid();
-        currentUser.RegisterTokenValid = DateTime.UtcNow.AddHours(2);
+        currentUser.RegisterTokenExpieryTime = DateTime.UtcNow.AddHours(2);
         currentUser.RegisterToken = newGuid;
 
         await _userRepository.UpdateAsync(currentUser);
@@ -89,20 +89,43 @@ public class UserService : IUserService
         return await _userRepository.GetTaskUserSelectList();
     }
 
-    public async Task<bool> SaveRefreshTokenAsync(RefreshToken refreshToken, int UserId)
-    {
-        return await _userRepository.SaveRefreshTokenAsync(refreshToken, UserId);
-    }
-
-    public async Task<RefreshToken> GetRefreshToken(string tokenRequest)
-    {
-        return await _userRepository.GetRefreshToken(tokenRequest);
-    }
 
     public async Task<PagingResponse<UserDto>> GetActiveUsersWithPagination(PagingParameters pagingParameters, CancellationToken cancellationToken)
     {
         return await _userRepository.GetActiveUsersWithPagination(pagingParameters, cancellationToken);
     }
 
-   
+    public async Task<bool> UpdateRefreshTokenAsync(int UserId, string refreshToken, DateTime refreshTokenExpiery)
+    {
+        return await _userRepository.UpdateRefreshTokenAsync(UserId, refreshToken, refreshTokenExpiery);
+    }
+
+    public async Task<CustomError> CheckRefreshTokenOfUser(string aspId, string refreshToken)
+    {
+        return await _userRepository.CheckRefreshTokenOfUser(aspId, refreshToken);
+    }
+
+    //public async Task<CustomResult<UserDto>> GetUserByUserGuidId(Guid userGuidId)
+    //{
+    //    return await _userRepository.GetUserByUserGuidId(userGuidId);
+    //}
+
+    public async Task<CustomResult> ForgotPassordAsync(string Username, string resetToken)
+    {
+        
+        //TODO user not found
+        var currentUser = await _userRepository.GetUserByEmail(Username);
+
+        if (currentUser.IsFailure) return CustomResult.Failure( currentUser.CustomError.error);
+
+        //var newGuid = Guid.NewGuid();
+        currentUser.Value.RegisterTokenExpieryTime = DateTime.UtcNow.AddMinutes(15);
+        //currentUser.Value.RegisterToken = resetToken;
+
+        await _userRepository.UpdateAsync(currentUser.Value);
+
+
+        return CustomResult.Success();
+
+    }
 }

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <UserSecretsId>e716c010-0862-44aa-89d9-ac1e74a89800</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>..\..\..</DockerfileContext>
+  </PropertyGroup>
+
+  <ItemGroup>
+      <PackageReference Include="Blazored.LocalStorage" />
+      <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" />
+      <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+      <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
+      <PackageReference Include="Newtonsoft.Json" />
+      <PackageReference Include="Radzen.Blazor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Infrastructures\ServiceLayer\ServiceLayer.csproj" />
+    <ProjectReference Include="..\TaskMaster.ServiceDefaults\TaskMaster.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\TaskMasterRazorClassLibrary\TaskMasterRazorClassLibrary.csproj" />
+  </ItemGroup>
+
+</Project>

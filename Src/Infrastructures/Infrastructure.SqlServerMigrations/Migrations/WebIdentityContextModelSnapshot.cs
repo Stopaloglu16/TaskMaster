@@ -17,7 +17,7 @@ namespace Infrastructure.SqlServerMigrations.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.8")
+                .HasAnnotation("ProductVersion", "10.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -137,56 +137,6 @@ namespace Infrastructure.SqlServerMigrations.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "212780b4-107c-44b7-b651-91535ebb5c42",
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "0be6e451-0fc7-46d6-82f3-b5016cae0ad7",
-                            Email = "AdminUser@hotmail.co.uk",
-                            EmailConfirmed = true,
-                            LockoutEnabled = false,
-                            NormalizedEmail = "ADMINUSER@HOTMAIL.CO.UK",
-                            NormalizedUserName = "ADMINUSER@HOTMAIL.CO.UK",
-                            PasswordHash = "AQAAAAIAAYagAAAAEOwr4tqP/DHy7NoVFE1kdwwkdhRnA0VO1I0MfAe+FBCvJ0ebAzh9hhsu/n9nGHXGLg==",
-                            PhoneNumberConfirmed = false,
-                            SecurityStamp = "49a0c149-a03e-423e-b1df-f134ae3d90e8",
-                            TwoFactorEnabled = false,
-                            UserName = "AdminUser@hotmail.co.uk"
-                        },
-                        new
-                        {
-                            Id = "cd7cf41d-75ad-47de-8309-e8e5e863a3b5",
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "72e5698e-f7d1-4a3d-be42-8c56055c9fd2",
-                            Email = "TaskUser@hotmail.co.uk",
-                            EmailConfirmed = true,
-                            LockoutEnabled = false,
-                            NormalizedEmail = "TASKUSER@HOTMAIL.CO.UK",
-                            NormalizedUserName = "TASKUSER@HOTMAIL.CO.UK",
-                            PasswordHash = "AQAAAAIAAYagAAAAEGmEePd/GQl5JyChg/6+4STMvn8tn8lBw2ECZKrq/nrj4NKEFmF6MKG4xzObq3RDBA==",
-                            PhoneNumberConfirmed = false,
-                            SecurityStamp = "6b1b8435-4daa-432d-b778-137f66a2d3ed",
-                            TwoFactorEnabled = false,
-                            UserName = "TaskUser@hotmail.co.uk"
-                        },
-                        new
-                        {
-                            Id = "265eaa0e-3c23-4fcf-bc3c-2df5107a5778",
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "d3654ae4-1929-4735-adfd-36a88110d466",
-                            Email = "ReadOnly@hotmail.co.uk",
-                            EmailConfirmed = true,
-                            LockoutEnabled = false,
-                            NormalizedEmail = "READONLY@HOTMAIL.CO.UK",
-                            NormalizedUserName = "READONLY@HOTMAIL.CO.UK",
-                            PasswordHash = "AQAAAAIAAYagAAAAEGVqRtiqT9PLWYqYKClPiL9qmQH1SB8l541QXAh/QvH+qDkVxXI4bmY3V7YJJere5Q==",
-                            PhoneNumberConfirmed = false,
-                            SecurityStamp = "eea0c0d1-771e-4c71-91ce-6cfeb19437e4",
-                            TwoFactorEnabled = false,
-                            UserName = "ReadOnly@hotmail.co.uk"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>

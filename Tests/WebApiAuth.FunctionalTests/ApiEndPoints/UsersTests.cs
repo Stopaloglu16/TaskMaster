@@ -11,10 +11,8 @@ using System.Text;
 
 namespace WebApiAuth.FunctionalTests.ApiEndPoints;
 
-
 public class UsersTests : BaseIntegrationTest
 {
-
     private string? _bearerToken;
 
     public UsersTests(IntegrationTestWebAppFactory factory, ApiVersionFixture fixture) : base(factory, fixture)
@@ -28,8 +26,7 @@ public class UsersTests : BaseIntegrationTest
         //Arrange
         #region LogIn
 
-
-        var identityUserMock = await _factory.RegisterUser();
+        var identityUserMock = await _factory.GetAdminUser();
 
         var userMock = await _dbContext.Users.FirstAsync();
 
@@ -71,22 +68,24 @@ public class UsersTests : BaseIntegrationTest
 
         foreach (var message in mailResponse1.Messages)
         {
-            mailId = message.Id;
-            var request = new FetchMessageRequest() { Domain = MailinatorDomain, MessageId = mailId };
-            var responseFetch = await mailinatorClient.MessagesClient.FetchMessageAsync(request);
-
-            var textArray = responseFetch.Text.Split('|');
-
-            if (createUserRequest.FullName == textArray[0].ToString())
+            if (message.Subject == "Register")
             {
-                Assert.True(textArray[0] == createUserRequest.UserEmail, "User email not same");
-                Assert.True(responseFetch.Subject.Contains("Welcome"), "Email not sent");
-                break;
+                mailId = message.Id;
+                var request = new FetchMessageRequest() { Domain = MailinatorDomain, MessageId = mailId };
+                var responseFetch = await mailinatorClient.MessagesClient.FetchMessageAsync(request);
+
+                var textArray = responseFetch.Text.Split('|');
+
+                if (createUserRequest.FullName == textArray[0].ToString())
+                {
+                    Assert.True(textArray[0] == createUserRequest.UserEmail, "User email not same");
+                    Assert.True(responseFetch.Subject.Contains("Welcome"), "Email not sent");
+                    break;
+                }
             }
         }
 
         await mailinatorClient.MessagesClient.DeleteMessageAsync(new DeleteMessageRequest() { Domain = MailinatorDomain, Inbox = MailinatorDomain, MessageId = mailId });
-
 
     }
 }

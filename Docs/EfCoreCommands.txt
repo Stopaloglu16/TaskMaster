@@ -11,12 +11,11 @@ Sql Server
 Add-Migration InitialCreate -Context Infrastructure.Data.ApplicationDbContext -project Src\Infrastructures\Infrastructure.SqlServerMigrations -Args "--Provider SqlServer"
 Add-Migration InitialWebIdCreate -Context Infrastructure.Data.WebIdentityContext -project Src\Infrastructures\Infrastructure.SqlServerMigrations -Args "--Provider SqlServer"
 
-
 Update-Database -context Infrastructure.Data.ApplicationDbContext
 Update-Database -context Infrastructure.Data.WebIdentityContext
 
 
-Add-Migration UpdateRefreshToken -Context Infrastructure.Data.ApplicationDbContext -project Src\Infrastructures\Infrastructure.SqliteMigrations -Args "--Provider Sqlite"
-Add-Migration UpdateRefreshToken -Context Infrastructure.Data.ApplicationDbContext -project Src\Infrastructures\Infrastructure.SqlServerMigrations -Args "--Provider SqlServer"
+TickerQ Db
+Add-Migration InitialTickerq -Context TickerQDbContext -Args "--Provider SqlServer"
+Update-Database -context TickerQDbContext
 
-update-database -Context Infrastructure.Data.ApplicationDbContext -project Src\Infrastructures\Infrastructure.SqlServerMigrations -Args "--Provider SqlServer"

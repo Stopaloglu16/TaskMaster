@@ -1,5 +1,4 @@
-﻿using Application.Aggregates.TaskListAggregate.Queries;
-using Application.Aggregates.UserAggregate.Queries;
+﻿using Application.Aggregates.UserAggregate.Queries;
 using Application.Common.Models;
 using Application.Repositories;
 using Domain.Entities;
@@ -26,6 +25,7 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
                                                   .Select(ss => new UserDto()
                                                   {
                                                       Id = ss.Id,
+                                                      AspId = ss.AspId,
                                                       FullName = ss.FullName,
                                                       UserEmail = ss.UserEmail,
                                                       UserType = (UserType)ss.UserTypeId
@@ -37,13 +37,32 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
         return CustomResult<UserDto>.Success(myUserDto);
     }
 
+    //public async Task<CustomResult<UserDto>> GetUserByUserGuidId(Guid UserGuidId)
+    //{
+    //    var myUserDto = await _dbContext.Users.Where(uu => uu.UserGuidId == UserGuidId)
+    //                                              .AsNoTracking()
+    //                                              .Select(ss => new UserDto()
+    //                                              {
+    //                                                  Id = ss.Id,
+    //                                                  UserGuidId = ss.UserGuidId,
+    //                                                  FullName = ss.FullName,
+    //                                                  UserEmail = ss.UserEmail,
+    //                                                  UserType = (UserType)ss.UserTypeId
+    //                                              })
+    //                                              .FirstOrDefaultAsync();
+
+    //    if (myUserDto == null) return CustomResult<UserDto>.Failure(CustomError.Failure("The user not found"));
+
+    //    return CustomResult<UserDto>.Success(myUserDto);
+    //}
+
     public async Task<CustomResult<UserDto>> GetUserById(int Id)
     {
         var myUserDto = await _dbContext.Users.Where(uu => uu.Id == Id)
                                                  .AsNoTracking()
                                                  .Select(ss => new UserDto()
                                                  {
-                                                     Id= ss.Id,
+                                                     Id = ss.Id,
                                                      FullName = ss.FullName,
                                                      UserEmail = ss.UserEmail,
                                                      UserType = (UserType)ss.UserTypeId
@@ -55,21 +74,39 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
         return CustomResult<UserDto>.Success(myUserDto);
     }
 
+    public async Task<CustomResult<User>> GetUserByEmail(string email)
+    {
+        var currentUser = await _dbContext.Users.Where(uu => uu.UserEmail == email)
+                                               .AsNoTracking()
+                                               .FirstOrDefaultAsync();
+
+        if (currentUser == null) return CustomResult<User>.Failure(CustomError.Failure("The user not found"));
+
+        return CustomResult<User>.Success(currentUser);
+    }
+
     public async Task<IEnumerable<UserDto>> GetUsers(bool IsActive, UserType UserTypeId)
     {
-        return await _dbContext.Users.Where(uu => uu.UserTypeId == UserTypeId &&
-                                                      uu.IsDeleted == Convert.ToByte(!IsActive))
-                                     .AsNoTracking()
-                                     .Select(ss => new UserDto()
-                                     {
-                                         Id = ss.Id,
-                                         FullName = ss.FullName
-                                     }).ToListAsync();
+        // compute target deleted flag once to avoid repeated conversions in the query
+        byte expectedIsDeleted = IsActive ? (byte)0 : (byte)1;
+
+        var userList = await _dbContext.Users
+            .AsNoTracking()
+            .Where(u => u.UserTypeId == UserTypeId && u.IsDeleted == expectedIsDeleted)
+            .Select(u => new UserDto
+            {
+                Id = u.Id,
+                FullName = u.FullName
+            })
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        return userList;
     }
 
     public async Task<IEnumerable<SelectListItem>> GetTaskUserSelectList()
     {
-        return await _dbContext.Users.Where(uu => uu.UserTypeId == UserType.TaskUser &&
+        var uu = await _dbContext.Users.Where(uu => uu.UserTypeId == UserType.TaskUser &&
                                                       uu.IsDeleted == 0)
                                      .AsNoTracking()
                                      .Select(ss => new SelectListItem()
@@ -77,29 +114,11 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
                                          Value = ss.Id,
                                          Text = ss.FullName
                                      }).ToListAsync();
+
+        return uu;
     }
 
-    public async Task<bool> SaveRefreshTokenAsync(RefreshToken refreshToken, int _UserId)
-    {
-        _dbContext.RefreshTokens.Add(
-                   new RefreshToken
-                   {
-                       UserId = _UserId,
-                       Token = refreshToken.Token,
-                       ExpiryDate = refreshToken.ExpiryDate,
-                       IsRevoked = false,
-                       IsUsed = false
-                   });
 
-        await _dbContext.SaveChangesAsync();
-
-        return true;
-    }
-
-    public async Task<RefreshToken> GetRefreshToken(string tokenRequest)
-    {
-        return await _dbContext.RefreshTokens.FirstOrDefaultAsync(t => t.Token == tokenRequest);
-    }
 
 
     public async Task<PagingResponse<UserDto>> GetActiveUsersWithPagination(PagingParameters pagingParameters,
@@ -116,5 +135,35 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
                                          });
 
         return await PagingResponse<UserDto>.CreateAsync(query, pagingParameters);
+    }
+
+    public async Task<bool> UpdateRefreshTokenAsync(int UserId, string refreshToken, DateTime refreshTokenExpiery)
+    {
+        var currenctUser = await _dbContext.Users.FirstOrDefaultAsync(uu => uu.Id == UserId);
+
+        if (currenctUser == null)
+            throw new ArgumentNullException();
+
+        currenctUser.RefreshToken = refreshToken;
+        currenctUser.RefreshTokenExpiryTime = refreshTokenExpiery;
+
+        await _dbContext.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<CustomError> CheckRefreshTokenOfUser(string aspId, string refreshToken)
+    {
+        var tokenTemp = await _dbContext.Users.Where(uu => uu.AspId == aspId)
+                                     .Select(ss => new { ss.RefreshToken, ss.RefreshTokenExpiryTime })
+                                     .FirstAsync();
+
+        if (tokenTemp == null)
+            return CustomError.Failure("user not found");
+
+        if (tokenTemp.RefreshToken != refreshToken || tokenTemp.RefreshTokenExpiryTime <= DateTime.Now)
+            return CustomError.Failure("Invalid token");
+
+        return CustomError.Success();
     }
 }

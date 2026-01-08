@@ -3,8 +3,11 @@ using Application.Repositories;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using ServiceLayer.Dashboards;
+using ServiceLayer.FileJobs;
 using ServiceLayer.TaskItems;
 using ServiceLayer.TaskLists;
+using ServiceLayer.Users;
 using TaskMaster.ServiceDefaults;
 
 namespace WebApi.Extensions;
@@ -25,17 +28,28 @@ internal static class Extensions
         builder.Services.AddScoped(typeof(IApplicationDbContext), typeof(ApplicationDbContext));
 
         // Add the integration services that consume the DbContext
-        services.AddTransient<ITaskListRepository, TaskListRepository>();
-        services.AddTransient<ITaskListService, TaskListService>();
+        services.AddScoped<ITaskListRepository, TaskListRepository>();
+        services.AddScoped<ITaskListService, TaskListService>();
 
-        services.AddTransient<ITaskItemRepository, TaskItemRepository>();
-        services.AddTransient<ITaskItemService, TaskItemService>();
+        services.AddScoped<ITaskItemRepository, TaskItemRepository>();
+        services.AddScoped<ITaskItemService, TaskItemService>();
+
+        services.AddScoped<IDashboardRepository, DashboardRepository>();
+        services.AddScoped<IDashboardService, DashboardService>();
+
+        services.AddScoped<IFileJobRepository, FileJobRepository>();
+        services.AddScoped<IFileJobService, FileJobsService>();
+
+        services.AddScoped<IFileJobUploadRepository, FileJobUploadRepository>();    
+        //services.AddScoped<IFileJobUploadService, FileJobUploadService>();
 
 
-        services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserService, UserService>();
+        
+        services.AddHttpContextAccessor();
     }
 
 }

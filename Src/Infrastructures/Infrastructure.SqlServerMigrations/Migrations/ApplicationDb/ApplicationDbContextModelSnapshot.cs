@@ -17,12 +17,12 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.8")
+                .HasAnnotation("ProductVersion", "10.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Domain.Entities.RefreshToken", b =>
+            modelBuilder.Entity("Domain.Entities.FileJob", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -30,27 +30,65 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("ExpiryDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsRevoked")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsUsed")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
+                    b.Property<int>("FileJobType")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte>("IsDeleted")
+                        .HasColumnType("tinyint");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.ToTable("FileJobs");
+                });
 
-                    b.ToTable("RefreshTokens");
+            modelBuilder.Entity("Domain.Entities.FileJobUpload", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AssignedTo")
+                        .HasColumnType("varchar(60)");
+
+                    b.Property<int?>("AssignedToId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("varchar(350)");
+
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("varchar(350)");
+
+                    b.Property<int>("FileJobId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FileRowType")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("IsDeleted")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("TaskTitle")
+                        .IsRequired()
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("varchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileJobId");
+
+                    b.ToTable("FileJobUploads");
                 });
 
             modelBuilder.Entity("Domain.Entities.TaskItem", b =>
@@ -143,7 +181,7 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AspId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("varchar(450)");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
@@ -164,10 +202,16 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("RefreshTokenExpiryTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<Guid>("RegisterToken")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("RegisterTokenValid")
+                    b.Property<DateTime>("RegisterTokenExpieryTime")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("UserEmail")
@@ -180,30 +224,17 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                     b.HasKey("Id");
 
                     b.ToTable("Users");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            FullName = "taskmaster@hotmail.co.uk",
-                            IsDeleted = (byte)0,
-                            RegisterToken = new Guid("e8d68ac1-5726-4384-9c0a-7e48e490cca8"),
-                            RegisterTokenValid = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            UserEmail = "taskmaster@hotmail.co.uk",
-                            UserTypeId = 0
-                        });
                 });
 
-            modelBuilder.Entity("Domain.Entities.RefreshToken", b =>
+            modelBuilder.Entity("Domain.Entities.FileJobUpload", b =>
                 {
-                    b.HasOne("Domain.Entities.User", "User")
-                        .WithMany("RefreshTokens")
-                        .HasForeignKey("UserId")
+                    b.HasOne("Domain.Entities.FileJob", "FileJob")
+                        .WithMany("FileJobUploads")
+                        .HasForeignKey("FileJobId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("FileJob");
                 });
 
             modelBuilder.Entity("Domain.Entities.TaskItem", b =>
@@ -226,6 +257,11 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                     b.Navigation("AssignedTo");
                 });
 
+            modelBuilder.Entity("Domain.Entities.FileJob", b =>
+                {
+                    b.Navigation("FileJobUploads");
+                });
+
             modelBuilder.Entity("Domain.Entities.TaskList", b =>
                 {
                     b.Navigation("TaskItems");
@@ -233,8 +269,6 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
 
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
-                    b.Navigation("RefreshTokens");
-
                     b.Navigation("TaskLists");
                 });
 #pragma warning restore 612, 618

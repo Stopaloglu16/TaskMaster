@@ -60,7 +60,7 @@ namespace WebApiAuth.Controllers
         //[Authorize(Roles = "AdminUser")]
         [ProducesResponseType(typeof(Ok), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(BadRequestResult), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> Post(CreateUserRequest createUserRequest)
+        public async Task<ActionResult> Post(CreateUserRequest createUserRequest, CancellationToken cancellationToken)
         {
             try
             {
@@ -68,7 +68,7 @@ namespace WebApiAuth.Controllers
 
                 if (newUser.IsSuccess)
                 {
-                    await _emailSender.SendRegisterEmailAsync(createUserRequest.UserEmail, createUserRequest.UserEmail, newUser.Value.ToString());
+                    await _emailSender.SendRegisterEmailAsync(createUserRequest.UserEmail, createUserRequest.UserEmail, newUser.Value.ToString(), cancellationToken);
                 }
 
                 return Ok();
@@ -82,7 +82,7 @@ namespace WebApiAuth.Controllers
         [HttpPost("refreshregister")]
         [ProducesResponseType(typeof(Ok), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(BadRequestResult), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> Post(int userId, string userEmail)
+        public async Task<ActionResult> Post(int userId, string userEmail, CancellationToken cancellationToken)
         {
             try
             {
@@ -90,7 +90,7 @@ namespace WebApiAuth.Controllers
 
                 if (newUser.IsSuccess)
                 {
-                    await _emailSender.SendRegisterEmailAsync(userEmail, userEmail, newUser.Value.ToString());
+                    await _emailSender.SendRegisterEmailAsync(userEmail, userEmail, newUser.Value.ToString(), cancellationToken);
                 }
 
                 return Ok();
@@ -141,7 +141,7 @@ namespace WebApiAuth.Controllers
         [HttpGet("userlist")]
         [ProducesResponseType(typeof(Ok), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(BadRequestResult), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> GetUserList([FromQuery]PagingParameters pagingParameters, CancellationToken cancellationToken)
+        public async Task<ActionResult> GetUserList([FromQuery] PagingParameters pagingParameters, CancellationToken cancellationToken)
         {
             var userList = await _userService.GetActiveUsersWithPagination(pagingParameters, cancellationToken);
 

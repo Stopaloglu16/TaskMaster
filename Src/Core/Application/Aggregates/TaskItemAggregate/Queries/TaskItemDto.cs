@@ -2,8 +2,9 @@
 
 public record TaskItemDto
 {
-    public string Title { get; set; }
-    public string? Description { get; set; }
-    public bool IsCompleted { get; set; }
-    public DateOnly? CompletedDate { get; set; }
+    public int Id { get; init; }
+    public string Title { get; init; }
+    public string? Description { get; init; }
+    public bool IsCompleted { get; init; }
+    public DateOnly? CompletedDate { get; init; }
 }
