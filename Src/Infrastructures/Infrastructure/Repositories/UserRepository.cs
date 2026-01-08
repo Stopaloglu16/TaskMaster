@@ -87,26 +87,21 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
 
     public async Task<IEnumerable<UserDto>> GetUsers(bool IsActive, UserType UserTypeId)
     {
+        // compute target deleted flag once to avoid repeated conversions in the query
+        byte expectedIsDeleted = IsActive ? (byte)0 : (byte)1;
 
-        try
-        {
-            var userList=  await _dbContext.Users.Where(uu => uu.UserTypeId == UserTypeId &&
-                                                      uu.IsDeleted == Convert.ToByte(!IsActive))
-                                     .AsNoTracking()
-                                     .Select(ss => new UserDto()
-                                     {
-                                         Id = ss.Id,
-                                         FullName = ss.FullName
-                                     }).ToListAsync();
+        var userList = await _dbContext.Users
+            .AsNoTracking()
+            .Where(u => u.UserTypeId == UserTypeId && u.IsDeleted == expectedIsDeleted)
+            .Select(u => new UserDto
+            {
+                Id = u.Id,
+                FullName = u.FullName
+            })
+            .ToListAsync()
+            .ConfigureAwait(false);
 
-            return userList;
-        }
-        catch (Exception ex)
-        {
-            throw;
-        }
-
-        
+        return userList;
     }
 
     public async Task<IEnumerable<SelectListItem>> GetTaskUserSelectList()

@@ -88,7 +88,7 @@ public class TaskListRepository : EfCoreRepository<TaskList, int>, ITaskListRepo
         }
         catch (Exception ex)
         {
-            throw;
+            throw new Exception($"get task list by user could not be resolved.", ex);
         }
     }
 

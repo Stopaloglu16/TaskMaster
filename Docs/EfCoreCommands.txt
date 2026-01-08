@@ -11,7 +11,6 @@ Sql Server
 Add-Migration InitialCreate -Context Infrastructure.Data.ApplicationDbContext -project Src\Infrastructures\Infrastructure.SqlServerMigrations -Args "--Provider SqlServer"
 Add-Migration InitialWebIdCreate -Context Infrastructure.Data.WebIdentityContext -project Src\Infrastructures\Infrastructure.SqlServerMigrations -Args "--Provider SqlServer"
 
-
 Update-Database -context Infrastructure.Data.ApplicationDbContext
 Update-Database -context Infrastructure.Data.WebIdentityContext
 

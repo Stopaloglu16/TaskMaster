@@ -42,7 +42,7 @@ namespace WebApi.Apis
 
                 mailMessage.To.Add(req.To);
 
-                await smtpClient.SendMailAsync(mailMessage);
+                await smtpClient.SendMailAsync(mailMessage, cancellationToken);
 
                 // Throws SocketException if cannot resolve
                 // await System.Net.Dns.GetHostAddressesAsync(smtpHost);

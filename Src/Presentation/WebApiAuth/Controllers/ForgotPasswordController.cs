@@ -39,7 +39,7 @@ namespace WebApiAuth.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(Ok), 200)]
         [ProducesResponseType(typeof(BadRequestResult), 400)]
-        public async Task<IActionResult> Post(ForgotPasswordRequest forgotPasswordRequest)
+        public async Task<IActionResult> Post(ForgotPasswordRequest forgotPasswordRequest, CancellationToken cancellationToken)
         {
             var aspUser = await _userManager.FindByEmailAsync(forgotPasswordRequest.Username);
 
@@ -54,7 +54,7 @@ namespace WebApiAuth.Controllers
             if (!myUser.IsSuccess)
                 return BadRequest("User not found");
 
-            await _emailSender.SendForgotPasswordEmailAsync(forgotPasswordRequest.Username, forgotPasswordRequest.Username, resetToken);
+            await _emailSender.SendForgotPasswordEmailAsync(forgotPasswordRequest.Username, forgotPasswordRequest.Username, resetToken, cancellationToken);
 
             return Ok();
         }

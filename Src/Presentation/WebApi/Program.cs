@@ -101,6 +101,13 @@ builder.Services.AddTickerQ(options =>
 
         efOptions.UseTickerQDbContext<TickerQDbContext>(optionsBuilder =>
         {
+            //optionsBuilder.UseNpgsql(sqlCon,
+            //    cfg =>
+            //    {
+            //        cfg.MigrationsAssembly("WebApi");
+            //        cfg.EnableRetryOnFailure(3);
+            //    });
+
             optionsBuilder.UseSqlServer(sqlCon,
                 cfg =>
                 {
@@ -227,11 +234,12 @@ var fileUpload = app.MapGroup("api/v{apiVersion:apiVersion}/fileupload")
     .HasApiVersion(2.0);
 fileUpload.FileUploadApiV1().RequireAuthorization();
 
-var sendEmail = app.MapGroup("api/v{apiVersion:apiVersion}/sendemail")
+// Test email API without authorization for now
+/* var sendEmail = app.MapGroup("api/v{apiVersion:apiVersion}/sendemail")
     .WithApiVersionSet(apiVersionSet)
     .HasApiVersion(1.0);
 
-sendEmail.EmailApiV1();
+sendEmail.EmailApiV1(); */
 
 
 app.MapHub<TaskProgressHub>("processHub");

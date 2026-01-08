@@ -68,9 +68,9 @@ builder.Services.AddUserServices();
 
 builder.Services.AddHsts(options =>
 {
-    options.Preload = true; 
+    options.Preload = true;
     options.IncludeSubDomains = true;
-    options.MaxAge = TimeSpan.FromDays(365); 
+    options.MaxAge = TimeSpan.FromDays(365);
 });
 
 var appSettings = new AppSettings();
@@ -79,7 +79,13 @@ builder.Configuration.Bind(nameof(AppSettings), appSettings);
 //Email sender setup
 builder.Services.AddTransient<IEmailSender>(provider =>
 {
-    return new EmailSender(appSettings.MailinatorApiToken, appSettings.MailinatorDomain);
+    // Use the strongly-typed AppSettings for values, and validate for nulls
+    var websiteUrl = appSettings.WebSiteUrl ?? throw new InvalidOperationException("WebSiteUrl is not configured.");
+    var apiToken = appSettings.MailinatorApiToken ?? throw new InvalidOperationException("MailinatorApiToken is not configured.");
+    var domain = appSettings.MailinatorDomain ?? throw new InvalidOperationException("MailinatorDomain is not configured.");
+
+    return new EmailSender(websiteUrl, apiToken, domain);
+
 });
 
 
@@ -124,6 +130,7 @@ using (var scope = app.Services.CreateScope())
     {
         // Migrate identity and application DBs if you have separate contexts
         var identityDb = services.GetService<WebIdentityContext>();
+
         if (identityDb != null)
         {
             await identityDb.Database.MigrateAsync();
@@ -166,10 +173,8 @@ app.UseAuthorization();
 app.MapControllers();
 
 
-
 app.UseHsts();
 
-//app.MapHealthChecks("/health");
 
 app.Run();
 

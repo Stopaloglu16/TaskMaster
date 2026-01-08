@@ -13,6 +13,8 @@ var redis = builder.AddRedis("redis");
 
 var papercut = builder.AddPapercutSmtp("papercut", 80, 25);
 
+
+
 var webapi = builder.AddProject<WebApi>("webapi")
     .WithReference(redis)
     .WaitFor(redis)
