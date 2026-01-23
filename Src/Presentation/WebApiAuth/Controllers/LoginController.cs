@@ -25,7 +25,6 @@ namespace WebApiAuth.Controllers
         private readonly IUserService _userloginservice;
         private readonly IAuthService _authService;
 
-
         public LoginController(
         UserManager<IdentityUser> userManager,
         SignInManager<IdentityUser> signInManager,
