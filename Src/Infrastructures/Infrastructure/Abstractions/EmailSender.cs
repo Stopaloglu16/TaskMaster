@@ -88,7 +88,7 @@ public class EmailSender : IEmailSender
                                 ".welcometxt { font-size: x-large; color: #1da5d1 } " +
                                 "</style></head><body>";
 
-            MessageBody = " <table style='width:50%;'><tbody><tr><td> <img  style='width:10%;' src='https://localhost:7155/logos/TaskMasterLogo4.png'> </td></tr>" +
+            MessageBody = " <table style='width:50%;'><tbody><tr><td> <img  style='width:50%;' src='https://localhost:7155/logos/TaskMasterLogo4.png'> </td></tr>" +
                             "<tr><td> <h2> <span class='welcometxt'>Welcome to Task Master! 📚</span></h2></td></tr>" +
                             "<tr><td>Click below to verify your account.</br> <a href='https://localhost:7155/register/" + Username + "/" + Token + "'>here</a></td></tr>" +
                             "<tr><td>Username: </br>" + Username + "</td></tr>" +

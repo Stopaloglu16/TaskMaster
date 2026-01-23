@@ -71,6 +71,8 @@ builder.Services.AddApiVersioning(options =>
     options.SubstituteApiVersionInUrl = true;
 });
 
+builder.Services.AddSingleton<IIdempotencyStore, InMemoryIdempotencyStore>();
+
 
 builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 builder.Services.AddHostedService<TaskProcessingWorker>();

@@ -60,7 +60,7 @@
         //user = new User();
         userModel = new UserLoginRequest() { Username = "", Password = "" };
 
-        userModel.Username = "taskmaster@hotmail.co.uk";
+        userModel.Username = "adminuser";
         userModel.Password = "SuperStrongPassword+123";
 
         claimsPrincipal = (await authenticationStateTask).User;
@@ -81,7 +81,7 @@
         {
 
             userModel = new UserLoginRequest() { 
-                Username = "taskmaster@hotmail.co.uk",
+                Username = "adminuser",
                 Password = "SuperStrongPassword+123" };
 
             //userModel.Username = "";
