@@ -80,16 +80,17 @@ public class TaskItemApiTests : BaseIntegrationTest
         CompleteTaskItemRequest completeTaskItemRequest = new CompleteTaskItemRequest(taskListId: 1, taskItemId: 1);
 
         // Act
-        var response = await _httpClient.PatchAsJsonAsync($"/api/v1.0/taskitem/CompleteSingleItem", completeTaskItemRequest);
+        var response = await _httpClient.PatchAsJsonAsync($"/api/v1.0/taskitem/CompleteSingleItem/{completeTaskItemRequest.taskListId}", completeTaskItemRequest);
 
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
 
+        // TODO use api to check item been completed
         var response1 = await _httpClient.GetAsync($"/api/v1.0/tasklist/GetTaskList/1");
         Assert.Equal(System.Net.HttpStatusCode.OK, response1.StatusCode);
 
         var result = await response1.Content.ReadFromJsonAsync<TaskListDto>();
-
+        
         Assert.Equal(1, result.TaskItemCompletedCount);
     }
 
