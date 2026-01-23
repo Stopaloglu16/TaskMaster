@@ -12,6 +12,21 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "FileJobs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    IsCompleted = table.Column<bool>(type: "bit", nullable: false),
+                    FileJobType = table.Column<int>(type: "int", nullable: false),
+                    IsDeleted = table.Column<byte>(type: "tinyint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FileJobs", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -20,8 +35,7 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                     FullName = table.Column<string>(type: "varchar(100)", nullable: false),
                     UserEmail = table.Column<string>(type: "varchar(250)", nullable: false),
                     UserTypeId = table.Column<int>(type: "int", nullable: false),
-                    AspId = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserGuidId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AspId = table.Column<string>(type: "varchar(450)", nullable: true),
                     RegisterToken = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     RegisterTokenExpieryTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     RefreshToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -35,6 +49,34 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FileJobUploads",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TaskTitle = table.Column<string>(type: "varchar(150)", nullable: false),
+                    DueDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    AssignedToId = table.Column<int>(type: "int", nullable: true),
+                    AssignedTo = table.Column<string>(type: "varchar(60)", nullable: true),
+                    Title = table.Column<string>(type: "varchar(150)", nullable: false),
+                    Description = table.Column<string>(type: "varchar(350)", nullable: true),
+                    FileRowType = table.Column<int>(type: "int", nullable: false),
+                    ErrorMessage = table.Column<string>(type: "varchar(350)", nullable: true),
+                    FileJobId = table.Column<int>(type: "int", nullable: false),
+                    IsDeleted = table.Column<byte>(type: "tinyint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FileJobUploads", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_FileJobUploads_FileJobs_FileJobId",
+                        column: x => x.FileJobId,
+                        principalTable: "FileJobs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -88,10 +130,10 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.InsertData(
-                table: "Users",
-                columns: new[] { "Id", "AspId", "Created", "CreatedBy", "FullName", "IsDeleted", "LastModified", "LastModifiedBy", "RefreshToken", "RefreshTokenExpiryTime", "RegisterToken", "RegisterTokenExpieryTime", "UserEmail", "UserGuidId", "UserTypeId" },
-                values: new object[] { 1, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "taskmaster@hotmail.co.uk", (byte)0, null, null, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("33fc8420-4a15-45ad-aefc-f340d0e37382"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "taskmaster@hotmail.co.uk", new Guid("e5e54b95-b224-418a-9640-8f6cc69b74d7"), 0 });
+            migrationBuilder.CreateIndex(
+                name: "IX_FileJobUploads_FileJobId",
+                table: "FileJobUploads",
+                column: "FileJobId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TaskItems_TaskListId_Title",
@@ -109,7 +151,13 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "FileJobUploads");
+
+            migrationBuilder.DropTable(
                 name: "TaskItems");
+
+            migrationBuilder.DropTable(
+                name: "FileJobs");
 
             migrationBuilder.DropTable(
                 name: "TaskLists");

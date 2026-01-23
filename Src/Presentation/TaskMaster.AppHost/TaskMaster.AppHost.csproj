@@ -1,4 +1,4 @@
-﻿<Project Sdk="Aspire.AppHost.Sdk/13.0.2">
+﻿<Project Sdk="Aspire.AppHost.Sdk/13.1.0">
 	
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.Docker" />
     <PackageReference Include="Aspire.Hosting.Redis" />
     <PackageReference Include="Aspire.Hosting.RabbitMQ" />
     <PackageReference Include="CommunityToolkit.Aspire.Hosting.PapercutSmtp" />

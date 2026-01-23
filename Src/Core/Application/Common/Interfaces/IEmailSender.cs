@@ -4,9 +4,9 @@ namespace Application.Common.Interfaces;
 
 public interface IEmailSender
 {
-    Task SendEmailAsync(EmailRequest request);
+    Task SendEmailAsync(EmailRequest request, CancellationToken cancellationToken);
 
-    Task SendRegisterEmailAsync(string Username, string To, string Link);
+    Task SendRegisterEmailAsync(string Username, string To, string Link, CancellationToken cancellationToken);
 
-    Task SendForgotPasswordEmailAsync(string Username, string To, string Token);
+    Task SendForgotPasswordEmailAsync(string Username, string To, string Token, CancellationToken cancellationToken);
 }

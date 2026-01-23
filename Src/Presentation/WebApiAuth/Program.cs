@@ -68,9 +68,9 @@ builder.Services.AddUserServices();
 
 builder.Services.AddHsts(options =>
 {
-    options.Preload = true; 
+    options.Preload = true;
     options.IncludeSubDomains = true;
-    options.MaxAge = TimeSpan.FromDays(365); 
+    options.MaxAge = TimeSpan.FromDays(365);
 });
 
 var appSettings = new AppSettings();
@@ -79,7 +79,13 @@ builder.Configuration.Bind(nameof(AppSettings), appSettings);
 //Email sender setup
 builder.Services.AddTransient<IEmailSender>(provider =>
 {
-    return new EmailSender(appSettings.MailinatorApiToken, appSettings.MailinatorDomain);
+    // Use the strongly-typed AppSettings for values, and validate for nulls
+    var websiteUrl = appSettings.WebSiteUrl ?? throw new InvalidOperationException("WebSiteUrl is not configured.");
+    var apiToken = appSettings.MailinatorApiToken ?? throw new InvalidOperationException("MailinatorApiToken is not configured.");
+    var domain = appSettings.MailinatorDomain ?? throw new InvalidOperationException("MailinatorDomain is not configured.");
+
+    return new EmailSender(websiteUrl, apiToken, domain);
+
 });
 
 
@@ -114,6 +120,39 @@ builder.AddDefaultOpenApi(withApiVersioning);
 
 var app = builder.Build();
 
+// Ensure databases are migrated (optional but recommended)
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("Seed");
+
+    try
+    {
+        // Migrate identity and application DBs if you have separate contexts
+        var identityDb = services.GetService<WebIdentityContext>();
+
+        if (identityDb != null)
+        {
+            await identityDb.Database.MigrateAsync();
+        }
+
+        var appDb = services.GetService<ApplicationDbContext>();
+        if (appDb != null)
+        {
+            await appDb.Database.MigrateAsync();
+        }
+
+        // Run the seeder (reads UserManager/RoleManager from DI)
+        var seedPassword = builder.Configuration?["Seed:Password"];
+        await SeedData.InitializeAsync(app.Services, seedPassword);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while migrating or seeding the database.");
+        throw;
+    }
+}
+
 app.MapDefaultEndpoints();
 
 // Configure the HTTP request pipeline.
@@ -134,10 +173,8 @@ app.UseAuthorization();
 app.MapControllers();
 
 
-
 app.UseHsts();
 
-//app.MapHealthChecks("/health");
 
 app.Run();
 

@@ -37,9 +37,9 @@ public class TaskItemRepository : EfCoreRepository<TaskItem, int>, ITaskItemRepo
                                        .Select(ti => ti.MapToDto())
                                        .ToListAsync();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return null;
+            throw new Exception();
         }
     }
 

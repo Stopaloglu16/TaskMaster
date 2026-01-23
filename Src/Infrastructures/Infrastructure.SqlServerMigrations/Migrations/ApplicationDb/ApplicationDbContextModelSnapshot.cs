@@ -224,20 +224,6 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                     b.HasKey("Id");
 
                     b.ToTable("Users");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            FullName = "taskmaster@hotmail.co.uk",
-                            IsDeleted = (byte)0,
-                            RefreshTokenExpiryTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            RegisterToken = new Guid("966eee14-18a6-45e8-a401-bd570442e968"),
-                            RegisterTokenExpieryTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            UserEmail = "taskmaster@hotmail.co.uk",
-                            UserTypeId = 0
-                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.FileJobUpload", b =>

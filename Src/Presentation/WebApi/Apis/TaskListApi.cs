@@ -21,10 +21,17 @@ namespace WebApi.Apis
         {
 
             // Route for query task lists
-            group.MapGet("/", GetActiveTaskListWithPagination);
+            group.MapGet("/", GetActiveTaskListWithPagination)
+                 .WithSummary("Get active task lists")
+                 .WithDescription("Returns a paginated list of active task lists.");
 
-            group.MapGet("/GetTaskListForm/{id:int}", GetTaskListForm);
-            group.MapGet("/GetTaskList/{id:int}", GetTaskList);
+            group.MapGet("/GetTaskListForm/{id:int}", GetTaskListForm)
+                 .WithSummary("Get task list form")
+                 .WithDescription("Returns the form data required to edit or view a task list.");
+
+            group.MapGet("/GetTaskList/{id:int}", GetTaskList)
+                 .WithSummary("Get task list by id")
+                 .WithDescription("Returns a single task list by its identifier.");
 
             //TODO: Get tasklist assigned to user
             group.MapGet("/TaskListwithItemsByUserId/{aspUserId}", GetTaskListWithItemsByUser);
@@ -39,13 +46,13 @@ namespace WebApi.Apis
             //group.MapPost("/Bulk1/", CreateTaskListBulkRabbitMq).MapToApiVersion(1.0);
             //group.MapGet("/GetProcessrabbitMq", GetProcessrabbitMq).MapToApiVersion(1.0); 
             group.MapPost("/BulkTickerQ", CreateTaskListBulkTickerQ).MapToApiVersion(1.0);
-            
+
             group.MapPut("/{id:int}", UpdateTaskList);
             group.MapDelete("/{id:int}", DeleteTaskList);
 
             //TODO: Assign to multi user
             //api.MapPatch("/{id}", AssignTaskListToUser);
-            
+
             return group;
         }
 
@@ -55,7 +62,7 @@ namespace WebApi.Apis
                                                                                                   [AsParameters] PagingParameters pagingParameters,
                                                                                                   CancellationToken cancellationToken)
         {
-            
+
             var taskList = await taskListService.GetActiveTaskListWithPagination(pagingParameters, cancellationToken);
             return TypedResults.Ok(taskList);
         }
@@ -127,7 +134,7 @@ namespace WebApi.Apis
 
 
 
-       
+
         public static async Task<Results<Ok, BadRequest<string>>> UpdateTaskList(int id, TaskListFormRequest taskListFormRequest,
                                                                                  ITaskListService taskListService)
         {
@@ -214,11 +221,11 @@ namespace WebApi.Apis
 
         public static async Task<IResult> CreateTaskListBulkTickerQ(List<CreateTaskListRequest> items,
                                                                    ITimeTickerManager<TimeTickerEntity> timeTickerManager,
-                                                                   ICurrentUserService currentUserService,   
+                                                                   ICurrentUserService currentUserService,
                                                                    CancellationToken cancellationToken)
         {
             CreateTaskListBulkRequest createTaskListBulkRequest = new CreateTaskListBulkRequest(items, currentUserService.UserId, currentUserService.UserName);
-            
+
 
             var timerId = await timeTickerManager.AddAsync(new TimeTickerEntity
             {
@@ -231,7 +238,7 @@ namespace WebApi.Apis
                 //BatchParent = Guid.Parse("...."),
                 //BatchRunCondition = BatchRunCondition.OnSuccess
             });
-            
+
             return Results.Ok(new { RequestId = timerId.Result.Id });
         }
 

@@ -67,6 +67,10 @@ namespace WebApiAuth.Controllers
 
                 var aspUser = await _userManager.FindByNameAsync(loginRequest.Username);
 
+                if (aspUser is null)
+                    return BadRequest("User not found");
+
+
                 var webUser = await _userloginservice.GetUserByAspId(aspUser.Id);
                 if (webUser.IsFailure)
                     return BadRequest("Not registered user");
@@ -74,7 +78,7 @@ namespace WebApiAuth.Controllers
 
                 UserTokenDto userTokenDto = new UserTokenDto()
                 {
-                    AspId = webUser.Value.AspId,
+                    AspId = webUser.Value.AspId ?? throw new ArgumentNullException(nameof(webUser.Value.AspId)),
                     UserId = webUser.Value.Id,
                     Role = webUser.Value.UserType.ToString(),
                     Username = webUser.Value.UserEmail
@@ -147,7 +151,8 @@ namespace WebApiAuth.Controllers
             }
             catch (Exception ex)
             {
-                return Ok(new UserLoginResponse());
+                throw new Exception($"Refresh token issue.", ex);
+                //return Ok(new UserLoginResponse());
             }
         }
 

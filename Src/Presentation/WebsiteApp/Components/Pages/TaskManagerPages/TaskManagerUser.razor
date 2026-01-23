@@ -109,8 +109,7 @@
 
     bool isLoading;
     private int totalItemCount = 0;
-    private int pageNumber = 1;
-    private int itemsPerPage = 10;
+    
     IEnumerable<int> pageSizeOptions = new int[] { 5, 10, 20, 30 };
 
     public bool TaskListModalOpen = false;
@@ -201,7 +200,6 @@
 
     private bool ActionPerItemModalOpen { get; set; } = false;
 
-    private int ItemIdAction;
     private string ActionItemText = "";
     public string ActionName { get; set; }
     private int ActionTypeId { get; set; }

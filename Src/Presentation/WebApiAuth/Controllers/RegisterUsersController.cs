@@ -31,7 +31,7 @@ namespace WebApiAuth.Controllers
             _userregisterservice = userregisterservice;
         }
 
-
+        
         [HttpPost]
         [ProducesResponseType(typeof(Ok), 200)]
         [ProducesResponseType(typeof(BadRequestResult), 400)]

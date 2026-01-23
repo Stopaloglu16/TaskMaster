@@ -8,8 +8,7 @@ namespace WebApi.Apis
 {
     public static class DashboardApi
     {
-
-        
+   
         public static RouteGroupBuilder DashboardApiV1(this RouteGroupBuilder group)
         {
             
@@ -21,9 +20,6 @@ namespace WebApi.Apis
 
             return group;
         }
-
-
-        
 
 
         public static async Task<Results<Ok<TopWidgetDto>, BadRequest<string>>> GetTopWidget(IDashboardService dashboardService,

@@ -3,36 +3,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
+namespace WebApi.Migrations
 {
     /// <inheritdoc />
-    public partial class tickerq1 : Migration
+    public partial class InitialTickerq : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            //migrationBuilder.DropTable(
-            //    name: "CronTickerOccurrences",
-            //    schema: "ticker");
-
-            //migrationBuilder.DropTable(
-            //    name: "TimeTickers",
-            //    schema: "ticker");
-
-            //migrationBuilder.DropTable(
-            //    name: "CronTickers",
-            //    schema: "ticker");
-
-            migrationBuilder.UpdateData(
-                table: "Users",
-                keyColumn: "Id",
-                keyValue: 1,
-                column: "RegisterToken",
-                value: new Guid("6eefb3fa-2584-4a18-b066-e26f42108e19"));
-        }
-
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.EnsureSchema(
                 name: "ticker");
@@ -43,14 +20,14 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Expression = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    Function = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    InitIdentifier = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Request = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
                     Retries = table.Column<int>(type: "int", nullable: false),
                     RetryIntervals = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Function = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    InitIdentifier = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -64,35 +41,35 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    BatchParent = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    BatchRunCondition = table.Column<int>(type: "int", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ElapsedTime = table.Column<long>(type: "bigint", nullable: false),
-                    Exception = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ExecutedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ExecutionTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Function = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     InitIdentifier = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
                     LockHolder = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    LockedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Request = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
+                    ExecutionTime = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LockedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ExecutedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ExceptionMessage = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SkippedReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ElapsedTime = table.Column<long>(type: "bigint", nullable: false),
                     Retries = table.Column<int>(type: "int", nullable: false),
                     RetryCount = table.Column<int>(type: "int", nullable: false),
                     RetryIntervals = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    ParentId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    RunCondition = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_TimeTickers", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_TimeTickers_TimeTickers_BatchParent",
-                        column: x => x.BatchParent,
+                        name: "FK_TimeTickers_TimeTickers_ParentId",
+                        column: x => x.ParentId,
                         principalSchema: "ticker",
                         principalTable: "TimeTickers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -101,15 +78,18 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CronTickerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ElapsedTime = table.Column<long>(type: "bigint", nullable: false),
-                    Exception = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ExecutedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ExecutionTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
                     LockHolder = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ExecutionTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CronTickerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     LockedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ExecutedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ExceptionMessage = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SkippedReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ElapsedTime = table.Column<long>(type: "bigint", nullable: false),
                     RetryCount = table.Column<int>(type: "int", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -122,13 +102,6 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.UpdateData(
-                table: "Users",
-                keyColumn: "Id",
-                keyValue: 1,
-                column: "RegisterToken",
-                value: new Guid("770175be-5965-49ce-b0f0-b73325ceb678"));
 
             migrationBuilder.CreateIndex(
                 name: "IX_CronTickerOccurrence_CronTickerId",
@@ -162,6 +135,12 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                 column: "Expression");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Function_Expression",
+                schema: "ticker",
+                table: "CronTickers",
+                columns: new[] { "Function", "Expression" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TimeTicker_ExecutionTime",
                 schema: "ticker",
                 table: "TimeTickers",
@@ -174,10 +153,26 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                 columns: new[] { "Status", "ExecutionTime" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_TimeTickers_BatchParent",
+                name: "IX_TimeTickers_ParentId",
                 schema: "ticker",
                 table: "TimeTickers",
-                column: "BatchParent");
+                column: "ParentId");
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropTable(
+                name: "CronTickerOccurrences",
+                schema: "ticker");
+
+            migrationBuilder.DropTable(
+                name: "TimeTickers",
+                schema: "ticker");
+
+            migrationBuilder.DropTable(
+                name: "CronTickers",
+                schema: "ticker");
         }
     }
 }

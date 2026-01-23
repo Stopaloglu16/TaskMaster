@@ -5,6 +5,7 @@ using Application.Common.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using ServiceLayer.TaskItems;
 using ServiceLayer.TaskLists;
+using WebApi.Middlewares;
 
 namespace WebApi.Apis
 {
@@ -27,6 +28,8 @@ namespace WebApi.Apis
 
             // Routes for modify
             group.MapPost("/", CreateTaskItem);
+            //.AddEndpointFilter<IdempotencyFilter>(); Adding Idempotency Filter for POST
+
             group.MapPut("/{id:int}", UpdateTaskItem);
             group.MapDelete("/{id:int}", DeleteTaskItem);
 
