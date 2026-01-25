@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using SharedTestDataLibrary.TaskDataSample;
 using System.Net.Http.Headers;
@@ -67,7 +68,7 @@ public class TaskItemApiExceptionTests : BaseIntegrationTest
         const int maxItemCount = 50;
 
         // Arrange
-        TaskList taskList = new TaskList() { Title = "mockTitle" };
+        TaskList taskList = new TaskList() { Title = "mockTitle", Priority = default(TaskPriority) };
         await _dbContext.TaskLists.AddAsync(taskList);
         await _dbContext.SaveChangesAsync();
 

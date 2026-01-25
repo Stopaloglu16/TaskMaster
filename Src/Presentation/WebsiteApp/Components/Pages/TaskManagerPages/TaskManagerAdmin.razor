@@ -57,6 +57,7 @@
                     </RadzenCard>
                 </RadzenCardGroup>
             </RadzenStack>
+
         </div>
         <div class="card-body">
             <RadzenStack Gap="1rem">
@@ -83,6 +84,12 @@
                                 <RadzenProgressBar Value="@(task.TaskItemCompletedCount)"
                                                    Max="@(task.TaskItemCount)"
                                                    Unit="@($" out of {task.TaskItemCount}")" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Title="Priority">
+                            <Template Context="task">
+                                 <RadzenBadge Text="@task.Priority.ToString()"
+                                             BadgeStyle="@GetPriorityStyle(task.Priority)" />
                             </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
@@ -152,6 +159,18 @@
         await base.OnInitializedAsync();
 
     }
+
+    BadgeStyle GetPriorityStyle(TaskPriority priority)
+{
+    return priority switch
+    {
+            TaskPriority.Low => BadgeStyle.Light, // gray
+        // TaskPriority.Medium   => "background-color:#0d6efd", // blue
+        // TaskPriority.High     => "background-color:#fd7e14", // orange
+        // TaskPriority.Critical => "background-color:#dc3545", // red
+            _ => BadgeStyle.Secondary
+    };
+}
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -241,7 +260,10 @@
         }
         else
         {
-            taskListFormRequest = new TaskListFormRequest() { Title = "", DueDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1)) };
+            taskListFormRequest = new TaskListFormRequest() { Title = "", 
+                                                              DueDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1)),
+                                                              PriorityId = (int)TaskPriority.Medium
+                                                            };
         }
 
         TaskListModalOpen = true;

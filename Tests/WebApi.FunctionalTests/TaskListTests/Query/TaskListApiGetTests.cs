@@ -1,6 +1,7 @@
 ﻿using Application.Aggregates.TaskListAggregate.Queries;
 using Application.Common.Models;
 using Domain.Entities;
+using Domain.Enums;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using WebApi.FunctionalTests.Helpers;
@@ -71,12 +72,12 @@ public class TaskListApiGetTests : BaseIntegrationTest
         CancellationToken cancellationToken = new CancellationToken();
 
         // null task item
-        TaskList taskList = new TaskList() { Title = "task1", DueDate = DateOnly.FromDateTime(DateTime.Now) };
+        TaskList taskList = new TaskList() { Title = "task1", Priority = TaskPriority.Medium,  DueDate = DateOnly.FromDateTime(DateTime.Now) };
         await _dbContext.TaskLists.AddAsync(taskList);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         // 1 task item
-        taskList = new TaskList() { Title = "task2", DueDate = DateOnly.FromDateTime(DateTime.Now) };
+        taskList = new TaskList() { Title = "task2", Priority = TaskPriority.Medium, DueDate = DateOnly.FromDateTime(DateTime.Now) };
 
         TaskItem taskItem = new TaskItem() { Title = "mockTitle", Description = "lorem ipsumn" };
         taskList.TaskItems.Add(taskItem);
@@ -85,7 +86,7 @@ public class TaskListApiGetTests : BaseIntegrationTest
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         // half completed
-        taskList = new TaskList() { Title = "task3", DueDate = DateOnly.FromDateTime(DateTime.Now) };
+        taskList = new TaskList() { Title = "task3", Priority = TaskPriority.Medium, DueDate = DateOnly.FromDateTime(DateTime.Now) };
 
         for (int i = 0; i < 2; i++)
         {
@@ -103,7 +104,7 @@ public class TaskListApiGetTests : BaseIntegrationTest
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         // all completed
-        taskList = new TaskList() { Title = "task4", DueDate = DateOnly.FromDateTime(DateTime.Now) };
+        taskList = new TaskList() { Title = "task4", Priority = default(TaskPriority), DueDate = DateOnly.FromDateTime(DateTime.Now) };
 
         for (int i = 0; i < 4; i++)
         {

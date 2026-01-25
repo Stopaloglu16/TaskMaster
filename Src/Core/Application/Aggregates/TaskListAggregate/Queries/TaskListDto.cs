@@ -1,4 +1,6 @@
-﻿namespace Application.Aggregates.TaskListAggregate.Queries;
+﻿using Domain.Enums;
+
+namespace Application.Aggregates.TaskListAggregate.Queries;
 
 public record TaskListDto
 {
@@ -10,4 +12,6 @@ public record TaskListDto
 
     public int TaskItemCount { get; init; } = 0;
     public int TaskItemCompletedCount { get; init; } = 0;
+
+    public TaskPriority Priority { get; init; }
 }

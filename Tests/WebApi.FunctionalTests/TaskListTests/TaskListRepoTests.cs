@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using WebApi.FunctionalTests.Utility;
 
@@ -28,7 +29,7 @@ public class TaskListRepoTests : BaseIntegrationTest
         CancellationToken cancellationToken = new CancellationToken();
 
         //Arrange
-        TaskList taskList = new TaskList() { Title = "mockTitle", DueDate = DateOnly.FromDateTime(DateTime.Now) };
+        TaskList taskList = new TaskList() { Title = "mockTitle", Priority = default(TaskPriority),  DueDate = DateOnly.FromDateTime(DateTime.Now) };
 
         //Act
         await _dbContext.TaskLists.AddAsync(taskList);

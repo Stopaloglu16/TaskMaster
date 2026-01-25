@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Domain.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
 
@@ -10,4 +11,6 @@ public record TaskListFormRequest
     public required string Title { get; set; }
     public DateOnly DueDate { get; set; }
     public int? AssignedToId { get; set; }
+
+    public required int PriorityId { get; set; } = (int)TaskPriority.Medium;
 }

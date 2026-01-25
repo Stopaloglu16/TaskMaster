@@ -40,7 +40,7 @@ public class GetTaskListWithItemsByUserApiTests : BaseIntegrationTest
         // Act
         var response = await _httpClient.GetAsync($"/api/{apiVersion}/tasklist/TaskListwithItemsByUserId/{userId}");
 
-    
+
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
 
@@ -68,12 +68,12 @@ public class GetTaskListWithItemsByUserApiTests : BaseIntegrationTest
         var taskUserId = user.Id;
 
         // null task item
-        TaskList taskList = new TaskList() { Title = "task1", DueDate = DateOnly.FromDateTime(DateTime.Now), AssignedToId = taskUserId };
+        TaskList taskList = new TaskList() { Title = "task1", DueDate = DateOnly.FromDateTime(DateTime.Now), AssignedToId = taskUserId, Priority = default(TaskPriority) };
         await _dbContext.TaskLists.AddAsync(taskList);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         // 1 task item
-        taskList = new TaskList() { Title = "task2", DueDate = DateOnly.FromDateTime(DateTime.Now) };
+        taskList = new TaskList() { Title = "task2", DueDate = DateOnly.FromDateTime(DateTime.Now), Priority = default(TaskPriority) };
 
         TaskItem taskItem = new TaskItem() { Title = "mockTitle", Description = "lorem ipsumn" };
         taskList.TaskItems.Add(taskItem);
@@ -82,7 +82,7 @@ public class GetTaskListWithItemsByUserApiTests : BaseIntegrationTest
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         // half completed
-        taskList = new TaskList() { Title = "task3", DueDate = DateOnly.FromDateTime(DateTime.Now), AssignedToId = taskUserId };
+        taskList = new TaskList() { Title = "task3", DueDate = DateOnly.FromDateTime(DateTime.Now), AssignedToId = taskUserId, Priority = default(TaskPriority) };
 
         for (int i = 0; i < 2; i++)
         {
@@ -100,7 +100,7 @@ public class GetTaskListWithItemsByUserApiTests : BaseIntegrationTest
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         // all completed
-        taskList = new TaskList() { Title = "task4", DueDate = DateOnly.FromDateTime(DateTime.Now), AssignedToId = taskUserId };
+        taskList = new TaskList() { Title = "task4", DueDate = DateOnly.FromDateTime(DateTime.Now), AssignedToId = taskUserId, Priority = default(TaskPriority) };
 
         for (int i = 0; i < 4; i++)
         {

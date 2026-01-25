@@ -3,6 +3,7 @@ using Application.Aggregates.TaskListAggregate.Queries;
 using Application.Common.Models;
 using Application.Repositories;
 using Domain.Entities;
+using Domain.Enums;
 using Microsoft.Extensions.Logging;
 using ServiceLayer.Models.Diagnostic;
 using ServiceLayer.Users;
@@ -42,7 +43,8 @@ public class TaskListService : ITaskListService
         {
             Title = taskListFormRequest.Title,
             AssignedToId = taskListFormRequest.AssignedToId,
-            DueDate = taskListFormRequest.DueDate
+            DueDate = taskListFormRequest.DueDate,
+            Priority = (TaskPriority)taskListFormRequest.PriorityId
         };
 
         var newTaskListRepo = await _taskListRepository.AddAsync(newTaskList);
@@ -131,7 +133,8 @@ public class TaskListService : ITaskListService
                     {
                         Title = request.Title,
                         AssignedToId = request.AssignedToId,
-                        DueDate = request.DueDate
+                        DueDate = request.DueDate,
+                        Priority = TaskPriority.Medium
                     };
 
                     foreach (var taskItem in request.createTaskItemRequests)
@@ -278,7 +281,8 @@ public class TaskListService : ITaskListService
                         AssignedToId = request.AssignedToId,
                         DueDate = request.DueDate,
                         Created = DateTime.UtcNow,
-                        CreatedBy = createTaskListBulkRequest.UserName
+                        CreatedBy = createTaskListBulkRequest.UserName,
+                        Priority = TaskPriority.Medium
                     };
 
                     foreach (var taskItem in request.createTaskItemRequests)

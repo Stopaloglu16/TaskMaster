@@ -1,10 +1,12 @@
 ﻿using Domain.Common;
+using Domain.Enums;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities;
 
 public class TaskList : BaseAuditableEntity<int>
 {
+
     [Column(TypeName = "varchar(100)")]
     public required string Title { get; set; }
 
@@ -15,6 +17,9 @@ public class TaskList : BaseAuditableEntity<int>
 
     public int? AssignedToId { get; set; }
     public User? AssignedTo { get; set; }
+
+    
+    public required TaskPriority Priority { get; set; } = TaskPriority.Medium;
 
     public virtual IList<TaskItem> TaskItems { get; private set; } = new List<TaskItem>();
 }

@@ -258,7 +258,7 @@
         }
         else
         {
-            taskListFormRequest = new TaskListFormRequest() { Title = "", DueDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1)) };
+            taskListFormRequest = new TaskListFormRequest() { Title = "", DueDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1)), PriorityId = (int)TaskPriority.Medium };
         }
 
         TaskListModalOpen = true;

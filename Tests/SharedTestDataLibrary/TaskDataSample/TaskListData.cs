@@ -1,5 +1,6 @@
 ﻿using Application.Aggregates.TaskItemAggregate.Commands.CreateUpdate;
 using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
+using Domain.Enums;
 using System.Collections.Generic;
 
 namespace SharedTestDataLibrary.TaskDataSample;
@@ -8,7 +9,7 @@ public class TaskListData
 {
     public static TaskListFormRequest CreateCreateTaskListRequestEmpty()
     {
-        return new TaskListFormRequest() { Title = string.Empty, DueDate = DateOnly.FromDateTime(DateTime.Now) };
+        return new TaskListFormRequest() { Title = string.Empty, DueDate = DateOnly.FromDateTime(DateTime.Now), PriorityId = (int)TaskPriority.Medium };
     }
 
     public static TaskListFormRequest CreateCreateTaskListRequestValid()
@@ -18,7 +19,7 @@ public class TaskListData
 
     public static TaskListFormRequest CreateUpdateTaskListRequestEmpty()
     {
-        return new TaskListFormRequest() { Id = 1, Title = string.Empty, DueDate = DateOnly.FromDateTime(DateTime.Now) };
+        return new TaskListFormRequest() { Id = 1, Title = string.Empty, DueDate = DateOnly.FromDateTime(DateTime.Now), PriorityId = (int)TaskPriority.Medium };
     }
 
     public static CreateTaskListRequest CreateTaskListRequestEmpty()

@@ -4,6 +4,7 @@ using Application.Aggregates.TaskListAggregate.Queries;
 using Application.Common.Models;
 using Application.Repositories;
 using Domain.Entities;
+using Domain.Enums;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
@@ -71,6 +72,7 @@ public class TaskListRepository : EfCoreRepository<TaskList, int>, ITaskListRepo
                    {
                        Id = t.Id,
                        Title = t.Title,
+                       Priority = t.Priority.ToString(),
                        DueDate = t.DueDate,
                        CompletedDate = t.CompletedDate,
                        taskItemDtos = t.TaskItems.Select(i => new TaskItemDto
