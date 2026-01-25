@@ -41,4 +41,7 @@ builder.AddProject<WebsiteApp>("websiteapp")
 builder.AddProject<WorkerServiceProcess>("workerserviceprocess").WithExplicitStart();
 
 
+builder.AddProject<Projects.WebApiEmailService>("webapiemailservice");
+
+
 builder.Build().Run();
