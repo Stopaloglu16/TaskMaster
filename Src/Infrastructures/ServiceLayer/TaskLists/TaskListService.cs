@@ -44,7 +44,7 @@ public class TaskListService : ITaskListService
             Title = taskListFormRequest.Title,
             AssignedToId = taskListFormRequest.AssignedToId,
             DueDate = taskListFormRequest.DueDate,
-            Priority = (TaskPriority)taskListFormRequest.PriorityId
+            PriorityId = taskListFormRequest.PriorityId
         };
 
         var newTaskListRepo = await _taskListRepository.AddAsync(newTaskList);
@@ -134,7 +134,7 @@ public class TaskListService : ITaskListService
                         Title = request.Title,
                         AssignedToId = request.AssignedToId,
                         DueDate = request.DueDate,
-                        Priority = TaskPriority.Medium
+                        PriorityId = request.PriorityId
                     };
 
                     foreach (var taskItem in request.createTaskItemRequests)
@@ -282,7 +282,7 @@ public class TaskListService : ITaskListService
                         DueDate = request.DueDate,
                         Created = DateTime.UtcNow,
                         CreatedBy = createTaskListBulkRequest.UserName,
-                        Priority = TaskPriority.Medium
+                        PriorityId = request.PriorityId
                     };
 
                     foreach (var taskItem in request.createTaskItemRequests)

@@ -18,8 +18,9 @@ public class TaskList : BaseAuditableEntity<int>
     public int? AssignedToId { get; set; }
     public User? AssignedTo { get; set; }
 
-    
-    public required TaskPriority Priority { get; set; } = TaskPriority.Medium;
+
+    public int PriorityId { get; set; }
+    public TaskPriority Priority { get; set; } = default!;
 
     public virtual IList<TaskItem> TaskItems { get; private set; } = new List<TaskItem>();
 }

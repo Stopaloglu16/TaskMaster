@@ -14,7 +14,7 @@ public class EfRepoUpdate : BaseEfRepo
         const string mockUpdatedTitle = "test updated Contributor";
 
         var repository = GetRepository();
-        var Contributor = new TaskList() { Title = mockTitle, Priority = TaskPriority.Medium };
+        var Contributor = new TaskList() { Title = mockTitle, PriorityId = 1 };
 
         await repository.AddAsync(Contributor);
 

@@ -13,7 +13,7 @@ public class EfRepoAdd : BaseEfRepo
         var mockTitle = "testContributor";
 
         var repository = GetRepository();
-        var Contributor = new TaskList() { Title = mockTitle, Priority = TaskPriority.Medium };
+        var Contributor = new TaskList() { Title = mockTitle, PriorityId = 1 };
 
         //Act
         await repository.AddAsync(Contributor);

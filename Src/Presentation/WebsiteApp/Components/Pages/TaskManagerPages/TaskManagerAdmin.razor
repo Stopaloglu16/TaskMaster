@@ -88,8 +88,8 @@
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn Title="Priority">
                             <Template Context="task">
-                                 <RadzenBadge Text="@task.Priority.ToString()"
-                                             BadgeStyle="@GetPriorityStyle(task.Priority)" />
+                                <RadzenBadge Text="@task.Priority"
+                                             Class="@($"rz-badge-{task.PriorityColour}")" />
                             </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
@@ -159,18 +159,6 @@
         await base.OnInitializedAsync();
 
     }
-
-    BadgeStyle GetPriorityStyle(TaskPriority priority)
-{
-    return priority switch
-    {
-            TaskPriority.Low => BadgeStyle.Light, // gray
-        // TaskPriority.Medium   => "background-color:#0d6efd", // blue
-        // TaskPriority.High     => "background-color:#fd7e14", // orange
-        // TaskPriority.Critical => "background-color:#dc3545", // red
-            _ => BadgeStyle.Secondary
-    };
-}
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -262,7 +250,7 @@
         {
             taskListFormRequest = new TaskListFormRequest() { Title = "", 
                                                               DueDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1)),
-                                                              PriorityId = (int)TaskPriority.Medium
+                                                              PriorityId = 1
                                                             };
         }
 

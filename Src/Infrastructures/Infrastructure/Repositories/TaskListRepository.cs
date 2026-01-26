@@ -47,18 +47,64 @@ public class TaskListRepository : EfCoreRepository<TaskList, int>, ITaskListRepo
         return tempTaskList?.MapToDto();
     }
 
+
+    /*
+ PSEUDOCODE / PLAN (detailed):
+ - Problem: calling .Select(ss => ss.MapToDto()) on an IQueryable may fail at runtime if MapToDto is a C# method
+   (not an Expression) because EF Core cannot translate it to SQL.
+ - Two safe options:
+   1) Project directly into TaskListDto using an EF-translatable expression (new TaskListDto { ... }).
+      This requires knowing all DTO fields and mapping them using only EF-translatable members.
+   2) Materialize the query to memory first (ToListAsync) and then apply MapToDto() client-side.
+      This is safer when MapToDto is a method and avoids EF translation errors, but performs paging in-memory.
+ - Chosen approach below: materialize relevant entities to a list with ToListAsync (includes navigation properties),
+   then map to DTOs using MapToDto() and pass the in-memory IQueryable to the paging helper.
+   This avoids runtime translation errors while keeping intent clear.
+ */
+
     public async Task<PagingResponse<TaskListDto>> GetActiveTaskListWithPagination(PagingParameters pagingParameters,
                                                                                    CancellationToken cancellationToken)
     {
-        var query = _dbContext.TaskLists.Include(ss => ss.AssignedTo)
-                                         .Include(ss => ss.TaskItems)
-                                         .AsNoTracking()
-                                         .Where(qq => qq.IsCompleted == false)
-                                         .Select(ss => ss.MapToDto());
+        // Load entities (with includes) into memory to enable using MapToDto() which may be a regular method.
+        var taskLists = await _dbContext.TaskLists
+                                       .Include(t => t.AssignedTo)
+                                       .Include(t => t.Priority)
+                                       .Include(t => t.TaskItems)
+                                       .AsNoTracking()
+                                       .Where(t => t.IsCompleted == false)
+                                       .ToListAsync(cancellationToken);
 
-        return await PagingResponse<TaskListDto>.CreateAsync(query, pagingParameters, cancellationToken);
+        // Map to DTOs client-side
+        var dtoQuery = taskLists.Select(t => t.MapToDto()).AsQueryable();
 
+        // Create paging response from in-memory queryable
+        return await PagingResponse<TaskListDto>.CreateAsync(dtoQuery, pagingParameters, cancellationToken);
     }
+
+    //public async Task<PagingResponse<TaskListDto>> GetActiveTaskListWithPagination(PagingParameters pagingParameters,
+    //                                                                               CancellationToken cancellationToken)
+    //{
+    //    var query = _dbContext.TaskLists.Include(ss => ss.AssignedTo)
+    //                                                       .Include(ss => ss.Priority)
+    //                                                       .Include(ss => ss.TaskItems)
+    //                                                       .AsNoTracking()
+    //                                                       .Where(qq => qq.IsCompleted == false)
+    //                                                       .Select(ss => ss.MapToDto());
+
+    //    return await PagingResponse<TaskListDto>.CreateAsync(query, pagingParameters, cancellationToken);
+
+    //}
+
+
+
+
+
+
+
+
+
+
+
 
     public async Task<IEnumerable<TaskListWithItemsDto>> GetTaskListWithItemsByUser(int userId, CancellationToken cancellationToken)
     {
@@ -72,7 +118,7 @@ public class TaskListRepository : EfCoreRepository<TaskList, int>, ITaskListRepo
                    {
                        Id = t.Id,
                        Title = t.Title,
-                       Priority = t.Priority.ToString(),
+                       //Priority = t.TaskPriority,
                        DueDate = t.DueDate,
                        CompletedDate = t.CompletedDate,
                        taskItemDtos = t.TaskItems.Select(i => new TaskItemDto

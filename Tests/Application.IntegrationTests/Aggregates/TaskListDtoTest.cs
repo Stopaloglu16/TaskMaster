@@ -17,7 +17,7 @@ public class TaskListDtoTest
     public void CreateNewTaskListDto_Success()
     {
         //Arrange
-        TaskListFormRequest createTaskListRequest = new() { Title = MockTitle, DueDate = DateOnly.FromDateTime(new DateTime()), PriorityId = (int)TaskPriority.Medium };
+        TaskListFormRequest createTaskListRequest = new() { Title = MockTitle, DueDate = DateOnly.FromDateTime(new DateTime()), PriorityId = 1 };
 
         //Assert
         Assert.NotNull(createTaskListRequest);
@@ -31,7 +31,7 @@ public class TaskListDtoTest
     public void CreateNewTaskListDto_OnlyTitle_Success()
     {
         //Arrange
-        TaskListFormRequest createTaskListRequest = new() { Title = MockTitle, PriorityId = (int)TaskPriority.Medium };
+        TaskListFormRequest createTaskListRequest = new() { Title = MockTitle, PriorityId = 1 };
 
         //Assert
         Assert.NotNull(createTaskListRequest);
@@ -45,7 +45,7 @@ public class TaskListDtoTest
         var longMockTitle = TextGenerator.RandomString(101);
 
         //Arrange
-        TaskListFormRequest createTaskListRequest = new() { Title = longMockTitle, PriorityId = (int)TaskPriority.Medium };
+        TaskListFormRequest createTaskListRequest = new() { Title = longMockTitle, PriorityId = 1 };
 
         //Act
         var validateResult = ValidateClass.Validate(createTaskListRequest, out results);

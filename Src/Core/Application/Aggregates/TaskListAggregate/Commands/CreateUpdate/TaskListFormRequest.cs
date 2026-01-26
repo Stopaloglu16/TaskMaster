@@ -12,5 +12,5 @@ public record TaskListFormRequest
     public DateOnly DueDate { get; set; }
     public int? AssignedToId { get; set; }
 
-    public required int PriorityId { get; set; } = (int)TaskPriority.Medium;
+    public required int PriorityId { get; set; } 
 }

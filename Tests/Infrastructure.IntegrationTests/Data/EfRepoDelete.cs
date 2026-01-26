@@ -13,7 +13,7 @@ public class EfRepoDelete : BaseEfRepo
         var mockTitle = "testContributor";
 
         var repository = GetRepository();
-        var taskList = new TaskList() { Title = mockTitle,  Priority = TaskPriority.Medium };
+        var taskList = new TaskList() { Title = mockTitle,  PriorityId = 1 };
 
         await repository.AddAsync(taskList);
 
