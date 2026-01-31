@@ -386,6 +386,7 @@ public class TaskListService : ITaskListService
         currentTaskList.Title = taskListFormRequest.Title;
         currentTaskList.AssignedToId = taskListFormRequest.AssignedToId;
         currentTaskList.DueDate = taskListFormRequest.DueDate;
+        currentTaskList.PriorityId = taskListFormRequest.PriorityId;
 
         await _taskListRepository.UpdateAsync(currentTaskList);
 
