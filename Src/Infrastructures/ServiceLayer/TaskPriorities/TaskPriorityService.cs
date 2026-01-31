@@ -13,7 +13,7 @@ public class TaskPriorityService : ITaskPriorityService
         _taskPriorityRepository = taskPriorityRepository;
     }
 
-    public async Task<CustomResult<IEnumerable<TaskPrioritySelect>>> GetSelectList()
+    public async Task<IEnumerable<SelectListItem>> GetSelectList()
     {
         return await _taskPriorityRepository.GetSelectList();
     }

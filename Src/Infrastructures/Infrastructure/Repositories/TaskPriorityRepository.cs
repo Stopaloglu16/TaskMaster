@@ -2,6 +2,7 @@
 using Application.Common.Models;
 using Application.Repositories;
 using Domain.Entities;
+using Domain.Enums;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,22 +18,19 @@ public class TaskPriorityRepository : EfCoreRepository<TaskPriority, int>, ITask
         _dbContext = dbContext;
     }
     
-    public async Task<CustomResult<IEnumerable<TaskPrioritySelect>>> GetSelectList()
+    public async Task<IEnumerable<SelectListItem>> GetSelectList()
     {
-        var query = _dbContext.Set<TaskPriority>()
+        var tp = await _dbContext.TaskPriority
                               .AsNoTracking()
-                              .OrderBy(tp => tp.Id)
-                              .Select(tp => new TaskPrioritySelect
+                              .OrderBy(tp => tp.SortOrder)
+                              .Select(ss => new SelectListItem()
                               {
-                                  Id = tp.Id,
-                                  Name = tp.Name,
-                                  Default = tp.IsDefault
-                              });
+                                  Value = ss.Id,
+                                  Text = ss.Name
+                              }).ToListAsync();
 
-        var list = await EntityFrameworkQueryableExtensions
-                        .ToListAsync(query);
+        return tp;
 
-        return CustomResult<IEnumerable<TaskPrioritySelect>>.Success(list);
     }
 
 }

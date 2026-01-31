@@ -5,6 +5,6 @@ namespace ServiceLayer.TaskPriorities
 {
     public interface ITaskPriorityService
     {
-        Task<CustomResult<IEnumerable<TaskPrioritySelect>>> GetSelectList();
+        Task<IEnumerable<SelectListItem>> GetSelectList();
     }
 }

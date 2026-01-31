@@ -1,7 +1,5 @@
 ﻿using Application.Aggregates.TaskItemAggregate.Commands.CreateUpdate;
 using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
-using Domain.Enums;
-using System.Collections.Generic;
 
 namespace SharedTestDataLibrary.TaskDataSample;
 
@@ -14,7 +12,7 @@ public class TaskListData
 
     public static TaskListFormRequest CreateCreateTaskListRequestValid()
     {
-        return CreateCreateTaskListRequestEmpty() with { Title = "MockTitle" };
+        return CreateCreateTaskListRequestEmpty() with { Title = "MockTitle", PriorityId = 1 };
     }
 
     public static TaskListFormRequest CreateUpdateTaskListRequestEmpty()
@@ -60,8 +58,9 @@ public class TaskListData
 
             for (int t = 0; t < taskItemCount; t++)
             {
-                taskListRequest.createTaskItemRequests.Add(new CreateTaskItemRequest() { 
-                    Title = $"MockTaskItem{t + 1}" ,
+                taskListRequest.createTaskItemRequests.Add(new CreateTaskItemRequest()
+                {
+                    Title = $"MockTaskItem{t + 1}",
                     Description = $"MockTaskItemDescription{t + 1}",
                     RowId = t + 1
                 });

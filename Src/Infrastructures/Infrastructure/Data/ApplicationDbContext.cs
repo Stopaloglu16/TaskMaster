@@ -28,6 +28,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<TaskList> TaskLists { get; set; }
     public DbSet<TaskItem> TaskItems { get; set; }
 
+    public DbSet<TaskPriority> TaskPriority { get; set; }
+
     public DbSet<FileJob> FileJobs { get; set; }
     public DbSet<FileJobUpload> FileJobUploads { get; set; }
 

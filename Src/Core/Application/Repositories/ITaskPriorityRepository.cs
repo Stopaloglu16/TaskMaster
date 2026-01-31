@@ -7,5 +7,5 @@ namespace Application.Repositories;
 
 public interface ITaskPriorityRepository : IRepository<TaskPriority, int>
 {
-    Task<CustomResult<IEnumerable<TaskPrioritySelect>>> GetSelectList();
+    Task<IEnumerable<SelectListItem>> GetSelectList();
 }

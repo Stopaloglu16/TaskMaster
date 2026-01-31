@@ -40,7 +40,12 @@ public class TaskListRepository : EfCoreRepository<TaskList, int>, ITaskListRepo
 
     public async Task<TaskListDto?> GetTaskListById(int Id, CancellationToken cancellationToken)
     {
-        var tempTaskList = await _dbContext.TaskLists.AsNoTracking()
+        var tempTaskList1 = await _dbContext.TaskLists.AsNoTracking()
+                                         .Where(qq => qq.IsDeleted == 0)
+                                         .FirstOrDefaultAsync(qq => qq.Id == Id, cancellationToken);
+
+
+        var tempTaskList = await _dbContext.TaskLists.Include(ss => ss.Priority).AsNoTracking()
                                          .Where(qq => qq.IsDeleted == 0)
                                          .FirstOrDefaultAsync(qq => qq.Id == Id, cancellationToken);
 

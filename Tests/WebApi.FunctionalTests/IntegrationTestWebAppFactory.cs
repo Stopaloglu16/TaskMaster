@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using SharedTestDataLibrary.TaskDataSample;
 using Testcontainers.MsSql;
 
 namespace WebApi.FunctionalTests;
@@ -38,7 +39,7 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
                 db.Database.EnsureCreated();
 
                 // Seed test data if needed
-                //SeedTestData(db);
+                SeedTestData(db);
             }
 
             services
@@ -60,6 +61,16 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
 
         });
 
+    }
+
+    // seed database with test data
+    private void SeedTestData(ApplicationDbContext db)
+    {
+        var priorityList = TaskPriorityData.GetTaskPriotiryList();
+
+        // Add your test data seeding logic here
+        db.TaskPriority.AddRange(priorityList);
+        db.SaveChanges();
     }
 
     public async Task InitializeAsync()

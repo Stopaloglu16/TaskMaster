@@ -9,7 +9,7 @@ namespace WebApi.Apis
         {
 
             // Route for query task lists
-            group.MapGet("/", GetSelectList)
+            group.MapGet("/taskpriorityselectlist", GetSelectList)
                  .WithSummary("Get select lists")
                  .WithDescription("Returns select lists.");
 
@@ -22,7 +22,7 @@ namespace WebApi.Apis
         {
             var taskList = await taskPriorityService.GetSelectList();
 
-            return TypedResults.Ok(taskList.Value);
+            return TypedResults.Ok(taskList);
         }
 
 

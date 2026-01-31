@@ -112,6 +112,7 @@
 {
     <TaskListModal taskListFormRequest="@taskListFormRequest"
                    taskUserList="@taskUserList"
+                   taskPriorityList="@taskPriorityList"
                    OnClose="@SaveTaskListModel">
     </TaskListModal>
 }
@@ -145,6 +146,7 @@
     public bool TaskListModalOpen = false;
     public TaskListFormRequest taskListFormRequest { get; set; }
     List<SelectListItem> taskUserList { get; set; }
+    List<SelectListItem> taskPriorityList { get; set; }
 
     private int fileRowCount = 1;
 
@@ -241,6 +243,8 @@
 
         taskUserList = await _taskListSelectService.GetAllDataAsync("Users/taskuserselectlist", _cts.Token, true);
 
+        taskPriorityList = await _taskListSelectService.GetAllDataAsync("taskPriority/taskpriorityselectlist", _cts.Token, false);
+
         if (Id > 0)
         {
             var apiReturn = await _taskListFormService.GetDataByIdAsync($"tasklist/GetTaskListForm/{Id}");
@@ -250,7 +254,7 @@
         {
             taskListFormRequest = new TaskListFormRequest() { Title = "", 
                                                               DueDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1)),
-                                                              PriorityId = 1
+                                                              PriorityId = taskPriorityList[0].Value
                                                             };
         }
 
