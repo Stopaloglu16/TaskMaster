@@ -6,6 +6,7 @@ public record TaskListWithItemsDto
 {
     public int Id { get; init; }
     public string Title { get; init; }
+    public string Priority { get; init; }
     public DateOnly DueDate { get; init; }
     public DateOnly? CompletedDate { get; init; }
     public string? AssignedTo { get; set; }

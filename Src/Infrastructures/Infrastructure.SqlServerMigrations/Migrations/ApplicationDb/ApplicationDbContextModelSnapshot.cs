@@ -76,6 +76,9 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                     b.Property<byte>("IsDeleted")
                         .HasColumnType("tinyint");
 
+                    b.Property<int>("PriorityId")
+                        .HasColumnType("int");
+
                     b.Property<string>("TaskTitle")
                         .IsRequired()
                         .HasColumnType("varchar(150)");
@@ -161,6 +164,9 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("PriorityId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("varchar(100)");
@@ -169,7 +175,39 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
 
                     b.HasIndex("AssignedToId");
 
+                    b.HasIndex("PriorityId");
+
                     b.ToTable("TaskLists");
+                });
+
+            modelBuilder.Entity("Domain.Entities.TaskPriority", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<byte>("IsDeleted")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TaskPriority");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>
@@ -254,7 +292,15 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                         .WithMany("TaskLists")
                         .HasForeignKey("AssignedToId");
 
+                    b.HasOne("Domain.Entities.TaskPriority", "Priority")
+                        .WithMany("Tasks")
+                        .HasForeignKey("PriorityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("AssignedTo");
+
+                    b.Navigation("Priority");
                 });
 
             modelBuilder.Entity("Domain.Entities.FileJob", b =>
@@ -265,6 +311,11 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
             modelBuilder.Entity("Domain.Entities.TaskList", b =>
                 {
                     b.Navigation("TaskItems");
+                });
+
+            modelBuilder.Entity("Domain.Entities.TaskPriority", b =>
+                {
+                    b.Navigation("Tasks");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>

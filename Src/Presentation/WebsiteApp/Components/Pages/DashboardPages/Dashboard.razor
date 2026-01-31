@@ -133,6 +133,7 @@
     protected override async Task OnInitializedAsync()
     {
         var authState = await authenticationState;
+
         var user = authState.User;
         if (user?.Identity?.IsAuthenticated != true)
             NavigationManager.NavigateTo("/", true);

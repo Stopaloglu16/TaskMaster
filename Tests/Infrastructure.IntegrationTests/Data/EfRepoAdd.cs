@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Enums;
 
 namespace Infrastructure.IntegrationTests.Data;
 
@@ -12,7 +13,7 @@ public class EfRepoAdd : BaseEfRepo
         var mockTitle = "testContributor";
 
         var repository = GetRepository();
-        var Contributor = new TaskList() { Title = mockTitle };
+        var Contributor = new TaskList() { Title = mockTitle, PriorityId = 1 };
 
         //Act
         await repository.AddAsync(Contributor);

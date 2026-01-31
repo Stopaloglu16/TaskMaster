@@ -15,6 +15,8 @@ namespace Application.Aggregates.TaskListAggregate.Commands.CreateUpdate
 
         public string? AssignedTo { get; set; }
 
+        public int PriorityId { get; set; }
+
         public List<CreateTaskItemRequest> createTaskItemRequests { get; set; } = new List<CreateTaskItemRequest>();
     }
 }

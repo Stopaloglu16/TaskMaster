@@ -85,7 +85,8 @@ namespace ServiceLayer.FileJobs
                     {
                         Title = fileJob.TaskTitle,
                         DueDate = fileJob.DueDate,
-                        AssignedTo = fileJob.AssignedTo
+                        AssignedTo = fileJob.AssignedTo,
+                        PriorityId = fileJob.PriorityId,
                     };
 
                     // Validate the CreateTaskListRequest

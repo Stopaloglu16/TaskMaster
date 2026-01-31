@@ -7,6 +7,7 @@ using ServiceLayer.Dashboards;
 using ServiceLayer.FileJobs;
 using ServiceLayer.TaskItems;
 using ServiceLayer.TaskLists;
+using ServiceLayer.TaskPriorities;
 using ServiceLayer.Users;
 using TaskMaster.ServiceDefaults;
 
@@ -33,6 +34,9 @@ internal static class Extensions
 
         services.AddScoped<ITaskItemRepository, TaskItemRepository>();
         services.AddScoped<ITaskItemService, TaskItemService>();
+
+        services.AddScoped<ITaskPriorityRepository, TaskPriorityRepository>();
+        services.AddScoped<ITaskPriorityService, TaskPriorityService>();
 
         services.AddScoped<IDashboardRepository, DashboardRepository>();
         services.AddScoped<IDashboardService, DashboardService>();

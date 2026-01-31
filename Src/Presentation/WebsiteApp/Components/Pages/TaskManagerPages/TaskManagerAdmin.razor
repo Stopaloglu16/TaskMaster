@@ -57,6 +57,7 @@
                     </RadzenCard>
                 </RadzenCardGroup>
             </RadzenStack>
+
         </div>
         <div class="card-body">
             <RadzenStack Gap="1rem">
@@ -85,6 +86,12 @@
                                                    Unit="@($" out of {task.TaskItemCount}")" />
                             </Template>
                         </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Title="Priority">
+                            <Template Context="task">
+                                <RadzenBadge Text="@task.Priority"
+                                             Class="@($"rz-badge-{task.PriorityColour}")" />
+                            </Template>
+                        </RadzenDataGridColumn>
                         <RadzenDataGridColumn TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
                             <Template Context="task">
                                 <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium"
@@ -105,6 +112,7 @@
 {
     <TaskListModal taskListFormRequest="@taskListFormRequest"
                    taskUserList="@taskUserList"
+                   taskPriorityList="@taskPriorityList"
                    OnClose="@SaveTaskListModel">
     </TaskListModal>
 }
@@ -138,6 +146,7 @@
     public bool TaskListModalOpen = false;
     public TaskListFormRequest taskListFormRequest { get; set; }
     List<SelectListItem> taskUserList { get; set; }
+    List<SelectListItem> taskPriorityList { get; set; }
 
     private int fileRowCount = 1;
 
@@ -234,6 +243,8 @@
 
         taskUserList = await _taskListSelectService.GetAllDataAsync("Users/taskuserselectlist", _cts.Token, true);
 
+        taskPriorityList = await _taskListSelectService.GetAllDataAsync("taskPriority/taskpriorityselectlist", _cts.Token, false);
+
         if (Id > 0)
         {
             var apiReturn = await _taskListFormService.GetDataByIdAsync($"tasklist/GetTaskListForm/{Id}");
@@ -241,7 +252,10 @@
         }
         else
         {
-            taskListFormRequest = new TaskListFormRequest() { Title = "", DueDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1)) };
+            taskListFormRequest = new TaskListFormRequest() { Title = "", 
+                                                              DueDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1)),
+                                                              PriorityId = taskPriorityList[0].Value
+                                                            };
         }
 
         TaskListModalOpen = true;

@@ -25,7 +25,8 @@ namespace Domain.Entities
         public FileRowStatus FileRowType { get; set; } = FileRowStatus.NewUpload;
         [Column(TypeName = "varchar(350)")]
         public string? ErrorMessage { get; set; }
-        
+
+        public int PriorityId { get; set; }
 
         public int FileJobId { get; set; }
         public FileJob FileJob { get; set; }

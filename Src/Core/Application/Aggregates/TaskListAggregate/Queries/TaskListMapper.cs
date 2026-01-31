@@ -13,6 +13,8 @@ namespace Application.Aggregates.TaskListAggregate.Queries
                 Title = taskList.Title,
                 DueDate = taskList.DueDate,
                 AssignedTo = taskList.AssignedTo?.FullName ?? "",
+                Priority = taskList.Priority.Name,
+                PriorityColour = taskList.Priority.Color,
                 TaskItemCount = taskList.TaskItems.Count(),
                 TaskItemCompletedCount = taskList.TaskItems.Count(ti => ti.IsCompleted),
             };
@@ -25,7 +27,8 @@ namespace Application.Aggregates.TaskListAggregate.Queries
                 Id = taskList.Id,
                 Title = taskList.Title,
                 DueDate = taskList.DueDate,
-                AssignedToId = taskList.AssignedToId
+                AssignedToId = taskList.AssignedToId,
+                PriorityId = taskList.PriorityId
             };
         }
     }

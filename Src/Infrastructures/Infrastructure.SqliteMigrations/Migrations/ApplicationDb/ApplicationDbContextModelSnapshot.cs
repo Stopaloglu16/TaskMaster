@@ -15,7 +15,7 @@ namespace Infrastructure.SqliteMigrations.Migrations.ApplicationDb
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.1");
 
             modelBuilder.Entity("Domain.Entities.FileJob", b =>
                 {
@@ -65,6 +65,9 @@ namespace Infrastructure.SqliteMigrations.Migrations.ApplicationDb
                         .HasColumnType("INTEGER");
 
                     b.Property<byte>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PriorityId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("TaskTitle")
@@ -148,6 +151,9 @@ namespace Infrastructure.SqliteMigrations.Migrations.ApplicationDb
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("PriorityId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("varchar(100)");
@@ -156,7 +162,37 @@ namespace Infrastructure.SqliteMigrations.Migrations.ApplicationDb
 
                     b.HasIndex("AssignedToId");
 
+                    b.HasIndex("PriorityId");
+
                     b.ToTable("TaskLists");
+                });
+
+            modelBuilder.Entity("Domain.Entities.TaskPriority", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TaskPriority");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>
@@ -209,186 +245,6 @@ namespace Infrastructure.SqliteMigrations.Migrations.ApplicationDb
                     b.HasKey("Id");
 
                     b.ToTable("Users");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Created = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            FullName = "taskmaster@hotmail.co.uk",
-                            IsDeleted = (byte)0,
-                            RefreshTokenExpiryTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            RegisterToken = new Guid("53345a4f-1230-43ee-8cf3-cd19792fa6b5"),
-                            RegisterTokenExpieryTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            UserEmail = "taskmaster@hotmail.co.uk",
-                            UserTypeId = 0
-                        });
-                });
-
-            modelBuilder.Entity("TickerQ.EntityFrameworkCore.Entities.CronTickerEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Expression")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Function")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("InitIdentifier")
-                        .HasColumnType("TEXT");
-
-                    b.Property<byte[]>("Request")
-                        .HasColumnType("BLOB");
-
-                    b.Property<int>("Retries")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("RetryIntervals")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Expression")
-                        .HasDatabaseName("IX_CronTickers_Expression");
-
-                    b.ToTable("CronTickers", "ticker");
-                });
-
-            modelBuilder.Entity("TickerQ.EntityFrameworkCore.Entities.CronTickerOccurrenceEntity<TickerQ.EntityFrameworkCore.Entities.CronTickerEntity>", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("CronTickerId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<long>("ElapsedTime")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Exception")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("ExecutedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("ExecutionTime")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("LockHolder")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("LockedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("RetryCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CronTickerId")
-                        .HasDatabaseName("IX_CronTickerOccurrence_CronTickerId");
-
-                    b.HasIndex("ExecutionTime")
-                        .HasDatabaseName("IX_CronTickerOccurrence_ExecutionTime");
-
-                    b.HasIndex("CronTickerId", "ExecutionTime")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_CronTickerId_ExecutionTime");
-
-                    b.HasIndex("Status", "ExecutionTime")
-                        .HasDatabaseName("IX_CronTickerOccurrence_Status_ExecutionTime");
-
-                    b.ToTable("CronTickerOccurrences", "ticker");
-                });
-
-            modelBuilder.Entity("TickerQ.EntityFrameworkCore.Entities.TimeTickerEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid?>("BatchParent")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("BatchRunCondition")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("TEXT");
-
-                    b.Property<long>("ElapsedTime")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Exception")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("ExecutedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("ExecutionTime")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Function")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("InitIdentifier")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("LockHolder")
-                        .IsConcurrencyToken()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("LockedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<byte[]>("Request")
-                        .HasColumnType("BLOB");
-
-                    b.Property<int>("Retries")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("RetryCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("RetryIntervals")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BatchParent");
-
-                    b.HasIndex("ExecutionTime")
-                        .HasDatabaseName("IX_TimeTicker_ExecutionTime");
-
-                    b.HasIndex("Status", "ExecutionTime")
-                        .HasDatabaseName("IX_TimeTicker_Status_ExecutionTime");
-
-                    b.ToTable("TimeTickers", "ticker");
                 });
 
             modelBuilder.Entity("Domain.Entities.FileJobUpload", b =>
@@ -419,28 +275,15 @@ namespace Infrastructure.SqliteMigrations.Migrations.ApplicationDb
                         .WithMany("TaskLists")
                         .HasForeignKey("AssignedToId");
 
-                    b.Navigation("AssignedTo");
-                });
-
-            modelBuilder.Entity("TickerQ.EntityFrameworkCore.Entities.CronTickerOccurrenceEntity<TickerQ.EntityFrameworkCore.Entities.CronTickerEntity>", b =>
-                {
-                    b.HasOne("TickerQ.EntityFrameworkCore.Entities.CronTickerEntity", "CronTicker")
-                        .WithMany()
-                        .HasForeignKey("CronTickerId")
+                    b.HasOne("Domain.Entities.TaskPriority", "Priority")
+                        .WithMany("Tasks")
+                        .HasForeignKey("PriorityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CronTicker");
-                });
+                    b.Navigation("AssignedTo");
 
-            modelBuilder.Entity("TickerQ.EntityFrameworkCore.Entities.TimeTickerEntity", b =>
-                {
-                    b.HasOne("TickerQ.EntityFrameworkCore.Entities.TimeTickerEntity", "ParentJob")
-                        .WithMany("ChildJobs")
-                        .HasForeignKey("BatchParent")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ParentJob");
+                    b.Navigation("Priority");
                 });
 
             modelBuilder.Entity("Domain.Entities.FileJob", b =>
@@ -453,14 +296,14 @@ namespace Infrastructure.SqliteMigrations.Migrations.ApplicationDb
                     b.Navigation("TaskItems");
                 });
 
+            modelBuilder.Entity("Domain.Entities.TaskPriority", b =>
+                {
+                    b.Navigation("Tasks");
+                });
+
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
                     b.Navigation("TaskLists");
-                });
-
-            modelBuilder.Entity("TickerQ.EntityFrameworkCore.Entities.TimeTickerEntity", b =>
-                {
-                    b.Navigation("ChildJobs");
                 });
 #pragma warning restore 612, 618
         }

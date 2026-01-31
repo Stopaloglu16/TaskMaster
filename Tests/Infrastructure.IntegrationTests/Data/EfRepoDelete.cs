@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Enums;
 
 namespace Infrastructure.IntegrationTests.Data;
 
@@ -12,7 +13,7 @@ public class EfRepoDelete : BaseEfRepo
         var mockTitle = "testContributor";
 
         var repository = GetRepository();
-        var taskList = new TaskList() { Title = mockTitle };
+        var taskList = new TaskList() { Title = mockTitle,  PriorityId = 1 };
 
         await repository.AddAsync(taskList);
 

@@ -35,6 +35,15 @@
                                             </RadzenRow>
                                             <RadzenRow AlignItems="AlignItems.Center">
                                                 <RadzenColumn Size="12" SizeMD="4">
+                                                    <RadzenLabel Text="Priority" Component="Priority" />
+                                                </RadzenColumn>
+                                                <RadzenColumn Size="12" SizeMD="8">
+                                                    <RadzenDropDown @bind-Value="taskListFormRequest.PriorityId" Data="@taskPriorityList" Style="width: 100%;" TextProperty="Text" ValueProperty="Value" Name="Priorities">
+                                                    </RadzenDropDown>
+                                                </RadzenColumn>
+                                            </RadzenRow>
+                                            <RadzenRow AlignItems="AlignItems.Center">
+                                                <RadzenColumn Size="12" SizeMD="4">
                                                     <RadzenLabel Text="User" Component="User" />
                                                 </RadzenColumn>
                                                 <RadzenColumn Size="12" SizeMD="8">
@@ -65,13 +74,16 @@
 @code {
 
     [Parameter]
-    public TaskListFormRequest? taskListFormRequest { get; set; }
+    public TaskListFormRequest taskListFormRequest { get; set; }
 
     [Parameter]
     public EventCallback<TaskListFormRequest?> OnClose { get; set; }
 
     [Parameter]
     public List<SelectListItem> taskUserList { get; set; }
+    
+    [Parameter]
+    public List<SelectListItem> taskPriorityList { get; set; }
 
     private EventCallback<TaskListFormRequest> SubmitCallback => EventCallback.Factory.Create<TaskListFormRequest>(this, ModalOk);
 

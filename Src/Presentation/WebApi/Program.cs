@@ -209,6 +209,10 @@ fileUpload.FileUploadApiV1().RequireAuthorization();
 
 sendEmail.EmailApiV1(); */
 
+var taskPriority = app.MapGroup("api/v{apiVersion:apiVersion}/taskPriority")
+    .WithApiVersionSet(apiVersionSet)
+    .HasApiVersion(1.0);
+taskPriority.TaskPriorityApiV1().RequireAuthorization();
 
 app.MapHub<TaskProgressHub>("processHub");
 app.MapHub<TaskProgressHub>("processTickerQ");
