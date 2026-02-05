@@ -60,7 +60,7 @@ public class TaskListService : ITaskListService
     public async Task<CustomResult<List<CreateTaskListResponse>>> CreateTaskListBulk(IEnumerable<CreateTaskListRequest> createTaskListRequests,
                                                                                      CancellationToken cancellationToken)
     {
-        List<CreateTaskListResponse> createTaskListResponseList = new List<CreateTaskListResponse>();
+        List<CreateTaskListResponse>? createTaskListResponseList = new List<CreateTaskListResponse>();
 
         try
         {

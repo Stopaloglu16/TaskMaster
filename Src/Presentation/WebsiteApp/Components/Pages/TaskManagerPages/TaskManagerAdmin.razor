@@ -10,6 +10,7 @@
 @using WebsiteApp.Services
 @using Newtonsoft.Json
 @using System.Text
+@using System.Linq
 ﻿@using Microsoft.AspNetCore.Components.QuickGrid
 @using TaskMasterRazorClassLibrary
 
@@ -131,9 +132,9 @@
     private Task<AuthenticationState>? authenticationState { get; set; }
     private CancellationTokenSource? _cts = new();
 
-    RadzenDataGrid<TaskListDto> gridItemsProvider;
-    IEnumerable<TaskListDto> tasklistList;
-    ODataEnumerable<TaskListDto> taskListDtos;
+    RadzenDataGrid<TaskListDto>? gridItemsProvider;
+    IEnumerable<TaskListDto>? tasklistList;
+    ODataEnumerable<TaskListDto>? taskListDtos;
 
     bool showPagerSummary = true;
 
@@ -144,19 +145,29 @@
     IEnumerable<int> pageSizeOptions = new int[] { 5, 10, 20, 30 };
 
     public bool TaskListModalOpen = false;
-    public TaskListFormRequest taskListFormRequest { get; set; }
-    List<SelectListItem> taskUserList { get; set; }
-    List<SelectListItem> taskPriorityList { get; set; }
+    public TaskListFormRequest? taskListFormRequest { get; set; }
+    List<SelectListItem>? taskUserList { get; set; }
+    List<SelectListItem>? taskPriorityList { get; set; }
 
     private int fileRowCount = 1;
 
     protected override async Task OnInitializedAsync()
     {
+        // Guard against a missing cascading parameter
+        if (authenticationState == null)
+        {
+            NavigationManager.NavigateTo("/", true);
+            return;
+        }
 
         var authState = await authenticationState;
-        var user = authState.User;
-        if (!user.Identity.IsAuthenticated || !user.IsInRole("AdminUser"))
+        var user = authState?.User;
+
+        if (user?.Identity == null || !user.Identity.IsAuthenticated || !user.IsInRole("AdminUser"))
+        {
             NavigationManager.NavigateTo("/", true);
+            return;
+        }
 
         await base.OnInitializedAsync();
 
@@ -179,11 +190,11 @@
             isLoading = true;
             itemsPerPage = args.Top ?? 10;
 
-            int pageNumber = ((int)args.Skip / itemsPerPage) + 1;
+            int pageNumber = ((int)(args.Skip ?? 0) / itemsPerPage) + 1;
 
             var response = await _taskListService.GetPagingDataAsync(
             $"tasklist?PageNumber={pageNumber}&PageSize={itemsPerPage}&OrderBy=Id&IsDescending=false",
-            _cts.Token);
+            _cts?.Token ?? CancellationToken.None);
 
             if (response != null)
             {
@@ -210,6 +221,8 @@
                 Detail = $"Failed to load data: {ex.Message}",
                 Duration = 4000
             };
+
+            ShowNotification(errorMessage);
         }
     }
 
@@ -217,13 +230,18 @@
 
     void NavigateTo(RadzenSplitButtonItem item)
     {
-        if(item.Value == "taskmanagerUploadFile")
+        if (item == null)
+            return;
+
+        if (!string.IsNullOrEmpty(item.Value) && item.Value == "taskmanagerUploadFile")
         {
             var urlTxt = $"/{item.Value}/0";
             NavigationManager.NavigateTo(urlTxt);
+            return;
         }
-        
-        NavigationManager.NavigateTo($"/{item.Value}");
+
+        if (!string.IsNullOrEmpty(item.Value))
+            NavigationManager.NavigateTo($"/{item.Value}");
     }
 
     #region Modal
@@ -233,7 +251,8 @@
         TaskListModalOpen = false;
         ActionPerItemModalOpen = false;
 
-        await gridItemsProvider.RefreshDataAsync();
+        if (gridItemsProvider != null)
+            await gridItemsProvider.RefreshDataAsync();
 
         StateHasChanged();
     }
@@ -241,9 +260,9 @@
     protected async Task EditTasklist(int Id)
     {
 
-        taskUserList = await _taskListSelectService.GetAllDataAsync("Users/taskuserselectlist", _cts.Token, true);
+        taskUserList = await _taskListSelectService.GetAllDataAsync("Users/taskuserselectlist", _cts?.Token ?? CancellationToken.None, true);
 
-        taskPriorityList = await _taskListSelectService.GetAllDataAsync("taskPriority/taskpriorityselectlist", _cts.Token, false);
+        taskPriorityList = await _taskListSelectService.GetAllDataAsync("taskPriority/taskpriorityselectlist", _cts?.Token ?? CancellationToken.None, false);
 
         if (Id > 0)
         {
@@ -252,9 +271,11 @@
         }
         else
         {
+            var priorityId = taskPriorityList?.FirstOrDefault()?.Value ?? 0;
+
             taskListFormRequest = new TaskListFormRequest() { Title = "", 
                                                               DueDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1)),
-                                                              PriorityId = taskPriorityList[0].Value
+                                                              PriorityId = priorityId
                                                             };
         }
 
@@ -270,7 +291,8 @@
         }
         else
         {
-            if (taskListFormRequest.AssignedToId == 0)
+            // Only set to null when the AssignedToId explicitly equals 0
+            if (taskListFormRequest.AssignedToId is int at && at == 0)
                 taskListFormRequest.AssignedToId = null;
 
             HttpResponseMessage apiReturn;
