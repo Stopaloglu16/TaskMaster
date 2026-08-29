@@ -1,57 +1,51 @@
-﻿using Application.Aggregates.FileJobAggregate.Commands;
+using Application.Aggregates.FileJobAggregate.Commands;
 using Application.Aggregates.FileJobAggregate.Queries;
-using Application.Aggregates.TaskItemAggregate.Commands.CreateUpdate;
-using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
 using Application.Common.Models;
+using Application.Messaging.Contracts;
 using Application.Repositories;
 using Domain.Entities;
 using Domain.Enums;
+using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using ServiceLayer.TaskLists;
-using ServiceLayer.Users;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace ServiceLayer.FileJobs
 {
     public class FileJobsService : IFileJobService
     {
-
         private readonly IFileJobRepository _fileJobRepository;
         private readonly IFileJobUploadRepository _fileJobUploadRepository;
-        private readonly IUserService _userService;
-        private readonly ILogger<TaskListService> _logger;
+        private readonly ApplicationDbContext _dbContext;
+        private readonly ILogger<FileJobsService> _logger;
 
         public FileJobsService(IFileJobRepository fileJobRepository,
                                IFileJobUploadRepository fileJobUploadRepository,
-                               IUserService userService,
-                               ILogger<TaskListService> logger)
+                               ApplicationDbContext dbContext,
+                               ILogger<FileJobsService> logger)
         {
             _fileJobRepository = fileJobRepository;
             _fileJobUploadRepository = fileJobUploadRepository;
-            _userService = userService;
+            _dbContext = dbContext;
             _logger = logger;
         }
 
         public async Task<CustomResult<int>> CreateFileJob(int FileJobId, List<CreateFileJobUploadRequest> createFileJobUploadRequestList, CancellationToken cancellationToken)
         {
-
             if (FileJobId == 0)
             {
                 var NewFileJob = await _fileJobRepository.AddAsync(new FileJob()
                 {
                     IsCompleted = false,
-                    FileJobType = FileJobType.NewUpload
+                    State = SagaState.NewUpload
                 });
 
                 FileJobId = NewFileJob.Id;
             }
 
-
-
             var fileJobUploads = createFileJobUploadRequestList.Select(request => new FileJobUpload
             {
                 FileJobId = FileJobId,
+                BatchKey = request.BatchKey,
                 TaskTitle = request.TaskTitle,
                 DueDate = request.DueDate,
                 Title = request.Title,
@@ -70,128 +64,38 @@ namespace ServiceLayer.FileJobs
             return await _fileJobUploadRepository.GetFileJobUploadsWithPagination(FileJobId, pagingParameters, cancellationToken);
         }
 
-        public async Task<CustomResult> ValidateFileJob(int FileJobId, CancellationToken cancellationToken)
+        public async Task<CustomResult> StartFileJobSaga(int FileJobId, CancellationToken cancellationToken)
         {
-            try
+            var fileJob = await _dbContext.FileJobs
+                                          .FirstOrDefaultAsync(f => f.Id == FileJobId, cancellationToken);
+
+            if (fileJob is null)
             {
-                var fileJobList = await _fileJobRepository.GetFileJobUploads(FileJobId, cancellationToken);
-
-
-                foreach (var fileJob in fileJobList)
-                {
-                    StringBuilder errors = new StringBuilder();
-
-                    CreateTaskListRequest createTaskListRequest = new CreateTaskListRequest()
-                    {
-                        Title = fileJob.TaskTitle,
-                        DueDate = fileJob.DueDate,
-                        AssignedTo = fileJob.AssignedTo,
-                        PriorityId = fileJob.PriorityId,
-                    };
-
-                    // Validate the CreateTaskListRequest
-                    var validationContext = new ValidationContext(createTaskListRequest);
-                    var validationResults = new List<ValidationResult>();
-
-                    if (!Validator.TryValidateObject(createTaskListRequest, validationContext, validationResults, validateAllProperties: true))
-                    {
-                        // Log validation errors
-                        _logger.LogWarning("Validation failed for TaskList with Title: {Title}", fileJob.TaskTitle);
-
-                        // Collect all validation errors for this request
-                        foreach (var validationResult in validationResults)
-                        {
-                            errors.Append(validationResult.ErrorMessage);
-                        }
-                        continue; // Skip to next item if current one has validation errors
-                    }
-
-                    if (errors.Length == 0)
-                    {
-                        CreateTaskItemRequest createTaskItemRequest = new CreateTaskItemRequest()
-                        {
-                            Title = fileJob.Title,
-                            Description = fileJob.Description
-                        };
-
-                        // Validate the CreateTaskItemRequest
-                        validationContext = new ValidationContext(createTaskItemRequest);
-                        validationResults.Clear();
-
-                        if (!Validator.TryValidateObject(createTaskItemRequest, validationContext, validationResults, validateAllProperties: true))
-                        {
-                            foreach (var validationResult in validationResults)
-                            {
-                                errors.Append(validationResult.ErrorMessage);
-                            }
-                        }
-                    }
-
-                       
-                    //fileJob.Id
-                    if (errors.Length == 0)
-                    {
-                        fileJob.FileRowType = FileRowStatus.Validated;
-                    }
-                    else
-                    {
-                        fileJob.ErrorMessage = errors.ToString();
-                        fileJob.FileRowType = FileRowStatus.ValidateIssue;
-                    }
-
-                    await _fileJobUploadRepository.UpdateAsync(fileJob);
-
-                }
-
-                return CustomResult.Success();
+                // develop's per-row validation loop used to live here. It is now saga step 1
+                // (ValidateFileHandler), batched and inside the dispatcher's transaction.
+                return CustomResult.Failure($"File job {FileJobId} was not found.");
             }
-            catch (Exception)
+
+            // Starting is only meaningful from NewUpload. Re-posting /Process for a job that is
+            // already running would otherwise enqueue a second ValidateFile and race the saga.
+            if (fileJob.State != SagaState.NewUpload)
             {
-                return CustomResult.Failure("Error in validating the file job");
+                return CustomResult.Failure($"File job {FileJobId} has already been started (state: {fileJob.State}).");
             }
-        }
 
-        public async Task<CustomResult> ProcessFileJob(int FileJobId, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var fileJob = await _fileJobRepository.GetByIdAsync(FileJobId);
+            fileJob.State = SagaState.Started;
+            fileJob.Version++;
 
-                fileJob.FileJobType = FileJobType.Running;
+            // The state change and the outbox row commit together: the saga can never be marked
+            // started without its first command being publishable, or vice versa.
+            _dbContext.Enqueue(new ValidateFile(Guid.NewGuid(), fileJob.CorrelationId, fileJob.Id));
 
-                await _fileJobRepository.UpdateAsync(fileJob);
+            await _dbContext.SaveChangesAsync(cancellationToken);
 
-                return CustomResult.Success();
-            }
-            catch (Exception)
-            {
-                return CustomResult.Failure("Error in validating the file job");
-            }
-        }
+            _logger.LogInformation("FileJob {FileJobId}: saga started ({CorrelationId}).",
+                fileJob.Id, fileJob.CorrelationId);
 
-        public async Task<IReadOnlyList<int>> GetFileJobListRunning(CancellationToken cancellationToken)
-        {
-            return await _fileJobRepository.GetFileJobListRunning(cancellationToken);
-        }
-
-        public async Task<List<FileJobUpload>> GetFileJobUploadList(int fileJobId, CancellationToken cancellationToken)
-        {
-            return await _fileJobUploadRepository.GetFileJobUploadList(fileJobId, cancellationToken);
-        }
-
-        public async Task<int> UpdateFileJobUploadRangeAsync(List<FileJobUpload> fileJobUploads, CancellationToken cancellationToken = default)
-        {
-            return await _fileJobUploadRepository.UpdateFileJobUploadRangeAsync(fileJobUploads, cancellationToken);
-        }
-
-        public async Task<int> CompleteFileJobAsync(int fileJobId, CancellationToken cancellationToken = default)
-        {
-            return await _fileJobRepository.CompleteFileJobAsync(fileJobId, cancellationToken);
-        }
-
-        public async Task<int> MoveToLiveAsync(int fileJobId, CancellationToken cancellationToken = default)
-        {
-            return await _fileJobRepository.MoveToLiveAsync(fileJobId, cancellationToken);
+            return CustomResult.Success();
         }
 
         public async Task<Dictionary<string, int>> GetFileJobUploadsGroupedByRowType(int FileJobId, CancellationToken cancellationToken)

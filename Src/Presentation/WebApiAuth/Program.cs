@@ -14,34 +14,20 @@ builder.AddServiceDefaults();
 
 
 var configuration = builder.Configuration;
-var provider = builder.Configuration.GetValue("Provider", "SqlServer");
 
-builder.Services.AddDbContext<ApplicationDbContext>(options => _ = provider switch
-{
-    "Sqlite" => options.UseSqlite(
-        configuration.GetConnectionString("SqliteConnection"),
-    x => x.MigrationsAssembly(@"Infrastructure.SqliteMigrations")),
+// ApplicationDbContext takes ICurrentUserService as well as its options, so it cannot be
+// pooled — register it by hand and Enrich* for the Aspire health checks/tracing/retries.
+var postgresConnection = configuration.GetConnectionString("taskmasterdb");
 
-    "SqlServer" => options.UseSqlServer(
-        configuration.GetConnectionString("SqlServerConnection"),
-    x => x.MigrationsAssembly(@"Infrastructure.SqlServerMigrations")),
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(postgresConnection,
+        x => x.MigrationsAssembly(@"Infrastructure.PostgresMigrations")));
+builder.EnrichNpgsqlDbContext<ApplicationDbContext>(settings => settings.DisableRetry = true);
 
-    _ => throw new Exception($"Unsupported provider: {provider}")
-});
-
-
-builder.Services.AddDbContext<WebIdentityContext>(options => _ = provider switch
-{
-    "Sqlite" => options.UseSqlite(
-        configuration.GetConnectionString("SqliteConnection"),
-    x => x.MigrationsAssembly(@"Infrastructure.SqliteMigrations")),
-
-    "SqlServer" => options.UseSqlServer(
-        configuration.GetConnectionString("SqlServerConnection"),
-    x => x.MigrationsAssembly(@"Infrastructure.SqlServerMigrations")),
-
-    _ => throw new Exception($"Unsupported provider: {provider}")
-});
+builder.Services.AddDbContext<WebIdentityContext>(options =>
+    options.UseNpgsql(postgresConnection,
+        x => x.MigrationsAssembly(@"Infrastructure.PostgresMigrations")));
+builder.EnrichNpgsqlDbContext<WebIdentityContext>(settings => settings.DisableRetry = true);
 
 builder.Services.AddScoped(typeof(IApplicationDbContext), typeof(ApplicationDbContext));
 

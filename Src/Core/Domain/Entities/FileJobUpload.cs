@@ -6,6 +6,12 @@ namespace Domain.Entities
 {
     public class FileJobUpload : BaseEntity<int>
     {
+        /// <summary>
+        /// Client-generated row key, unique within a FileJob. Makes re-posting an upload chunk safe.
+        /// </summary>
+        [Column(TypeName = "varchar(64)")]
+        public required string BatchKey { get; set; }
+
         [Column(TypeName = "varchar(150)")]
         public required string TaskTitle { get; set; }
         public DateOnly DueDate { get; set; }

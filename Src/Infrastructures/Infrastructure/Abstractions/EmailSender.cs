@@ -1,6 +1,5 @@
 ﻿using Application.Common.Interfaces;
 using Application.Common.Models;
-using Azure.Core;
 using mailinator_csharp_client;
 using mailinator_csharp_client.Models.Messages.Entities;
 using mailinator_csharp_client.Models.Messages.Requests;

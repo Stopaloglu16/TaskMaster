@@ -16,11 +16,6 @@ public class WebIdentityContext : IdentityDbContext
         base.OnModelCreating(builder);
 
         //SeedAdminUser(builder);
-
-        //if (!Database.IsSqlite())
-        //{
-        //    SeedAdminUser(builder);
-        //}
     }
 
 

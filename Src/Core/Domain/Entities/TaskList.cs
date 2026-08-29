@@ -21,5 +21,11 @@ public class TaskList : BaseAuditableEntity<int>
     public int PriorityId { get; set; }
     public TaskPriority Priority { get; set; } = default!;
 
+    /// <summary>
+    /// The FileJob that promoted this list, when it came from a bulk import. Recorded so the saga's
+    /// compensation step can delete exactly what a failed promotion created.
+    /// </summary>
+    public int? SourceFileJobId { get; set; }
+
     public virtual IList<TaskItem> TaskItems { get; private set; } = new List<TaskItem>();
 }

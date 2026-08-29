@@ -59,10 +59,10 @@
                         </RadzenCard>
                     </RadzenStepsItem>
 
-                    <RadzenStepsItem Text="Validate" Disabled="@(tabIndex == 1)">
-                        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3" class="rz-my-6">2. File validation results</RadzenText>
-                        <RadzenButton id="CreateNewTaskButton" Icon="data_check" Text="Validate" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat" Size="ButtonSize.Medium"
-                                      class="rz-my-1 rz-ms-1" Click="@(args => ValidateFileJob())" />
+                    <RadzenStepsItem Text="Import" Disabled="@(tabIndex == 1)">
+                        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3" class="rz-my-6">2. Start the import</RadzenText>
+                        <RadzenButton id="CreateNewTaskButton" Icon="rocket_launch" Text="Start import" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat" Size="ButtonSize.Medium"
+                                      class="rz-my-1 rz-ms-1" Click="@(args => StartImport())" />
 
                         <RadzenStack Gap="1rem">
                             <RadzenDataGrid id="TaskmanagerTableId" @ref=@gridItemsProvider TItem="FileJobUploadDto" Data="@fileJobUploadDtoList" LoadData="@LoadData" IsLoading="@isLoading"
@@ -99,11 +99,9 @@
 
                     <RadzenStepsItem Text="Process" Disabled="@(tabIndex == 2)">
 
-                        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3" class="rz-my-6">3. Process items</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3" class="rz-my-6">3. Progress</RadzenText>
 
-
-                        <RadzenButton id="CreateNewTaskButton" Icon="rocket_launch" Text="Process" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat" Size="ButtonSize.Medium"
-                                      class="rz-my-1 rz-ms-1" Click="@(args => ProcessFileJob())" />
+                        @* The saga runs in the worker once started; this step just reports where it got to. *@
 
                         @* <RadzenStack Gap="1rem" class="rz-m-6">
                             <RadzenProgressBar Value="156" Max="200" Unit=" process of 200" />
@@ -251,6 +249,10 @@
 
     #region FileUpload Process
 
+    // Identifies one pass over one file. Combined with the row number it gives each row a stable
+    // BatchKey, which the unique index on (FileJobId, BatchKey) uses to reject duplicate chunks.
+    private string _uploadSessionId = Guid.NewGuid().ToString("N");
+
     public async Task OnUpload()
     {
         try
@@ -260,6 +262,8 @@
                 Console.WriteLine("No file selected.");
                 return;
             }
+
+            _uploadSessionId = Guid.NewGuid().ToString("N");
 
             //await ShowBusyDialog();
 
@@ -344,6 +348,8 @@
         {
             var newTaskList = new CreateFileJobUploadRequest()
             {
+                // Stable per row for this upload, so re-posting a chunk cannot duplicate rows.
+                BatchKey = $"{_uploadSessionId}:{rowId}",
                 TaskTitle = parts[0],
                 DueDate = DateOnly.FromDateTime(DateTime.TryParse(parts[1].Trim(), out var dueDate) ? dueDate : DateTime.Now),
                 AssignedTo = parts[2].Trim() ?? "",
@@ -405,9 +411,11 @@
     }
 
 
-    protected async Task ValidateFileJob()
+    // Starts the whole import saga. Validation is its first step, then assignee resolution and
+    // promotion follow automatically in the worker — so there is no separate Process call any more.
+    protected async Task StartImport()
     {
-        var returnnValid = await _fileJobUploadService.PatchAsync($"fileUpload/Validate", FileJobId, false);
+        await _fileJobUploadService.PatchAsync($"fileUpload/Process", FileJobId, false);
 
         await gridItemsProvider.RefreshDataAsync();
     }
@@ -445,14 +453,6 @@
 
 
     #region Process
-
-    protected async Task ProcessFileJob()
-    {
-        var returnnValid = await _fileJobUploadService.PatchAsync($"fileUpload/Process", FileJobId, false);
-
-        //OnChange(2);
-        //await gridItemsProvider.RefreshDataAsync();
-    }
 
     // private async Task LoadFinalData(LoadDataArgs args)
     // {

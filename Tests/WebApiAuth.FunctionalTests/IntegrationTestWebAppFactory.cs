@@ -7,22 +7,20 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Testcontainers.MsSql;
+using Testcontainers.PostgreSql;
 
 namespace WebApiAuth.FunctionalTests;
 
 
 public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly MsSqlContainer _databaseIdContainer = new MsSqlBuilder()
-        .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
-        .WithPassword("Strong_password_123!")
+    private readonly PostgreSqlContainer _databaseIdContainer = new PostgreSqlBuilder()
+        .WithImage("postgres:17")
         .Build();
 
 
-    private readonly MsSqlContainer _databaseContainer = new MsSqlBuilder()
-        .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
-        .WithPassword("Strong_password_123!")
+    private readonly PostgreSqlContainer _databaseContainer = new PostgreSqlBuilder()
+        .WithImage("postgres:17")
         .Build();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -36,10 +34,10 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             services.RemoveAll(typeof(DbContextOptions<ApplicationDbContext>));
 
             services.AddDbContext<WebIdentityContext>(options =>
-                     options.UseSqlServer(_databaseIdContainer.GetConnectionString()));
+                     options.UseNpgsql(_databaseIdContainer.GetConnectionString()));
 
             services.AddDbContext<ApplicationDbContext>(options =>
-                     options.UseSqlServer(_databaseContainer.GetConnectionString()));
+                     options.UseNpgsql(_databaseContainer.GetConnectionString()));
 
 
             var sp = services.BuildServiceProvider();

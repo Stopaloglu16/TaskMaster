@@ -148,13 +148,13 @@ public class TaskListRepository : EfCoreRepository<TaskList, int>, ITaskListRepo
     public async Task<CustomResult> CompleteTaskList(int Id, CancellationToken cancellationToken)
     {
         FormattableString queryString = $"""
-        UPDATE [dbo].[TaskLists]
-        SET [IsCompleted] = 1, [CompletedDate] = GETDATE()
-        WHERE Id = {Id} AND NOT EXISTS (
+        UPDATE "TaskLists"
+        SET "IsCompleted" = true, "CompletedDate" = CURRENT_DATE
+        WHERE "Id" = {Id} AND NOT EXISTS (
             SELECT 1
-            FROM [dbo].[TaskItems]
-            WHERE TaskListId = {Id} AND IsCompleted = 0 AND IsDeleted = 0
-        ) 
+            FROM "TaskItems"
+            WHERE "TaskListId" = {Id} AND "IsCompleted" = false AND "IsDeleted" = 0
+        )
         """;
 
         await _dbContext.Database.ExecuteSqlAsync(queryString, cancellationToken);

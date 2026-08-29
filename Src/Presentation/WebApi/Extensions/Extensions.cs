@@ -25,8 +25,13 @@ internal static class Extensions
         builder.AddDefaultAuthentication();
 
 
-        var connectionString = builder.Configuration.GetConnectionString("SqlServerConnection");
-        services.AddSqlServer<ApplicationDbContext>(connectionString);
+        // ApplicationDbContext takes ICurrentUserService as well as its options, so it cannot be
+        // pooled — register it by hand and Enrich* for the Aspire health checks/tracing/retries.
+        var connectionString = builder.Configuration.GetConnectionString("taskmasterdb");
+        // DisableRetry: the messaging layer opens explicit transactions, which Npgsql's retrying
+        // execution strategy forbids.
+        services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
+        builder.EnrichNpgsqlDbContext<ApplicationDbContext>(settings => settings.DisableRetry = true);
 
         builder.Services.AddScoped(typeof(IApplicationDbContext), typeof(ApplicationDbContext));
 

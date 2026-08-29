@@ -11,7 +11,9 @@ public class TaskItem : BaseEntity<int>
     [Column(TypeName = "varchar(250)")]
     public string? Description { get; set; }
     public bool IsCompleted { get; set; } = false;
-    public DateOnly CompletedDate { get; set; }
+
+    /// <summary>Null until the item is completed.</summary>
+    public DateOnly? CompletedDate { get; set; }
 
     public int TaskListId { get; set; }
     public TaskList TaskList { get; set; }

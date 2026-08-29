@@ -70,30 +70,31 @@ builder.Services.AddHealthChecks();
 
 
 
-//builder.AddRabbitMQClient("messaging");
+// Registers IConnection for the "rabbitmq" resource wired in the AppHost, plus its health check.
+builder.AddRabbitMQClient("rabbitmq");
 
 builder.Services.AddSingleton<ResultStore>();
+// Still disabled: RabbitPublisher declares "my-queue-name" but publishes to "catalogEvents", and
+// its only ctor is private behind a static async factory, so AddSingleton cannot construct it.
+// RabbitConsumer declares "catalogEvents" then consumes from queue "". Fix those before enabling.
 //builder.Services.AddSingleton<RabbitPublisher>();
 //builder.Services.AddHostedService<RabbitConsumer>();
 
 
-var sqlCon = configuration.GetConnectionString("SqlServerConnection");
+// TickerQ builds its own DbContextOptions, so it reads the Aspire-injected
+// connection string directly rather than going through AddNpgsqlDbContext.
+var sqlCon = configuration.GetConnectionString("taskmasterdb");
 
 //"/tickerq-dashboard"
 builder.Services.AddTickerQ(options =>
 {
     options.AddOperationalStore(efOptions =>
     {
+        //efOptions.SetDbContextPoolSize(34);
+
         efOptions.UseTickerQDbContext<TickerQDbContext>(optionsBuilder =>
         {
-            //optionsBuilder.UseNpgsql(sqlCon,
-            //    cfg =>
-            //    {
-            //        cfg.MigrationsAssembly("WebApi");
-            //        cfg.EnableRetryOnFailure(3);
-            //    });
-
-            optionsBuilder.UseSqlServer(sqlCon,
+            optionsBuilder.UseNpgsql(sqlCon,
                 cfg =>
                 {
                     cfg.MigrationsAssembly("WebApi");
@@ -144,6 +145,31 @@ builder.Host.UseSerilog();
 
 
 var app = builder.Build();
+
+// Apply the TickerQ migrations (schema "ticker"). WebApi owns them — see
+// MigrationsAssembly("WebApi") above — and WebApiAuth cannot: it has no TickerQ reference.
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("Migrations");
+
+    try
+    {
+        // UseTickerQDbContext registers a pooled factory; the context it hands back is ours to dispose.
+        var tickerDbFactory = services.GetService<IDbContextFactory<TickerQDbContext>>();
+
+        if (tickerDbFactory != null)
+        {
+            await using var tickerDb = await tickerDbFactory.CreateDbContextAsync();
+            await tickerDb.Database.MigrateAsync();
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while migrating the TickerQ database.");
+        throw;
+    }
+}
 
 app.MapDefaultEndpoints();
 

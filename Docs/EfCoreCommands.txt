@@ -3,19 +3,26 @@ cd .\Directory
 dotnet ef migrations add InitialCreate
 dotnet ef database update
 
-Sqllite
-Add-Migration InitialCreate -Context Infrastructure.Data.ApplicationDbContext -project Src\Infrastructures\Infrastructure.SqliteMigrations -Args "--Provider Sqlite"
-Add-Migration InitialWebIdCreate -Context Infrastructure.Data.WebIdentityContext -project Src\Infrastructures\Infrastructure.SqliteMigrations -Args "--Provider Sqlite"
+PostgreSQL (the only provider). The connection string "taskmasterdb" is injected by the
+Aspire AppHost at runtime; for design-time commands either run the AppHost first or set
+ConnectionStrings__taskmasterdb in the shell, e.g.
 
-Sql Server
-Add-Migration InitialCreate -Context Infrastructure.Data.ApplicationDbContext -project Src\Infrastructures\Infrastructure.SqlServerMigrations -Args "--Provider SqlServer"
-Add-Migration InitialWebIdCreate -Context Infrastructure.Data.WebIdentityContext -project Src\Infrastructures\Infrastructure.SqlServerMigrations -Args "--Provider SqlServer"
+    $env:ConnectionStrings__taskmasterdb = "Host=localhost;Port=5432;Database=taskmasterdb;Username=postgres;Password=postgres"
+
+
+Package Manager Console
+Add-Migration InitialCreate -Context Infrastructure.Data.ApplicationDbContext -project Src\Infrastructures\Infrastructure.PostgresMigrations -OutputDir Migrations\ApplicationDb
+Add-Migration InitialWebIdCreate -Context Infrastructure.Data.WebIdentityContext -project Src\Infrastructures\Infrastructure.PostgresMigrations
 
 Update-Database -context Infrastructure.Data.ApplicationDbContext
 Update-Database -context Infrastructure.Data.WebIdentityContext
 
 
-TickerQ Db
-Add-Migration InitialTickerq -Context TickerQDbContext -Args "--Provider SqlServer"
-Update-Database -context TickerQDbContext
+dotnet CLI
+dotnet ef migrations add InitialCreate --context Infrastructure.Data.ApplicationDbContext --project Src\Infrastructures\Infrastructure.PostgresMigrations --startup-project Src\Presentation\WebApiAuth -o Migrations\ApplicationDb
+dotnet ef migrations add InitialWebIdCreate --context Infrastructure.Data.WebIdentityContext --project Src\Infrastructures\Infrastructure.PostgresMigrations --startup-project Src\Presentation\WebApiAuth -o Migrations
 
+
+TickerQ Db (migrations live in the WebApi project, schema "ticker")
+Add-Migration InitialTickerq -Context TickerQDbContext
+Update-Database -context TickerQDbContext

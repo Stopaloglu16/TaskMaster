@@ -2,13 +2,24 @@
     <ItemGroup>
         <PackageReference Include="MailinatorApiClient" />
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+        <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="TickerQ.EntityFrameworkCore" />
+        <!-- The messaging engine's RabbitMQ transport. -->
+        <PackageReference Include="Aspire.RabbitMQ.Client" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- The Web SDK grants these implicitly; a plain class library does not, so declare them here
+             to keep the ported messaging code reading the same as it did inside the reference host. -->
+        <Using Include="Microsoft.Extensions.Configuration" />
+        <Using Include="Microsoft.Extensions.DependencyInjection" />
+        <Using Include="Microsoft.Extensions.Hosting" />
+        <Using Include="Microsoft.Extensions.Logging" />
     </ItemGroup>
 
     <ItemGroup>

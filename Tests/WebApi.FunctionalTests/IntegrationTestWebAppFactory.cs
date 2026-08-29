@@ -7,15 +7,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using SharedTestDataLibrary.TaskDataSample;
-using Testcontainers.MsSql;
+using Testcontainers.PostgreSql;
 
 namespace WebApi.FunctionalTests;
 
 public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly MsSqlContainer _databaseContainer = new MsSqlBuilder()
-        .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
-        .WithPassword("Strong_password_123!")
+    private readonly PostgreSqlContainer _databaseContainer = new PostgreSqlBuilder()
+        .WithImage("postgres:17")
         .Build();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -28,7 +27,7 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
 
 
             services.AddDbContext<ApplicationDbContext>(options =>
-                     options.UseSqlServer(_databaseContainer.GetConnectionString()));
+                     options.UseNpgsql(_databaseContainer.GetConnectionString()));
 
 
             var sp1 = services.BuildServiceProvider();

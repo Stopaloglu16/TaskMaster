@@ -3,7 +3,7 @@ using Application.Repositories;
 using Domain.Entities.SearchEntities;
 using Domain.Enums;
 using Infrastructure.Data;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories.SearchRepos
@@ -174,10 +174,10 @@ namespace Infrastructure.Repositories.SearchRepos
 
         public class WhereBuilder
         {
-            private readonly List<SqlParameter> _parameters = new();
+            private readonly List<NpgsqlParameter> _parameters = new();
             private int _parameterIndex = 0;
 
-            public (string sql, List<SqlParameter> parameters) Build(
+            public (string sql, List<NpgsqlParameter> parameters) Build(
                 FilterGroupDto filterGroup,
                 Dictionary<int, AdvancedSearchColumn> columnMap,
                 Dictionary<string, Operator> operatorMap)
@@ -226,7 +226,7 @@ namespace Infrastructure.Repositories.SearchRepos
                 if (op.ValueMode == OperatorValueMode.Single)
                 {
                     var paramName = $"@p{_parameterIndex++}";
-                    _parameters.Add(new SqlParameter(paramName, item.Value ?? DBNull.Value));
+                    _parameters.Add(new NpgsqlParameter(paramName, item.Value ?? DBNull.Value));
 
                     return string.Format(op.SqlTemplate, fullColumn, paramName);
                 }
@@ -236,8 +236,8 @@ namespace Infrastructure.Repositories.SearchRepos
                     var paramFrom = $"@p{_parameterIndex++}";
                     var paramTo = $"@p{_parameterIndex++}";
 
-                    _parameters.Add(new SqlParameter(paramFrom, item.Value ?? DBNull.Value));
-                    _parameters.Add(new SqlParameter(paramTo, item.ValueTo ?? DBNull.Value));
+                    _parameters.Add(new NpgsqlParameter(paramFrom, item.Value ?? DBNull.Value));
+                    _parameters.Add(new NpgsqlParameter(paramTo, item.ValueTo ?? DBNull.Value));
 
                     return string.Format(op.SqlTemplate, fullColumn, paramFrom, paramTo);
                 }

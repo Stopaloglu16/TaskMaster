@@ -1,6 +1,4 @@
 ﻿using Application.Common.Models;
-using Azure;
-using Azure.Core;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Options;
