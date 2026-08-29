@@ -1,11 +1,14 @@
 ﻿using Application.Common.Interfaces;
 using Domain.Common;
 using Domain.Entities;
+using Domain.Entities.SearchEntities;
 using Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Reflection.Emit;
 using TickerQ.EntityFrameworkCore.Configurations;
 
 namespace Infrastructure.Data;
@@ -35,20 +38,52 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<User> Users { get; set; }
 
+    /// <summary>
+    /// Advanced Search Tables
+    /// </summary>
+    /// <param name="builder"></param>
+
+    public DbSet<AdvancedSearch> AdvancedSearches { get; set; }
+    public DbSet<AdvancedSearchColumn> AdvancedSearchColumns { get; set; }
+    public DbSet<AdvancedSearchJoin> AdvancedSearchJoins { get; set; }
+    public DbSet<AdvancedSearchTable> AdvancedSearchTables { get; set; }
+    public DbSet<ColumnType> ColumnTypes { get; set; }
+    public DbSet<Operator> Operators { get; set; }
+
+
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.Entity<TaskList>().HasQueryFilter(p => p.IsDeleted == 0);
         builder.Entity<TaskItem>().HasQueryFilter(p => p.IsDeleted == 0);
         builder.Entity<User>().HasQueryFilter(p => p.IsDeleted == 0);
 
+        if (!Database.IsSqlite())
+        {
+            // Ensure these search-related tables are created in the "search" schema
+            builder.Entity<AdvancedSearch>().ToTable("AdvancedSearches", "search");
+            builder.Entity<AdvancedSearchColumn>().ToTable("AdvancedSearchColumns", "search");
+            builder.Entity<AdvancedSearchJoin>().ToTable("AdvancedSearchJoins", "search");
+            builder.Entity<AdvancedSearchTable>().ToTable("AdvancedSearchTables", "search");
+            builder.Entity<ColumnType>().ToTable("ColumnTypes", "search");
+            builder.Entity<Operator>().ToTable("Operators", "search");
+
+            // Configure the join table in the "search" schema
+            builder.Entity<Operator>()
+                   .HasMany(e => e.ColumnTypes)
+                   .WithMany(e => e.Operators)
+                   .UsingEntity(j => j.ToTable("ColumnTypeOperatorMapping", "search"));
+        }
+        else
+        {
+            builder.Entity<Operator>()
+                    .HasMany(e => e.ColumnTypes)
+                    .WithMany(e => e.Operators)
+                    .UsingEntity("ColumnTypeOperatorMapping");
+        }
+
         base.OnModelCreating(builder);
 
-        //builder.ApplyConfiguration(new TimeTickerConfigurations(  "ticker"));
-        //builder.ApplyConfiguration(new CronTickerConfigurations("ticker"));
-        //builder.ApplyConfiguration(new CronTickerOccurrenceConfigurations("ticker"));
-
-
-        //SeedAdminUser(builder);
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
 

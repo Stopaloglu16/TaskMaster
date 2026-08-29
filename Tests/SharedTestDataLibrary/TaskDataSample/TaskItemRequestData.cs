@@ -2,7 +2,7 @@
 
 namespace SharedTestDataLibrary.TaskDataSample;
 
-public class TaskItemData
+public class TaskItemRequestData
 {
     public static TaskItemFormRequest CreateCreateTaskItemRequestEmpty()
     {

@@ -17,10 +17,25 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.1")
+                .HasAnnotation("ProductVersion", "10.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("ColumnTypeOperator", b =>
+                {
+                    b.Property<int>("ColumnTypesId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OperatorsId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ColumnTypesId", "OperatorsId");
+
+                    b.HasIndex("OperatorsId");
+
+                    b.ToTable("ColumnTypeOperatorMapping", "search");
+                });
 
             modelBuilder.Entity("Domain.Entities.FileJob", b =>
                 {
@@ -92,6 +107,269 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                     b.HasIndex("FileJobId");
 
                     b.ToTable("FileJobUploads");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearch", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<byte>("IsDeleted")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int>("MainTableId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MainTableId");
+
+                    b.ToTable("AdvancedSearches", "search");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchColumn", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AdvancedSearchId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ColumnDefinitionId")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("IsDeleted")
+                        .HasColumnType("tinyint");
+
+                    b.Property<bool>("IsFilterable")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSelectable")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSortable")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdvancedSearchId");
+
+                    b.HasIndex("ColumnDefinitionId");
+
+                    b.ToTable("AdvancedSearchColumns", "search");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchColumnDefinition", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ColumnName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ColumnTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("IsDeleted")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int>("TableId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ColumnTypeId");
+
+                    b.HasIndex("TableId");
+
+                    b.ToTable("AdvancedSearchColumnDefinition");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchJoin", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AdvancedSearchId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FromTableAliasId")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("IsDeleted")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("JoinCondition")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("JoinType")
+                        .IsRequired()
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<int>("ToTableAliasId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdvancedSearchId");
+
+                    b.ToTable("AdvancedSearchJoins", "search");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchTable", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ForeignKeyColumn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("IsDeleted")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("ParentKeyColumn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ParentTableId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TableAlias")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TableName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentTableId");
+
+                    b.ToTable("AdvancedSearchTables", "search");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchTemplate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AdvancedSearchId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("IsDeleted")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("JsonDefinition")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LastModified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdvancedSearchId");
+
+                    b.ToTable("AdvancedSearchTemplate");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SearchEntities.ColumnType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<byte>("IsDeleted")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ColumnTypes", "search");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SearchEntities.Operator", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("InputControl")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("IsDeleted")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("SqlTemplate")
+                        .IsRequired()
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<int>("ValueMode")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Operators", "search");
                 });
 
             modelBuilder.Entity("Domain.Entities.TaskItem", b =>
@@ -264,6 +542,21 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("ColumnTypeOperator", b =>
+                {
+                    b.HasOne("Domain.Entities.SearchEntities.ColumnType", null)
+                        .WithMany()
+                        .HasForeignKey("ColumnTypesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.SearchEntities.Operator", null)
+                        .WithMany()
+                        .HasForeignKey("OperatorsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Domain.Entities.FileJobUpload", b =>
                 {
                     b.HasOne("Domain.Entities.FileJob", "FileJob")
@@ -273,6 +566,84 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
                         .IsRequired();
 
                     b.Navigation("FileJob");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearch", b =>
+                {
+                    b.HasOne("Domain.Entities.SearchEntities.AdvancedSearchTable", "MainTable")
+                        .WithMany()
+                        .HasForeignKey("MainTableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MainTable");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchColumn", b =>
+                {
+                    b.HasOne("Domain.Entities.SearchEntities.AdvancedSearch", "AdvancedSearch")
+                        .WithMany("AdvancedSearchColumns")
+                        .HasForeignKey("AdvancedSearchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.SearchEntities.AdvancedSearchColumnDefinition", "ColumnDefinition")
+                        .WithMany()
+                        .HasForeignKey("ColumnDefinitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AdvancedSearch");
+
+                    b.Navigation("ColumnDefinition");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchColumnDefinition", b =>
+                {
+                    b.HasOne("Domain.Entities.SearchEntities.ColumnType", "ColumnType")
+                        .WithMany()
+                        .HasForeignKey("ColumnTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.SearchEntities.AdvancedSearchTable", "Table")
+                        .WithMany("Columns")
+                        .HasForeignKey("TableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ColumnType");
+
+                    b.Navigation("Table");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchJoin", b =>
+                {
+                    b.HasOne("Domain.Entities.SearchEntities.AdvancedSearch", "AdvancedSearch")
+                        .WithMany()
+                        .HasForeignKey("AdvancedSearchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AdvancedSearch");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchTable", b =>
+                {
+                    b.HasOne("Domain.Entities.SearchEntities.AdvancedSearchTable", "ParentTable")
+                        .WithMany()
+                        .HasForeignKey("ParentTableId");
+
+                    b.Navigation("ParentTable");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchTemplate", b =>
+                {
+                    b.HasOne("Domain.Entities.SearchEntities.AdvancedSearch", null)
+                        .WithMany("Templates")
+                        .HasForeignKey("AdvancedSearchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Domain.Entities.TaskItem", b =>
@@ -306,6 +677,18 @@ namespace Infrastructure.SqlServerMigrations.Migrations.ApplicationDb
             modelBuilder.Entity("Domain.Entities.FileJob", b =>
                 {
                     b.Navigation("FileJobUploads");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearch", b =>
+                {
+                    b.Navigation("AdvancedSearchColumns");
+
+                    b.Navigation("Templates");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchTable", b =>
+                {
+                    b.Navigation("Columns");
                 });
 
             modelBuilder.Entity("Domain.Entities.TaskList", b =>

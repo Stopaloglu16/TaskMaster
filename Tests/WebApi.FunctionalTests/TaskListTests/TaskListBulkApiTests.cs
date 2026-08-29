@@ -51,7 +51,7 @@ public class TaskListBulkApiTests : BaseIntegrationTest
         await _dbContext.SaveChangesAsync();
 
         
-        var mockTaskList = TaskListData.CreateTaskListRequestEmpty(taskCount, taskUserName);
+        var mockTaskList = TaskListRequestData.CreateTaskListRequestEmpty(taskCount, taskUserName);
 
         // Act
         var response = await _httpClient.PostAsJsonAsync($"/api/{apiVersion}/tasklist/bulk", mockTaskList);

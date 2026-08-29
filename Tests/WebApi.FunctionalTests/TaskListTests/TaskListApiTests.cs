@@ -33,7 +33,7 @@ public class TaskListApiTests : BaseIntegrationTest
     public async Task CreateTaskList_ValidTaskList_SaveSuccess()
     {
         // Arrange
-        var mockTaskList = TaskListData.CreateCreateTaskListRequestValid();
+        var mockTaskList = TaskListRequestData.CreateCreateTaskListRequestValid();
 
         //_httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("IntegrationTest"); // Use the test auth
 
@@ -52,7 +52,7 @@ public class TaskListApiTests : BaseIntegrationTest
         var mockDueDate = DateOnly.FromDateTime(DateTime.Now.AddDays(5));
 
         // Arrange
-        var mockTaskList = TaskListData.CreateUpdateTaskListRequestEmpty();
+        var mockTaskList = TaskListRequestData.CreateUpdateTaskListRequestEmpty();
 
         mockTaskList.Title = mockTitle;
         mockTaskList.DueDate = mockDueDate;

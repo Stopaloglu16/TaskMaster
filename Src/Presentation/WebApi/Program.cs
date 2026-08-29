@@ -215,6 +215,14 @@ var taskPriority = app.MapGroup("api/v{apiVersion:apiVersion}/taskPriority")
     .HasApiVersion(1.0);
 taskPriority.TaskPriorityApiV1().RequireAuthorization();
 
+
+
+var advancedSearch = app.MapGroup("api/v{apiVersion:apiVersion}/advancedSearch")
+    .WithApiVersionSet(apiVersionSet)
+    .HasApiVersion(1.0);
+advancedSearch.AdvancedSearchApiV1().RequireAuthorization();
+
+
 app.MapHub<TaskProgressHub>("processHub");
 app.MapHub<TaskProgressHub>("processTickerQ");
 

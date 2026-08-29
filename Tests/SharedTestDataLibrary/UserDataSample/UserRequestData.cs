@@ -3,7 +3,7 @@ using Domain.Enums;
 
 namespace SharedTestDataLibrary.UserDataSample;
 
-public class UserData
+public class UserRequestData
 {
     public static CreateUserRequest CreateUserRequestValidAdminSample()
     {

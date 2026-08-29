@@ -32,12 +32,12 @@ public class TaskItemApiTests : BaseIntegrationTest
     [Fact, TestPriority(1)]
     public async Task CreateTaskItem_ValidTaskItem_SaveSuccess()
     {
-        var mockTaskList = TaskListData.CreateCreateTaskListRequestValid();
+        var mockTaskList = TaskListRequestData.CreateCreateTaskListRequestValid();
         var response = await _httpClient.PostAsJsonAsync($"/api/v1.0/tasklist", mockTaskList);
         Assert.Equal(System.Net.HttpStatusCode.Created, response.StatusCode);
 
         // Arrange
-        var mockTaskItem = TaskItemData.CreateCreateTaskItemRequestValid(1);
+        var mockTaskItem = TaskItemRequestData.CreateCreateTaskItemRequestValid(1);
 
         // Act
         var responseItem = await _httpClient.PostAsJsonAsync($"/api/v1.0/taskitem", mockTaskItem);
@@ -54,7 +54,7 @@ public class TaskItemApiTests : BaseIntegrationTest
         const string mockDescription = "New Mock Description";
 
         // Arrange
-        var mockTaskItem = TaskItemData.CreateUpdateTaskItemRequestValid(mockTitle, mockDescription);
+        var mockTaskItem = TaskItemRequestData.CreateUpdateTaskItemRequestValid(mockTitle, mockDescription);
 
         // Act
         var response = await _httpClient.PutAsync($"/api/v1.0/taskitem/1", HttpHelper.GetJsonHttpContent(mockTaskItem));

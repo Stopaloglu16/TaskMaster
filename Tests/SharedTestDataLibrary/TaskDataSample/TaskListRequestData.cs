@@ -3,7 +3,7 @@ using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
 
 namespace SharedTestDataLibrary.TaskDataSample;
 
-public class TaskListData
+public class TaskListRequestData
 {
     public static TaskListFormRequest CreateCreateTaskListRequestEmpty()
     {

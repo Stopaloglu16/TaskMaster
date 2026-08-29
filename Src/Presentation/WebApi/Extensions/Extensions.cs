@@ -2,7 +2,9 @@
 using Application.Repositories;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Infrastructure.Repositories.SearchRepos;
 using Microsoft.EntityFrameworkCore;
+using ServiceLayer.AdvancedSearches;
 using ServiceLayer.Dashboards;
 using ServiceLayer.FileJobs;
 using ServiceLayer.TaskItems;
@@ -45,7 +47,9 @@ internal static class Extensions
         services.AddScoped<IFileJobService, FileJobsService>();
 
         services.AddScoped<IFileJobUploadRepository, FileJobUploadRepository>();    
-        //services.AddScoped<IFileJobUploadService, FileJobUploadService>();
+        
+        services.AddScoped<IAdvancedSearchRepository, AdvancedSearchRepository>();
+        services.AddScoped<IAdvancedSearchService, AdvancedSearchService>();
 
 
         services.AddScoped<ICurrentUserService, CurrentUserService>();

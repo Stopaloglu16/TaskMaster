@@ -25,12 +25,12 @@ public class TaskItemApiExceptionTests : BaseIntegrationTest
     [Fact]
     public async Task CreateTaskItem_InValidTaskItem_SaveFail()
     {
-        var mockTaskList = TaskListData.CreateCreateTaskListRequestValid();
+        var mockTaskList = TaskListRequestData.CreateCreateTaskListRequestValid();
         var response = await _httpClient.PostAsJsonAsync($"/api/v1.0/tasklist", mockTaskList);
         Assert.Equal(System.Net.HttpStatusCode.Created, response.StatusCode);
 
         // Arrange
-        var mockTaskItem = TaskItemData.CreateCreateTaskItemRequestEmpty();
+        var mockTaskItem = TaskItemRequestData.CreateCreateTaskItemRequestEmpty();
 
         // Act
         var responseItem = await _httpClient.PostAsJsonAsync($"/api/v1.0/taskitem", mockTaskItem);
@@ -43,12 +43,12 @@ public class TaskItemApiExceptionTests : BaseIntegrationTest
     [Fact]
     public async Task CreateTaskItem_InValidTaskListId_SaveFail()
     {
-        var mockTaskList = TaskListData.CreateCreateTaskListRequestValid();
+        var mockTaskList = TaskListRequestData.CreateCreateTaskListRequestValid();
         var response = await _httpClient.PostAsJsonAsync($"/api/v1.0/tasklist", mockTaskList);
         Assert.Equal(System.Net.HttpStatusCode.Created, response.StatusCode);
 
         // Arrange
-        var mockTaskItem = TaskItemData.CreateCreateTaskItemRequestValid(66);
+        var mockTaskItem = TaskItemRequestData.CreateCreateTaskItemRequestValid(66);
 
         // Act
         var response1 = await _httpClient.PostAsJsonAsync($"/api/v1.0/taskitem", mockTaskItem);
@@ -78,7 +78,7 @@ public class TaskItemApiExceptionTests : BaseIntegrationTest
         // Act
         for (int i = 0; i < maxItemCount; i++)
         {
-            var mockTaskItem1 = TaskItemData.CreateCreateTaskItemRequestGenerator(1, i);
+            var mockTaskItem1 = TaskItemRequestData.CreateCreateTaskItemRequestGenerator(1, i);
 
             var response = await _httpClient.PostAsJsonAsync($"/api/v1.0/taskitem", mockTaskItem1);
 
@@ -86,7 +86,7 @@ public class TaskItemApiExceptionTests : BaseIntegrationTest
             await Task.Delay(100);
         }
 
-        var mockTaskItem = TaskItemData.CreateCreateTaskItemRequestGenerator(1, 51);
+        var mockTaskItem = TaskItemRequestData.CreateCreateTaskItemRequestGenerator(1, 51);
         var response1 = await _httpClient.PostAsJsonAsync($"/api/v1.0/taskitem", mockTaskItem);
 
 

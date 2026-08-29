@@ -47,7 +47,7 @@ public class UsersTests : BaseIntegrationTest
         #endregion
 
         //Act
-        CreateUserRequest createUserRequest = UserData.CreateUserRequestValidAdminSample();
+        CreateUserRequest createUserRequest = UserRequestData.CreateUserRequestValidAdminSample();
 
         var json = JsonConvert.SerializeObject(createUserRequest);
         var content1 = new StringContent(json, Encoding.UTF8, "application/json");

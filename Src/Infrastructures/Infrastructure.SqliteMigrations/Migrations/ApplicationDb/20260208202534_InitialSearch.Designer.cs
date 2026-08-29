@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.SqliteMigrations.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260208202534_InitialSearch")]
+    partial class InitialSearch
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.2");
@@ -109,16 +112,11 @@ namespace Infrastructure.SqliteMigrations.Migrations.ApplicationDb
                     b.Property<byte>("IsDeleted")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("MainTableId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("varchar(100)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("MainTableId");
 
                     b.ToTable("AdvancedSearches");
                 });
@@ -132,8 +130,16 @@ namespace Infrastructure.SqliteMigrations.Migrations.ApplicationDb
                     b.Property<int>("AdvancedSearchId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("ColumnDefinitionId")
+                    b.Property<string>("ColumnName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("ColumnTypeId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
 
                     b.Property<byte>("IsDeleted")
                         .HasColumnType("INTEGER");
@@ -147,45 +153,20 @@ namespace Infrastructure.SqliteMigrations.Migrations.ApplicationDb
                     b.Property<bool>("IsSortable")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("TableAlias")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AdvancedSearchId");
 
-                    b.HasIndex("ColumnDefinitionId");
-
-                    b.ToTable("AdvancedSearchColumns");
-                });
-
-            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchColumnDefinition", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("ColumnName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("ColumnTypeId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("DisplayName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<byte>("IsDeleted")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("TableId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
                     b.HasIndex("ColumnTypeId");
 
-                    b.HasIndex("TableId");
-
-                    b.ToTable("AdvancedSearchColumnDefinition");
+                    b.ToTable("AdvancedSearchColumns");
                 });
 
             modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchJoin", b =>
@@ -197,8 +178,9 @@ namespace Infrastructure.SqliteMigrations.Migrations.ApplicationDb
                     b.Property<int>("AdvancedSearchId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("FromTableAliasId")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("FromTableAlias")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
 
                     b.Property<byte>("IsDeleted")
                         .HasColumnType("INTEGER");
@@ -211,8 +193,9 @@ namespace Infrastructure.SqliteMigrations.Migrations.ApplicationDb
                         .IsRequired()
                         .HasColumnType("varchar(10)");
 
-                    b.Property<int>("ToTableAliasId")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("ToTableAlias")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
 
@@ -227,70 +210,28 @@ namespace Infrastructure.SqliteMigrations.Migrations.ApplicationDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("ForeignKeyColumn")
-                        .HasColumnType("TEXT");
-
-                    b.Property<byte>("IsDeleted")
+                    b.Property<int>("AdvancedSearchId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("ParentKeyColumn")
-                        .HasColumnType("TEXT");
+                    b.Property<bool>("IsBaseTable")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<int?>("ParentTableId")
+                    b.Property<byte>("IsDeleted")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("TableAlias")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("varchar(10)");
 
                     b.Property<string>("TableName")
                         .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ParentTableId");
-
-                    b.ToTable("AdvancedSearchTables");
-                });
-
-            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchTemplate", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("AdvancedSearchId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("TEXT");
-
-                    b.Property<byte>("IsDeleted")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("JsonDefinition")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("LastModified")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("varchar(100)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AdvancedSearchId");
 
-                    b.ToTable("AdvancedSearchTemplate");
+                    b.ToTable("AdvancedSearchTables");
                 });
 
             modelBuilder.Entity("Domain.Entities.SearchEntities.ColumnType", b =>
@@ -535,17 +476,6 @@ namespace Infrastructure.SqliteMigrations.Migrations.ApplicationDb
                     b.Navigation("FileJob");
                 });
 
-            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearch", b =>
-                {
-                    b.HasOne("Domain.Entities.SearchEntities.AdvancedSearchTable", "MainTable")
-                        .WithMany()
-                        .HasForeignKey("MainTableId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("MainTable");
-                });
-
             modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchColumn", b =>
                 {
                     b.HasOne("Domain.Entities.SearchEntities.AdvancedSearch", "AdvancedSearch")
@@ -554,40 +484,21 @@ namespace Infrastructure.SqliteMigrations.Migrations.ApplicationDb
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.SearchEntities.AdvancedSearchColumnDefinition", "ColumnDefinition")
-                        .WithMany()
-                        .HasForeignKey("ColumnDefinitionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AdvancedSearch");
-
-                    b.Navigation("ColumnDefinition");
-                });
-
-            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchColumnDefinition", b =>
-                {
                     b.HasOne("Domain.Entities.SearchEntities.ColumnType", "ColumnType")
                         .WithMany()
                         .HasForeignKey("ColumnTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.SearchEntities.AdvancedSearchTable", "Table")
-                        .WithMany("Columns")
-                        .HasForeignKey("TableId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("AdvancedSearch");
 
                     b.Navigation("ColumnType");
-
-                    b.Navigation("Table");
                 });
 
             modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchJoin", b =>
                 {
                     b.HasOne("Domain.Entities.SearchEntities.AdvancedSearch", "AdvancedSearch")
-                        .WithMany()
+                        .WithMany("AdvancedSearchJoins")
                         .HasForeignKey("AdvancedSearchId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -597,20 +508,13 @@ namespace Infrastructure.SqliteMigrations.Migrations.ApplicationDb
 
             modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchTable", b =>
                 {
-                    b.HasOne("Domain.Entities.SearchEntities.AdvancedSearchTable", "ParentTable")
-                        .WithMany()
-                        .HasForeignKey("ParentTableId");
-
-                    b.Navigation("ParentTable");
-                });
-
-            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchTemplate", b =>
-                {
-                    b.HasOne("Domain.Entities.SearchEntities.AdvancedSearch", null)
-                        .WithMany("Templates")
+                    b.HasOne("Domain.Entities.SearchEntities.AdvancedSearch", "AdvancedSearch")
+                        .WithMany("AdvancedSearchTables")
                         .HasForeignKey("AdvancedSearchId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("AdvancedSearch");
                 });
 
             modelBuilder.Entity("Domain.Entities.TaskItem", b =>
@@ -650,12 +554,9 @@ namespace Infrastructure.SqliteMigrations.Migrations.ApplicationDb
                 {
                     b.Navigation("AdvancedSearchColumns");
 
-                    b.Navigation("Templates");
-                });
+                    b.Navigation("AdvancedSearchJoins");
 
-            modelBuilder.Entity("Domain.Entities.SearchEntities.AdvancedSearchTable", b =>
-                {
-                    b.Navigation("Columns");
+                    b.Navigation("AdvancedSearchTables");
                 });
 
             modelBuilder.Entity("Domain.Entities.TaskList", b =>
