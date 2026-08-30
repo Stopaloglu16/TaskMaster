@@ -1,12 +1,8 @@
-﻿using Application.Aggregates.UserAuthAggregate;
-using Application.Common.Interfaces;
-using Application.Common.Models;
+using Application.Aggregates.UserAuthAggregate;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using ServiceLayer.Users;
+using WebApiAuth.Services;
 
 namespace WebApiAuth.Controllers
 {
@@ -15,24 +11,11 @@ namespace WebApiAuth.Controllers
     [ApiController]
     public class ForgotPasswordController : ControllerBase
     {
-        private IConfiguration _configuration;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly AppSettings _appSettings;
-        private readonly IUserService _userService;
-        private readonly IEmailSender _emailSender;
+        private readonly IKeycloakClient _keycloakClient;
 
-        public ForgotPasswordController(
-                         UserManager<IdentityUser> userManager,
-                         IOptions<AppSettings> appSettings,
-                         IConfiguration iConfig,
-                         IUserService userService,
-                         IEmailSender emailSender)
+        public ForgotPasswordController(IKeycloakClient keycloakClient)
         {
-            _userManager = userManager;
-            _appSettings = appSettings.Value;
-            _configuration = iConfig;
-            _userService = userService;
-            _emailSender = emailSender;
+            _keycloakClient = keycloakClient;
         }
 
 
@@ -41,20 +24,18 @@ namespace WebApiAuth.Controllers
         [ProducesResponseType(typeof(BadRequestResult), 400)]
         public async Task<IActionResult> Post(ForgotPasswordRequest forgotPasswordRequest, CancellationToken cancellationToken)
         {
-            var aspUser = await _userManager.FindByEmailAsync(forgotPasswordRequest.Username);
+            // Keycloak owns the reset token and hosts the set-password page, so there is nothing for
+            // us to generate, store or email. The realm's SMTP settings point at the Papercut
+            // container, so the mail is readable from the Aspire dashboard in development.
+            var user = await _keycloakClient.FindUserByEmailAsync(forgotPasswordRequest.Username, cancellationToken);
 
-            if (aspUser is null)
+            if (user.IsFailure)
                 return BadRequest("User not registered");
 
-            // Generate the password reset token
-            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(aspUser);
+            var sent = await _keycloakClient.SendUpdatePasswordEmailAsync(user.Value.Id, cancellationToken);
 
-            var myUser = await _userService.ForgotPassordAsync(forgotPasswordRequest.Username, resetToken);
-
-            if (!myUser.IsSuccess)
-                return BadRequest("User not found");
-
-            await _emailSender.SendForgotPasswordEmailAsync(forgotPasswordRequest.Username, forgotPasswordRequest.Username, resetToken, cancellationToken);
+            if (!sent.IsSuccess)
+                return BadRequest(sent.Error);
 
             return Ok();
         }

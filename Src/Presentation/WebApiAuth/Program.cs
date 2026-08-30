@@ -2,11 +2,11 @@ using Application.Common.Interfaces;
 using Application.Common.Models;
 using Infrastructure.Abstractions;
 using Infrastructure.Data;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
 using TaskMaster.ServiceDefaults;
 using WebApiAuth.Config;
-using WebApiAuth.Models;
+using WebApiAuth.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,21 +31,9 @@ builder.EnrichNpgsqlDbContext<WebIdentityContext>(settings => settings.DisableRe
 
 builder.Services.AddScoped(typeof(IApplicationDbContext), typeof(ApplicationDbContext));
 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
-{
-    options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultProvider;
-})
-.AddEntityFrameworkStores<WebIdentityContext>()
-.AddDefaultTokenProviders();
-
-builder.Services.Configure<IdentityOptions>(options =>
-{
-    // Lock the account for 5 minutes if there are 5 failed login attempts
-    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-    options.Lockout.MaxFailedAccessAttempts = 5;
-
-    options.Lockout.AllowedForNewUsers = false;
-});
+// ASP.NET Identity is gone: Keycloak owns credentials, roles and lockout (the realm's brute-force
+// detection is configured with the same 5-attempts/5-minutes policy that used to live here).
+// WebIdentityContext stays registered above so its tables and migration history remain valid.
 
 builder.Services.AddScoped(typeof(IRepository<,>), typeof(EfCoreRepository<,>));
 
@@ -75,16 +63,26 @@ builder.Services.AddTransient<IEmailSender>(provider =>
 });
 
 
+// Removing AddIdentity took the last registered authentication scheme with it, and the pipeline
+// still calls UseAuthentication(). Registering the same Keycloak bearer scheme WebApi uses keeps
+// that valid and means UsersController's [Authorize(Roles = "AdminUser")] would now work if
+// uncommented — with AddIdentity it never could, since nothing validated the tokens it issued.
+builder.AddDefaultAuthentication();
+
+builder.Services.Configure<KeycloakOptions>(builder.Configuration.GetSection(KeycloakOptions.SectionName));
+
+// Typed client for the realm's token endpoint and Admin REST API. The base address is the pinned
+// http://localhost:8080 rather than the service-discovery name, so the issuer inside every token
+// matches what WebApi validates against.
+builder.Services.AddHttpClient<IKeycloakClient, KeycloakClient>((provider, client) =>
 {
-    var services = builder.Services;
-    // configure strongly typed settings object
-    services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
-}
+    var options = provider.GetRequiredService<IOptions<KeycloakOptions>>().Value;
 
-//var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+    if (string.IsNullOrWhiteSpace(options.BaseUrl))
+        throw new InvalidOperationException("Keycloak:BaseUrl is not configured.");
 
-//JWT token config
-//builder.Services.AddJtwToken(jwtSettings);
+    client.BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + "/");
+});
 
 builder.Services.AddHealthChecks();
 
@@ -128,9 +126,9 @@ using (var scope = app.Services.CreateScope())
             await appDb.Database.MigrateAsync();
         }
 
-        // Run the seeder (reads UserManager/RoleManager from DI)
-        var seedPassword = builder.Configuration?["Seed:Password"];
-        await SeedData.InitializeAsync(app.Services, seedPassword);
+        // Seeds the domain User rows only; the Keycloak realm import owns the accounts and
+        // passwords, and supplies the AspId values these rows are linked by.
+        await SeedData.InitializeAsync(app.Services);
     }
     catch (Exception ex)
     {

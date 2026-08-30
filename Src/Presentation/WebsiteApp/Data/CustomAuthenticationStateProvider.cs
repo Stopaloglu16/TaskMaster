@@ -1,4 +1,4 @@
-﻿using Application.Aggregates.UserAuthAggregate;
+using Application.Aggregates.UserAuthAggregate;
 using Application.Aggregates.UserAuthAggregate.Token;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -10,6 +10,15 @@ namespace WebsiteApp.Data;
 
 public class CustomAuthenticationStateProvider : AuthenticationStateProvider
 {
+    private const string KeycloakAuthType = "keycloak";
+
+    // Claims are parsed straight out of the JWT here, with none of the inbound claim mapping the
+    // JwtBearer handler does server-side. So the identity has to be told which raw Keycloak claims
+    // carry the name and the roles — without RoleClaimType, [Authorize(Roles = "AdminUser")] on
+    // UserManager.razor silently denies everyone.
+    private const string NameClaimType = "preferred_username";
+    private const string RoleClaimType = "roles";
+
     public ILocalStorageService _localStorageService { get; }
 
     //Another option for localstorage
@@ -77,11 +86,11 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
                 await _localStorageService.SetItemAsync("accessToken", user.AccessToken);
                 
 
-                identity = new ClaimsIdentity(ParseJwtClaims(user.AccessToken), "testAuthType");
+                identity = new ClaimsIdentity(ParseJwtClaims(user.AccessToken), KeycloakAuthType, NameClaimType, RoleClaimType);
             }
             else
             {
-                identity = new ClaimsIdentity(ParseJwtClaims(accessToken), "testAuthType");
+                identity = new ClaimsIdentity(ParseJwtClaims(accessToken), KeycloakAuthType, NameClaimType, RoleClaimType);
             }
 
             return new ClaimsPrincipal(identity);
@@ -105,7 +114,7 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
             await _localStorageService.SetItemAsync("accessToken", user.AccessToken);
             await _localStorageService.SetItemAsync("refreshToken", user.RefreshToken);
 
-            var identity = new ClaimsIdentity(GetClaimsIdentity(user), "testAuthType");
+            var identity = new ClaimsIdentity(GetClaimsIdentity(user), KeycloakAuthType, NameClaimType, RoleClaimType);
 
             var myuser = new ClaimsPrincipal(identity);
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(myuser)));

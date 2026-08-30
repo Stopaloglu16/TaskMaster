@@ -128,22 +128,16 @@
                 //if admin
                 var authState = await authenticationStateTask;
                 var user = authState.User;
-                var userTypeClaim = user.FindFirst(ClaimTypes.Role);
 
-                if (userTypeClaim != null)
+                // IsInRole honours the identity's declared RoleClaimType and copes with a token
+                // carrying more than one realm role, which FindFirst(ClaimTypes.Role) did not.
+                if (user.IsInRole(nameof(UserType.AdminUser)))
                 {
-                    if (userTypeClaim.Value == nameof(UserType.AdminUser))
-                    {
-                        NavigationManager.NavigateTo("/home", true);
-                    }
-                    else
-                    {
-                        NavigationManager.NavigateTo("/taskmanageruser", true);
-                    }
+                    NavigationManager.NavigateTo("/home", true);
                 }
                 else
                 {
-                    Console.WriteLine("User type claim not found.");
+                    NavigationManager.NavigateTo("/taskmanageruser", true);
                 }
 
             }

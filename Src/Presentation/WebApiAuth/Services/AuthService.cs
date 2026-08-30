@@ -1,118 +1,73 @@
-﻿using Application.Aggregates.UserAuthAggregate;
-using Application.Aggregates.UserAuthAggregate.Token;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using ServiceLayer.Users;
+using Application.Aggregates.UserAuthAggregate;
+using Application.Common.Models;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using WebApiAuth.Models;
 
 namespace WebApiAuth.Services;
 
+/// <summary>
+/// Brokers login and refresh to Keycloak. WebApiAuth no longer signs tokens itself — the realm does,
+/// with RS256, and WebApi validates them against the realm's JWKS.
+/// </summary>
 public class AuthService : IAuthService
 {
-    private readonly JwtSettings _jwtsettings;
-    private readonly IUserService _userloginservice;
+    private readonly IKeycloakClient _keycloakClient;
 
-    public AuthService(IOptions<JwtSettings> jwtsettings,
-                       IUserService userService)
+    public AuthService(IKeycloakClient keycloakClient)
     {
-        _jwtsettings = jwtsettings.Value;
-        _userloginservice = userService;
+        _keycloakClient = keycloakClient;
     }
 
 
-    public async Task<UserLoginResponse?> LoginAsync(UserTokenDto userTokenDto)
+    public async Task<CustomResult<UserLoginResponse>> LoginAsync(string username, string password, CancellationToken cancellationToken = default)
     {
-        var refreshToken = await GenerateAndSaveRefreshTokenAsync(userTokenDto.UserId);
+        var token = await _keycloakClient.PasswordGrantAsync(username, password, cancellationToken);
 
-        var LoginResponse = new UserLoginResponse();
-
-        LoginResponse.RefreshToken = refreshToken;
-        LoginResponse.AccessToken = GenerateAccessToken(userTokenDto.Username, userTokenDto.AspId.ToString(), userTokenDto.Role);
-        LoginResponse.UserName = userTokenDto.Username;
-
-        return LoginResponse;
-    }
-
-    public UserLoginResponse? RefreshTokensAsync(UserTokenDto userTokenDto)
-    {
-        //var refreshToken = await GenerateAndSaveRefreshTokenAsync(userTokenDto.UserId);
-
-        var LoginResponse = new UserLoginResponse();
-
-        LoginResponse.RefreshToken = "refreshToken";
-        LoginResponse.AccessToken = GenerateAccessToken(userTokenDto.Username, userTokenDto.AspId.ToString(), userTokenDto.Role);
-        LoginResponse.UserName = userTokenDto.Username;
-
-        return LoginResponse;
-    }
-
-    private async Task<string> GenerateAndSaveRefreshTokenAsync(int userId)
-    {
-        var refreshToken = GenerateRefreshToken();
-
-        await _userloginservice.UpdateRefreshTokenAsync(userId, refreshToken, DateTime.UtcNow.AddDays(7));
-
-        return refreshToken;
-    }
-
-    private string GenerateRefreshToken()
-    {
-        var randomNumber = new byte[32];
-        using var rng = RandomNumberGenerator.Create();
-        rng.GetBytes(randomNumber);
-        return Convert.ToBase64String(randomNumber);
-    }
-
-    private string GenerateAccessToken(string username, string userGuidId, string userRole)
-    {
-
-        var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, username),
-                new Claim(ClaimTypes.NameIdentifier, userGuidId),
-                new Claim(ClaimTypes.Role, userRole)
-            };
-
-        var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtsettings.SecretKey));
-        var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
-
-        var tokeOptions = new JwtSecurityToken(
-            issuer: _jwtsettings.Issuer,
-            audience: _jwtsettings.Audience,
-            claims: claims,
-            notBefore: DateTime.Now,
-            expires: DateTime.Now.AddMinutes(5),
-            signingCredentials: signinCredentials
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(tokeOptions);
+        return token.IsFailure
+            ? CustomResult<UserLoginResponse>.Failure(token.CustomError)
+            : CustomResult<UserLoginResponse>.Success(ToLoginResponse(token.Value));
     }
 
 
-    public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+    public async Task<CustomResult<UserLoginResponse>> RefreshTokensAsync(string refreshToken, CancellationToken cancellationToken = default)
     {
-        var tokenValidationParameters = new TokenValidationParameters
+        var token = await _keycloakClient.RefreshAsync(refreshToken, cancellationToken);
+
+        return token.IsFailure
+            ? CustomResult<UserLoginResponse>.Failure(token.CustomError)
+            : CustomResult<UserLoginResponse>.Success(ToLoginResponse(token.Value));
+    }
+
+
+    public string? GetSubject(string accessToken)
+    {
+        return ReadClaim(accessToken, JwtRegisteredClaimNames.Sub);
+    }
+
+
+    private static UserLoginResponse ToLoginResponse(KeycloakTokenResponse token)
+    {
+        return new UserLoginResponse
         {
-            ValidateIssuer = true,
-            ValidateAudience = false,
-            ValidateLifetime = false, // Ignore expiration for refresh validation
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = _jwtsettings.Issuer,
-            ValidAudience = _jwtsettings.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtsettings.SecretKey))
+            AccessToken = token.AccessToken,
+            RefreshToken = token.RefreshToken,
+            // preferred_username, not "name": Keycloak puts the full name in the latter.
+            UserName = ReadClaim(token.AccessToken, "preferred_username") ?? string.Empty
         };
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-        SecurityToken securityToken;
-        var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
-        var jwtSecurityToken = securityToken as JwtSecurityToken;
-        if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-            throw new SecurityTokenException("Invalid token");
-        return principal;
     }
 
+
+    /// <summary>
+    /// Reads a claim without validating the signature. Safe here: the token came straight from
+    /// Keycloak over the client's own authenticated channel, and WebApi validates it properly
+    /// before honouring it.
+    /// </summary>
+    private static string? ReadClaim(string accessToken, string claimType)
+    {
+        var handler = new JwtSecurityTokenHandler();
+
+        if (!handler.CanReadToken(accessToken))
+            return null;
+
+        return handler.ReadJwtToken(accessToken).Claims.FirstOrDefault(c => c.Type == claimType)?.Value;
+    }
 }

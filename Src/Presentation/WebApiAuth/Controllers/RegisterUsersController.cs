@@ -1,11 +1,9 @@
-﻿using Application.Aggregates.UserAuthAggregate;
-using Application.Common.Models;
+using Application.Aggregates.UserAuthAggregate;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using ServiceLayer.Users;
+using WebApiAuth.Services;
 
 namespace WebApiAuth.Controllers
 {
@@ -14,34 +12,28 @@ namespace WebApiAuth.Controllers
     [ApiController]
     public class RegisterUsersController : ControllerBase
     {
-        private IConfiguration _configuration;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly AppSettings _appSettings;
         private readonly IUserRegisterService _userregisterservice;
+        private readonly IKeycloakClient _keycloakClient;
 
-        public RegisterUsersController(
-                         UserManager<IdentityUser> userManager,
-                         IOptions<AppSettings> appSettings,
-                         IConfiguration iConfig,
-                         IUserRegisterService userregisterservice)
+        public RegisterUsersController(IUserRegisterService userregisterservice,
+                                       IKeycloakClient keycloakClient)
         {
-            _userManager = userManager;
-            _appSettings = appSettings.Value;
-            _configuration = iConfig;
             _userregisterservice = userregisterservice;
+            _keycloakClient = keycloakClient;
         }
 
-        
+
         [HttpPost]
         [ProducesResponseType(typeof(Ok), 200)]
         [ProducesResponseType(typeof(BadRequestResult), 400)]
-        public async Task<IActionResult> Post(RegisterUserRequest registerUserRequest)
+        public async Task<IActionResult> Post(RegisterUserRequest registerUserRequest, CancellationToken cancellationToken)
         {
+            // The domain row is created up front by an admin; registration only claims it with the
+            // invite token. That part is unchanged.
             var myUser = await _userregisterservice.GetUserByAsync(registerUserRequest.Username, registerUserRequest.TokenConfirm);
 
             if (myUser.IsFailure)
                 return BadRequest("User not found");
-
 
             DateTime myNow = DateTime.Now;
             int tt = myNow.Subtract(myUser.Value.RegisterTokenExpieryTime).Days;
@@ -49,26 +41,27 @@ namespace WebApiAuth.Controllers
             if (tt >= 1)
                 return BadRequest("Token has been expired");
 
-            var myIduser = new IdentityUser { UserName = registerUserRequest.Username, Email = myUser.Value.UserEmail };
+            var created = await _keycloakClient.CreateUserAsync(registerUserRequest.Username,
+                                                                myUser.Value.UserEmail,
+                                                                registerUserRequest.Password,
+                                                                cancellationToken);
 
-            //userRegister.Password = EncryptDecrypt.Decrypt(userRegister.Password, true, _appSettings.KeyEncrypte);
-            myIduser.EmailConfirmed = true;
+            if (created.IsFailure)
+                return BadRequest(created.CustomError.error);
 
-            var result = await _userManager.CreateAsync(myIduser, registerUserRequest.Password);
+            // The old ASP.NET Identity path never assigned a role, so every self-registered user
+            // came out with an empty role claim. Assign the domain user's type instead.
+            var roleAssigned = await _keycloakClient.AssignRealmRoleAsync(created.Value,
+                                                                         myUser.Value.UserTypeId.ToString(),
+                                                                         cancellationToken);
 
-            if (result.Succeeded)
-            {
-                await _userregisterservice.UpdateUserAsync(myUser.Value.Id, myIduser.Id);
+            if (!roleAssigned.IsSuccess)
+                return BadRequest(roleAssigned.Error);
 
-                return Ok();
-            }
+            // created.Value is the Keycloak user id, which becomes the token's `sub`.
+            await _userregisterservice.UpdateUserAsync(myUser.Value.Id, created.Value);
 
-            foreach (var error in result.Errors)
-            {
-                return BadRequest(error.Description);
-            }
-
-            return BadRequest("System issue");
+            return Ok();
         }
 
     }

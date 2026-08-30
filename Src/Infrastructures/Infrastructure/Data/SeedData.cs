@@ -1,9 +1,7 @@
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Domain.Enums;
-using Domain.Entities;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -12,74 +10,70 @@ namespace Infrastructure.Data;
 
 public static class SeedData
 {
-    public static async Task InitializeAsync(IServiceProvider services, string? seedPassword = null)
+    /// <summary>
+    /// The Keycloak ids of the seeded realm users, verbatim from
+    /// <c>TaskMaster.AppHost/Keycloak/taskmaster-realm.json</c>. These become the <c>sub</c> claim of
+    /// every token those users are issued, and therefore the value <c>ICurrentUserService.UserId</c>
+    /// stamps into audit columns — so the domain rows must be linked by exactly these strings. Change
+    /// one here without changing the realm and the seeded users silently stop owning their data.
+    /// </summary>
+    private static readonly IReadOnlyDictionary<UserType, string> KeycloakUserIds = new Dictionary<UserType, string>
+    {
+        [UserType.AdminUser] = "11111111-1111-1111-1111-111111111111",
+        [UserType.TaskUser] = "22222222-2222-2222-2222-222222222222",
+        [UserType.ReadOnly] = "33333333-3333-3333-3333-333333333333",
+    };
+
+    public static async Task InitializeAsync(IServiceProvider services)
     {
         using var scope = services.CreateScope();
         var provider = scope.ServiceProvider;
 
-        var userManager = provider.GetRequiredService<UserManager<IdentityUser>>();
-        var roleManager = provider.GetRequiredService<RoleManager<IdentityRole>>();
         var appDb = provider.GetRequiredService<ApplicationDbContext>();
         var logger = provider.GetService<ILoggerFactory>()?.CreateLogger(nameof(SeedData));
 
-        seedPassword ??= "SuperStrongPassword+123";
-
         try
         {
-            // Ensure roles for each UserType
+            // Roles, credentials and the accounts themselves live in the Keycloak realm now. All
+            // that remains here is the domain User row each token's `sub` resolves to.
             foreach (UserType userType in Enum.GetValues(typeof(UserType)))
             {
-                var roleName = userType.ToString();
-                if (!await roleManager.RoleExistsAsync(roleName))
+                if (!KeycloakUserIds.TryGetValue(userType, out var aspId))
                 {
-                    var roleResult = await roleManager.CreateAsync(new IdentityRole(roleName));
-                    if (!roleResult.Succeeded)
-                    {
-                        logger?.LogWarning("Failed to create role {Role}: {Errors}", roleName, string.Join(", ", roleResult.Errors.Select(e => e.Description)));
-                    }
+                    logger?.LogWarning("No Keycloak id seeded for {UserType}; skipping.", userType);
+                    continue;
                 }
-            }
 
-            // Create identity users and corresponding domain users
-            foreach (UserType userType in Enum.GetValues(typeof(UserType)))
-            {
                 var email = $"{userType}@hotmail.co.uk";
-                var identityUser = await userManager.FindByEmailAsync(email);
-                if (identityUser == null)
-                {
-                    identityUser = new IdentityUser
-                    {
-                        UserName = userType.ToString(),
-                        Email = email,
-                        EmailConfirmed = true
-                    };
 
-                    var createResult = await userManager.CreateAsync(identityUser, seedPassword);
-                    if (!createResult.Succeeded)
+                var existing = await appDb.Users.FirstOrDefaultAsync(u => u.AspId == aspId || u.UserEmail == email);
+
+                if (existing is not null)
+                {
+                    // Re-link rows seeded before the Keycloak cut-over, which still carry the old
+                    // ASP.NET Identity GUID. Without this, a database that predates the migration
+                    // authenticates fine and then fails with "Not registered user", because the
+                    // token's `sub` matches no AspId.
+                    if (existing.AspId != aspId)
                     {
-                        logger?.LogError("Failed to create identity user {Email}: {Errors}", email, string.Join(", ", createResult.Errors.Select(e => e.Description)));
-                        continue;
+                        logger?.LogInformation("Re-linking {Email} from AspId {Old} to Keycloak id {New}.", email, existing.AspId, aspId);
+                        existing.AspId = aspId;
                     }
 
-                    await userManager.AddToRoleAsync(identityUser, userType.ToString());
+                    continue;
                 }
 
-                // Ensure domain user exists and is linked with AspId
-                var domainUserExists = await appDb.Users.AnyAsync(u => u.AspId == identityUser.Id || u.UserEmail == email);
-                if (!domainUserExists)
+                var domainUser = new Domain.Entities.User
                 {
-                    var domainUser = new Domain.Entities.User
-                    {
-                        FullName = $"{userType} user",
-                        UserEmail = email,
-                        UserTypeId = userType,
-                        AspId = identityUser.Id,
-                        RegisterTokenExpieryTime = DateTime.UtcNow.AddDays(1),
-                        RefreshTokenExpiryTime = DateTime.UtcNow
-                    };
+                    FullName = $"{userType} user",
+                    UserEmail = email,
+                    UserTypeId = userType,
+                    AspId = aspId,
+                    RegisterTokenExpieryTime = DateTime.UtcNow.AddDays(1),
+                    RefreshTokenExpiryTime = DateTime.UtcNow
+                };
 
-                    await appDb.Users.AddAsync(domainUser);
-                }
+                await appDb.Users.AddAsync(domainUser);
             }
 
             await appDb.SaveChangesAsync();

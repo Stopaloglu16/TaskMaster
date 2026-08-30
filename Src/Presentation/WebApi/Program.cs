@@ -74,11 +74,11 @@ builder.Services.AddHealthChecks();
 builder.AddRabbitMQClient("rabbitmq");
 
 builder.Services.AddSingleton<ResultStore>();
-// Still disabled: RabbitPublisher declares "my-queue-name" but publishes to "catalogEvents", and
-// its only ctor is private behind a static async factory, so AddSingleton cannot construct it.
-// RabbitConsumer declares "catalogEvents" then consumes from queue "". Fix those before enabling.
-//builder.Services.AddSingleton<RabbitPublisher>();
-//builder.Services.AddHostedService<RabbitConsumer>();
+// Publisher and consumer both go through RabbitQueues.TaskListBulk, so the queue name and
+// durability cannot drift apart. The consumer does the CreateTaskListBulk work and pushes
+// "TaskCompleted" to the requestId group on TaskProgressHub.
+builder.Services.AddSingleton<RabbitPublisher>();
+builder.Services.AddHostedService<RabbitConsumer>();
 
 
 // TickerQ builds its own DbContextOptions, so it reads the Aspire-injected
@@ -197,6 +197,12 @@ if (app.Environment.IsDevelopment())
 }
 
 
+// Ahead of the endpoint mappings below, so the pipeline reads in the order it runs. (Endpoint
+// routing made the old placement — after every MapGroup — work anyway, but it reads as a bug.)
+app.UseAuthentication();
+app.UseAuthorization();
+
+
 // Register versioned APIs using the versioned API explorer
 var apiVersionSet = app.NewApiVersionSet()
     .HasApiVersion(new ApiVersion(1, 0))
@@ -258,9 +264,6 @@ app.UseGlobalExceptionHandler();
 
 
 app.MapHealthChecks("_health");
-
-app.UseAuthentication();
-app.UseAuthorization();
 
 
 app.UseTickerQ();

@@ -1,0 +1,140 @@
+{
+  "realm": "taskmaster",
+  "enabled": true,
+  "displayName": "TaskMaster",
+
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+
+  "bruteForceProtected": true,
+  "failureFactor": 5,
+  "waitIncrementSeconds": 300,
+  "maxFailureWaitSeconds": 900,
+  "permanentLockout": false,
+
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "verifyEmail": false,
+
+  "smtpServer": {
+    "host": "papercut",
+    "port": "2525",
+    "from": "noreply@taskmaster.local",
+    "fromDisplayName": "TaskMaster",
+    "ssl": "false",
+    "starttls": "false",
+    "auth": "false"
+  },
+
+  "roles": {
+    "realm": [
+      { "name": "AdminUser", "description": "Full access to task and user management." },
+      { "name": "TaskUser", "description": "Can create and manage task lists." },
+      { "name": "ReadOnly", "description": "Read-only access." }
+    ]
+  },
+
+  "clients": [
+    {
+      "clientId": "taskmaster-api",
+      "name": "TaskMaster WebApi",
+      "description": "Audience only. WebApi never authenticates to Keycloak; it validates tokens against the realm JWKS.",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false
+    },
+    {
+      "clientId": "taskmaster-auth",
+      "name": "TaskMaster WebApiAuth",
+      "description": "Confidential client WebApiAuth brokers through: password grant for login, service account for the Admin REST API.",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "taskmaster-dev-client-secret",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "protocolMappers": [
+        {
+          "name": "taskmaster-api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "taskmaster-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "realm-roles-flat",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "roles",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+
+  "users": [
+    {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "username": "adminuser",
+      "email": "adminuser@hotmail.co.uk",
+      "firstName": "AdminUser",
+      "lastName": "user",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        { "type": "password", "value": "SuperStrongPassword+123", "temporary": false }
+      ],
+      "realmRoles": [ "AdminUser" ]
+    },
+    {
+      "id": "22222222-2222-2222-2222-222222222222",
+      "username": "taskuser",
+      "email": "taskuser@hotmail.co.uk",
+      "firstName": "TaskUser",
+      "lastName": "user",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        { "type": "password", "value": "SuperStrongPassword+123", "temporary": false }
+      ],
+      "realmRoles": [ "TaskUser" ]
+    },
+    {
+      "id": "33333333-3333-3333-3333-333333333333",
+      "username": "readonly",
+      "email": "readonly@hotmail.co.uk",
+      "firstName": "ReadOnly",
+      "lastName": "user",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        { "type": "password", "value": "SuperStrongPassword+123", "temporary": false }
+      ],
+      "realmRoles": [ "ReadOnly" ]
+    },
+    {
+      "username": "service-account-taskmaster-auth",
+      "enabled": true,
+      "serviceAccountClientId": "taskmaster-auth",
+      "clientRoles": {
+        "realm-management": [ "manage-users", "view-users", "query-users", "view-realm" ]
+      }
+    }
+  ]
+}

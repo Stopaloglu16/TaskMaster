@@ -1,44 +1,55 @@
-﻿using RabbitMQ.Client;
+using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
+using Microsoft.AspNetCore.SignalR;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using ServiceLayer.TaskLists;
 using System.Text;
 using System.Text.Json;
+using WebApi.Notification;
 
 namespace WebApi.RabbitMq
 {
 
     public class RabbitConsumer : BackgroundService
     {
-    
+
         private readonly ILogger<RabbitConsumer> _logger;
-        private readonly IConfiguration _config;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ResultStore _store;
+        private readonly IHubContext<TaskProgressHub> _hubContext;
         private IConnection? _messageConnection;
         private IChannel? _channel;
 
 
-        public RabbitConsumer(ILogger<RabbitConsumer> logger, IConfiguration config, IServiceProvider serviceProvider, IConnection? messageConnection)
+        public RabbitConsumer(ILogger<RabbitConsumer> logger,
+                              IServiceProvider serviceProvider,
+                              ResultStore store,
+                              IHubContext<TaskProgressHub> hubContext)
         {
             _logger = logger;
-            _config = config;
             _serviceProvider = serviceProvider;
+            _store = store;
+            _hubContext = hubContext;
         }
 
 
 
         protected override async Task ExecuteAsync(CancellationToken ct)
         {
-            string queueName = "catalogEvents";
+            _messageConnection = _serviceProvider.GetRequiredService<IConnection>();
 
-            _messageConnection = _serviceProvider.GetService<IConnection>();
+            _channel = await _messageConnection.CreateChannelAsync(cancellationToken: ct);
 
-            _channel = await _messageConnection!.CreateChannelAsync();
-            await _channel.QueueDeclareAsync(queue: queueName,
-                durable: false,
+            await _channel.QueueDeclareAsync(queue: RabbitQueues.TaskListBulk,
+                durable: RabbitQueues.Durable,
                 exclusive: false,
                 autoDelete: false,
-                arguments: null);
+                arguments: null,
+                cancellationToken: ct);
 
-            
+            // One batch at a time per consumer, so a slow bulk insert does not hoard the queue.
+            await _channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 1, global: false, cancellationToken: ct);
+
             var consumer = new AsyncEventingBasicConsumer(_channel);
             consumer.ReceivedAsync += async (model, ea) =>
             {
@@ -48,100 +59,61 @@ namespace WebApi.RabbitMq
 
                     _logger.LogInformation("Message received: {message}", message);
 
-                    // Process message here
-                    await HandleMessageAsync(message);
+                    await HandleMessageAsync(message, ct);
 
                     // ACK when processing is successful
-                    await _channel.BasicAckAsync(ea.DeliveryTag, multiple: false);
+                    await _channel.BasicAckAsync(ea.DeliveryTag, multiple: false, cancellationToken: ct);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error processing message");
 
-                    // NACK and requeue
-                    await _channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: true);
+                    // NACK without requeue - a poison batch would otherwise spin forever.
+                    await _channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: false, cancellationToken: ct);
                 }
             };
 
             // Start consuming
             await _channel.BasicConsumeAsync(
-                queue: "",
+                queue: RabbitQueues.TaskListBulk,
                 autoAck: false,
-                consumer: consumer
-            );
+                consumer: consumer,
+                cancellationToken: ct);
 
-            //return null;
-
-
-            //// 1. open a long‑lived channel from the injected connection
-            //_channel = _conn.CreateModel();
-
-            //var consumee = _conn.Endpoint;
-
-            
-
-            //// 2. declare the queue (idempotent)
-            //_channel.QueueDeclare("processQ", durable: false, exclusive: false, autoDelete: false);
-
-            //// 3. create and wire the consumer
-            //var consumer = new AsyncEventingBasicConsumer(_channel);
-            //consumer.Received += OnReceivedAsync; // attach handler FIRST
-
-            //// 4. subscribe to the queue
-            //_channel.BasicConsume(queue: "processQ",
-            //                      autoAck: false,
-            //                      consumer: consumer);
-
-            //// 5. keep the method alive until cancellation is requested
-            ////ct.Register(() =>
-            ////{
-            ////    _channel?.Close();
-            ////    _channel?.Dispose();
-            ////});
-
-            //while (!ct.IsCancellationRequested)
-            //{
-            //    await Task.Delay(1000, ct);
-            //}
+            // Keep the service alive; the consumer runs on the connection's own dispatcher.
+            await Task.Delay(Timeout.Infinite, ct).ContinueWith(_ => { }, TaskContinuationOptions.OnlyOnCanceled);
         }
 
-        private Task HandleMessageAsync(string message)
+        private async Task HandleMessageAsync(string message, CancellationToken ct)
         {
-            // Your processing logic here
-            return Task.CompletedTask;
+            var msg = JsonSerializer.Deserialize<TaskListBulkMessage>(message,
+                new JsonSerializerOptions(JsonSerializerDefaults.Web));
+
+            if (msg is null || msg.Items is null || msg.Items.Count == 0)
+            {
+                _logger.LogWarning("Skipping empty or unreadable bulk message");
+                return;
+            }
+
+            using var scope = _serviceProvider.CreateScope();
+            var taskListService = scope.ServiceProvider.GetRequiredService<ITaskListService>();
+
+            var result = await taskListService.CreateTaskListBulk(msg.Items, ct);
+
+            var responses = result.Value ?? new List<CreateTaskListResponse>();
+
+            _store.Add(msg.RequestId, responses);
+
+            // Same contract the in-process worker uses, so the page needs no new handler.
+            await _hubContext.Clients.Group(msg.RequestId).SendAsync("TaskCompleted", msg.RequestId, responses, ct);
         }
 
-        private void OnReceivedAsync(object sender, BasicDeliverEventArgs args)
+        public override async Task StopAsync(CancellationToken cancellationToken)
         {
-           
-            try
-            {
-                string messagetext = Encoding.UTF8.GetString(args.Body.ToArray());
-                _logger.LogInformation("All products retrieved from the catalog at {now}. Message Text: {text}", DateTime.Now, messagetext);
+            if (_channel is not null)
+                await _channel.DisposeAsync();
 
-                var message = args.Body;
-
-                
-                //var json = Encoding.UTF8.GetString(ea.Body.ToArray());
-                //var msg = JsonSerializer.Deserialize<ProcessMessage>(json)!;
-
-                //// do work...
-                //await Task.Delay(1000);
-
-                //_store.Add(msg.RequestId,
-                //           new ProcessResult(msg.Item.Id, "Done", $"Processed {msg.Item.Name}"));
-
-                //// ACK the message
-                //var channel = ((AsyncEventingBasicConsumer)sender).Model;
-                //channel.BasicAck(ea.DeliveryTag, multiple: false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error processing message");
-                // Optionally: NACK the message or handle error
-            }
+            await base.StopAsync(cancellationToken);
         }
-
-     
     }
 }

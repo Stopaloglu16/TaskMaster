@@ -1,4 +1,6 @@
-﻿namespace WebApi.RabbitMq
+using Application.Aggregates.TaskListAggregate.Commands.CreateUpdate;
+
+namespace WebApi.RabbitMq
 {
     public class ProcessModels
     {
@@ -12,4 +14,10 @@
 
     // Contracts/ProcessMessage.cs
     public record ProcessMessage(string RequestId, ProcessItem Item);
+
+    /// <summary>
+    /// The message the bulk-upload page actually puts on the queue: one batch of task lists
+    /// plus the requestId the browser joined as a SignalR group.
+    /// </summary>
+    public record TaskListBulkMessage(string RequestId, List<CreateTaskListRequest> Items);
 }

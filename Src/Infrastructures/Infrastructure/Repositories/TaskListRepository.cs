@@ -40,12 +40,12 @@ public class TaskListRepository : EfCoreRepository<TaskList, int>, ITaskListRepo
 
     public async Task<TaskListDto?> GetTaskListById(int Id, CancellationToken cancellationToken)
     {
-        var tempTaskList1 = await _dbContext.TaskLists.AsNoTracking()
-                                         .Where(qq => qq.IsDeleted == 0)
-                                         .FirstOrDefaultAsync(qq => qq.Id == Id, cancellationToken);
-
-
-        var tempTaskList = await _dbContext.TaskLists.Include(ss => ss.Priority).AsNoTracking()
+        // MapToDto counts TaskItems and reads AssignedTo, so both have to be loaded here —
+        // without the includes every TaskItemCount/TaskItemCompletedCount came back 0.
+        var tempTaskList = await _dbContext.TaskLists.Include(ss => ss.Priority)
+                                         .Include(ss => ss.AssignedTo)
+                                         .Include(ss => ss.TaskItems)
+                                         .AsNoTracking()
                                          .Where(qq => qq.IsDeleted == 0)
                                          .FirstOrDefaultAsync(qq => qq.Id == Id, cancellationToken);
 

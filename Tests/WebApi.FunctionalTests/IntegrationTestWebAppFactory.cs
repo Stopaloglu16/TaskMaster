@@ -19,6 +19,19 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // WebApi reads ConnectionStrings:taskmasterdb straight out of configuration to build the
+        // TickerQ context, and migrates it during startup. Outside Aspire nothing injects that value,
+        // so without this every test fails with "The ConnectionString property has not been
+        // initialized." before the host even finishes starting.
+        builder.UseSetting("ConnectionStrings:taskmasterdb", _databaseContainer.GetConnectionString());
+
+        // AddDefaultAuthentication reads these with GetRequiredValue, which throws on a missing key —
+        // without them the host fails to build and every test in the suite errors before it runs.
+        // The values are never dialled: TestAuthHandler replaces the JwtBearer scheme below, so no
+        // OIDC discovery against this authority ever happens.
+        builder.UseSetting("Keycloak:Authority", "http://localhost:8080/realms/taskmaster");
+        builder.UseSetting("Keycloak:Audience", "taskmaster-api");
+
         builder.ConfigureTestServices(services =>
         {
 

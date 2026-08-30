@@ -51,8 +51,18 @@ Migrations then reapply from scratch on the next run.
 
 ## Known gotchas
 
-- **Keycloak is pinned to host port 8080** so its OIDC issuer URL stays stable across runs. If something else on the machine holds 8080, that resource fails to start.
-- Keycloak currently runs but **authenticates nothing** — the app still uses WebApiAuth's own JWT/ASP.NET Identity stack. `Aspire.Keycloak.Authentication` was deliberately not wired up.
+- **Keycloak is pinned to host port 8080** so its OIDC issuer URL stays stable across runs. If something else on the machine holds 8080, that resource fails to start. The issuer is baked into every token, so `http://localhost:8080/realms/taskmaster` is used verbatim everywhere rather than the Aspire service-discovery hostname — reaching Keycloak by a different URL produces an `iss` WebApi rejects.
+- **Editing `TaskMaster.AppHost/Keycloak/taskmaster-realm.json` does nothing until you drop the Keycloak volume.** `WithRealmImport` only imports a realm the server does not already have, and `.WithDataVolume()` keeps the old one. Same drill as the Postgres volume above:
+
+  ```powershell
+  docker volume ls | Select-String "keycloak-data"
+  docker volume rm <the-name-you-found>
+  ```
+
+  Failing to do this looks exactly like the realm JSON being wrong.
+- **Keycloak is the identity provider.** Sign in as `adminuser` / `taskuser` / `readonly`, password `SuperStrongPassword+123` (seeded by the realm import). WebApiAuth no longer signs tokens — it brokers to the realm's `taskmaster-auth` client — and WebApi validates RS256 tokens against the realm JWKS. The admin console is at `http://localhost:8080`, user `admin`, password in AppHost user-secrets under `Parameters:keycloak-password`.
+- Password-reset mail comes from Keycloak itself (realm SMTP → the Papercut container), not from `IEmailSender`. Read it in Papercut from the dashboard. The realm points at **`papercut:2525`**, not `papercut:25` — Keycloak reaches Papercut container-to-container, and the `changemakerstudiosus/papercut-smtp` image listens on 2525 internally; the `25` in `AddPapercutSmtp("papercut", 80, 25)` is the *host* port. Getting this wrong shows up only as `execute-actions-email -> 500` with `Connection refused` in the Keycloak log.
+- The `taskmaster-auth` service account needs **`view-realm`** on top of `manage-users`/`view-users`/`query-users`. Assigning a realm role requires reading the role definition first, and the `manage-users` family does not grant that — without it registration fails at the role assignment with a 403 on `GET /admin/realms/taskmaster/roles/{name}`.
 - RabbitMQ is provisioned and WebApi holds a connection, but `RabbitPublisher`/`RabbitConsumer` in `WebApi/RabbitMq/` stay commented out — they are unfinished drafts with real bugs. The saga uses its own messaging engine, not those.
 - If startup throws `42P01: relation "ticker.CronTickers" does not exist`, TickerQ's migration has not been applied — see the `add-migration` skill.
 

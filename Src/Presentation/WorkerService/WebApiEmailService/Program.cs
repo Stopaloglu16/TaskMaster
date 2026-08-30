@@ -1,6 +1,4 @@
-using System.Net;
 using System.Reflection;
-using Hangfire;
 using Microsoft.AspNetCore.Http.HttpResults;
 using WebApiEmailService.Services;
 
@@ -11,15 +9,6 @@ builder.AddServiceDefaults();
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-
-builder.Services.AddHangfire(config =>
-{
-    config.UseSimpleAssemblyNameTypeSerializer()
-    .UseRecommendedSerializerSettings()
-    .UseSqlServerStorage(builder.Configuration.GetConnectionString("SqlServerConnection"));
-});
-
-builder.Services.AddHangfireServer();
 
 builder.Services.AddScoped<IJobTestService, JobTestService>();
 builder.Services.AddScoped<IJobReportService, JobReportService>();
@@ -54,58 +43,6 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
-
-
-app.MapGet("/jobrun", async (IJobTestService _jobService, IBackgroundJobClient _backgroundJobClient) =>
-{
-   
-   _backgroundJobClient.Enqueue( () => _jobService.FireAndForgetJob());
-
-    return "success";
-
-});
-
-app.MapPost("/jobcreate", async (IJobTestService _jobService, 
-                                        IRecurringJobManager _recurringJobManager) =>
-{
-    //RecurringJobOptions options = new RecurringJobOptions
-    //{
-    //    TimeZone = TimeZoneInfo.Local
-
-    //};
-
-    _recurringJobManager.AddOrUpdate(
-        "Recurring_Job",
-        () => _jobService.RecurringJob(), 
-
-        "0 8-17 * * *", 
-        TimeZoneInfo.Local
-     );
-
-    return HttpStatusCode.Created;
-});
-
-app.MapPost("/jobreportcreate", async (IJobReportService _jobReportService,
-                                        IRecurringJobManager _recurringJobManager) =>
-{
-    //RecurringJobOptions options = new RecurringJobOptions
-    //{
-    //    TimeZone = TimeZoneInfo.Local
-
-    //};
-
-    _recurringJobManager.AddOrUpdate(
-        "Recurring_Job",
-        () => _jobReportService.SendReportAsync(),
-
-        "*/15 8-17 * * *",
-        TimeZoneInfo.Local
-     );
-
-    return HttpStatusCode.Created;
-});
-
-app.UseHangfireDashboard();
 
 app.Run();
 

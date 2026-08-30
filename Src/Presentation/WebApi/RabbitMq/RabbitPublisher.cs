@@ -1,61 +1,74 @@
-﻿using RabbitMQ.Client;
+using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
 
 namespace WebApi.RabbitMq;
 
-public class RabbitPublisher : IDisposable
+public class RabbitPublisher : IAsyncDisposable
 {
     private readonly IConnection _conn;
-    private readonly IChannel _channel;
-    private readonly string _queue = "catalogEvents";
+    private readonly SemaphoreSlim _gate = new(1, 1);
+    private IChannel? _channel;
 
-    private RabbitPublisher(IConnection conn, IChannel channel)
+    public RabbitPublisher(IConnection conn)
     {
-        _conn = conn;
-        _channel = channel;
+        _conn = conn ?? throw new ArgumentNullException(nameof(conn));
     }
 
-    public static async Task<RabbitPublisher> CreateAsync(IConnection conn)
+    private async Task<IChannel> GetChannelAsync(CancellationToken cancellationToken)
     {
-        if (conn == null)
-            throw new ArgumentNullException(nameof(conn));
+        if (_channel is { IsOpen: true }) return _channel;
 
-        // Create channel using async API
-        var channel = await conn.CreateChannelAsync();
+        await _gate.WaitAsync(cancellationToken);
+        try
+        {
+            if (_channel is { IsOpen: true }) return _channel;
 
-        // Ensure the queue exists (passive = false → declare if missing)
-        await channel.QueueDeclareAsync(
-            queue: "my-queue-name",
-            durable: true,
-            exclusive: false,
-            autoDelete: false,
-            arguments: null
-        );
+            var channel = await _conn.CreateChannelAsync(cancellationToken: cancellationToken);
 
-        return new RabbitPublisher(conn, channel);
+            // Declare the queue we publish to - same name and durability as the consumer declares.
+            await channel.QueueDeclareAsync(
+                queue: RabbitQueues.TaskListBulk,
+                durable: RabbitQueues.Durable,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null,
+                cancellationToken: cancellationToken);
+
+            _channel = channel;
+            return _channel;
+        }
+        finally
+        {
+            _gate.Release();
+        }
     }
 
-    public async Task Publish(ProcessMessage msg)
+    public async Task Publish(TaskListBulkMessage msg, CancellationToken cancellationToken = default)
     {
         if (msg is null) throw new ArgumentNullException(nameof(msg));
 
-        try
-        {
-            var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(msg));
-            // new API expects RabbitMQ.Client.BasicProperties (class) for properties; null is acceptable
-            await _channel.BasicPublishAsync(exchange: "", routingKey: _queue, body: body);
-        }
-        catch (Exception)
-        {
-            // rethrow to preserve stack trace
-            throw;
-        }
+        var channel = await GetChannelAsync(cancellationToken);
+
+        var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(msg));
+
+        var props = new BasicProperties { Persistent = RabbitQueues.Durable };
+
+        await channel.BasicPublishAsync(
+            exchange: "",
+            routingKey: RabbitQueues.TaskListBulk,
+            mandatory: false,
+            basicProperties: props,
+            body: body,
+            cancellationToken: cancellationToken);
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
-        // IChannel implements IDisposable
-        _channel?.Dispose();
+        if (_channel is not null)
+            await _channel.DisposeAsync();
+
+        _gate.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

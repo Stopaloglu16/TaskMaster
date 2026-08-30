@@ -9,9 +9,7 @@
 
 
   <ItemGroup>
-    <PackageReference Include="Hangfire" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
-    <PackageReference Include="System.Data.SqlClient" />
   </ItemGroup>
 
   <ItemGroup>

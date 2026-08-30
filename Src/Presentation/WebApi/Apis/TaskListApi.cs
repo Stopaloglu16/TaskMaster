@@ -43,8 +43,11 @@ namespace WebApi.Apis
             group.MapPost("/", CreateTaskList);
             group.MapPost("/Bulk", CreateTaskListBulk).MapToApiVersion(1.0);
             group.MapPost("/Bulk", CreateTaskListBulkV2).MapToApiVersion(2.0);
-            //group.MapPost("/Bulk1/", CreateTaskListBulkRabbitMq).MapToApiVersion(1.0);
-            //group.MapGet("/GetProcessrabbitMq", GetProcessrabbitMq).MapToApiVersion(1.0); 
+            group.MapPost("/BulkRabbitMq", CreateTaskListBulkRabbitMq)
+                 .WithSummary("Queue a bulk task list upload on RabbitMQ")
+                 .WithDescription("Publishes the batch to RabbitMQ and returns the requestId the browser follows as a processHub SignalR group.");
+            group.MapGet("/GetProcessrabbitMq", GetProcessrabbitMq)
+                 .WithSummary("Poll the result of a RabbitMQ bulk upload");
             group.MapPost("/BulkTickerQ", CreateTaskListBulkTickerQ).MapToApiVersion(1.0);
 
             group.MapPut("/{id:int}", UpdateTaskList);
@@ -195,29 +198,25 @@ namespace WebApi.Apis
             return Results.Ok(new { RequestId = requestId });
         }
 
-        //public static async Task<IResult> CreateTaskListBulkRabbitMq(List<ProcessItem> items,
-        //                                                             RabbitPublisher publisher,
-        //                                                             ResultStore store,
-        //                                                             CancellationToken cancellationToken)
-        //{
-        //    var requestId = Guid.NewGuid().ToString();
-        //    store.EnsureRequest(requestId);
+        public static async Task<IResult> CreateTaskListBulkRabbitMq([FromBody] List<CreateTaskListRequest> items,
+                                                                     RabbitPublisher publisher,
+                                                                     ResultStore store,
+                                                                     CancellationToken cancellationToken)
+        {
+            var requestId = Guid.NewGuid().ToString();
+            store.EnsureRequest(requestId);
 
-        //    foreach (var item in items)
-        //    {
-        //        publisher.Publish(new ProcessMessage(requestId, item));
-        //    }
+            await publisher.Publish(new TaskListBulkMessage(requestId, items), cancellationToken);
 
-        //    return Results.Ok(new { RequestId = requestId });
-        //}
+            return Results.Ok(new { RequestId = requestId });
+        }
 
-        //public static async Task<IResult> GetProcessrabbitMq(string requestId,
-        //                                                     ResultStore store,
-        //                                                     CancellationToken cancellationToken)
-        //{
-        //    var results = store.Get(requestId);
-        //    return results is null ? Results.NotFound() : Results.Ok(results);
-        //}
+        public static IResult GetProcessrabbitMq(string requestId,
+                                                 ResultStore store)
+        {
+            var results = store.Get(requestId);
+            return results is null ? Results.NotFound() : Results.Ok(results);
+        }
 
         public static async Task<IResult> CreateTaskListBulkTickerQ(List<CreateTaskListRequest> items,
                                                                    ITimeTickerManager<TimeTickerEntity> timeTickerManager,

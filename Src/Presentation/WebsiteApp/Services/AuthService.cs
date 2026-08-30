@@ -1,8 +1,7 @@
-﻿using Application.Aggregates.UserAuthAggregate;
+using Application.Aggregates.UserAuthAggregate;
 using Application.Aggregates.UserAuthAggregate.Token;
 using Application.Common.Models;
 using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using WebsiteApp.Config;
@@ -121,26 +120,6 @@ public class AuthService : IAuthService
         string serializedRefreshRequest = JsonConvert.SerializeObject(forgotPasswordRequest);
 
         var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_apiVersion}/forgotpassword");
-        requestMessage.Content = new StringContent(serializedRefreshRequest);
-
-        requestMessage.Content.Headers.ContentType
-            = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
-
-        var response = await _httpClient.SendAsync(requestMessage);
-
-        if (response.StatusCode == System.Net.HttpStatusCode.OK)
-            return CustomResult.Success();
-
-        var responseBody = await response.Content.ReadAsStringAsync();
-
-        return CustomResult.Failure(responseBody);
-    }
-
-    public async Task<CustomResult> ResetPasswordRequestAsync(ResetPasswordRequest resetPasswordRequest)
-    {
-        string serializedRefreshRequest = JsonConvert.SerializeObject(resetPasswordRequest);
-
-        var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_apiVersion}/resetpassword");
         requestMessage.Content = new StringContent(serializedRefreshRequest);
 
         requestMessage.Content.Headers.ContentType

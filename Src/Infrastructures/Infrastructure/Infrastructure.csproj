@@ -11,6 +11,7 @@
         <!-- The messaging engine's RabbitMQ transport. -->
         <PackageReference Include="Aspire.RabbitMQ.Client" />
         <PackageReference Include="Microsoft.Extensions.Hosting" />
+        <PackageReference Include="OpenTelemetry.API" />
     </ItemGroup>
 
     <ItemGroup>

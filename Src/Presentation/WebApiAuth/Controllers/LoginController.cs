@@ -1,12 +1,8 @@
-﻿using Application.Aggregates.UserAuthAggregate;
+using Application.Aggregates.UserAuthAggregate;
 using Application.Aggregates.UserAuthAggregate.Token;
 using Asp.Versioning;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using ServiceLayer.Users;
-using System.Security.Claims;
-using WebApiAuth.Models;
 using WebApiAuth.Services;
 
 namespace WebApiAuth.Controllers
@@ -16,28 +12,12 @@ namespace WebApiAuth.Controllers
     [ApiController]
     public class LoginController : ControllerBase
     {
-        private readonly JwtSettings _jwtsettings;
-        private IConfiguration _configuration;
-
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
-
         private readonly IUserService _userloginservice;
         private readonly IAuthService _authService;
 
-
-        public LoginController(
-        UserManager<IdentityUser> userManager,
-        SignInManager<IdentityUser> signInManager,
-        IConfiguration iConfig,
-        IOptions<JwtSettings> jwtsettings,
-        IUserService userloginservice,
-        IAuthService authService)
+        public LoginController(IUserService userloginservice,
+                               IAuthService authService)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
-            _configuration = iConfig;
-            _jwtsettings = jwtsettings.Value;
             _userloginservice = userloginservice;
             _authService = authService;
         }
@@ -48,53 +28,31 @@ namespace WebApiAuth.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Post(UserLoginRequest loginRequest)
+        public async Task<IActionResult> Post(UserLoginRequest loginRequest, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
                 return BadRequest("Not valid");
 
-            //user.Password = UtilityClass.Decrypt(user.Password, true, _appSettings.KeyEncrypted);
+            // Keycloak's direct-access grant does the password check, and its brute-force detection
+            // replaces the IdentityOptions lockout we used to configure here.
+            var loginResponse = await _authService.LoginAsync(loginRequest.Username, loginRequest.Password, cancellationToken);
 
-            try
-            {
-                var myResult = await _signInManager.PasswordSignInAsync(loginRequest.Username,
-                                                                                   loginRequest.Password,
-                                                                                   isPersistent: true,
-                                                                                   lockoutOnFailure: true);
+            if (loginResponse.IsFailure)
+                return Unauthorized(loginResponse.CustomError.error);
 
-                if (!myResult.Succeeded)
-                    return Unauthorized("Username or password not correct");
+            // The token's subject is the Keycloak user id; the domain row is linked to it by AspId.
+            var subject = _authService.GetSubject(loginResponse.Value.AccessToken);
 
-                var aspUser = await _userManager.FindByNameAsync(loginRequest.Username);
+            if (string.IsNullOrWhiteSpace(subject))
+                return BadRequest("Token did not carry a subject");
 
-                if (aspUser is null)
-                    return BadRequest("User not found");
+            var webUser = await _userloginservice.GetUserByAspId(subject);
 
+            if (webUser.IsFailure)
+                return BadRequest("Not registered user");
 
-                var webUser = await _userloginservice.GetUserByAspId(aspUser.Id);
-                if (webUser.IsFailure)
-                    return BadRequest("Not registered user");
-
-
-                UserTokenDto userTokenDto = new UserTokenDto()
-                {
-                    AspId = webUser.Value.AspId ?? throw new ArgumentNullException(nameof(webUser.Value.AspId)),
-                    UserId = webUser.Value.Id,
-                    Role = webUser.Value.UserType.ToString(),
-                    Username = webUser.Value.UserEmail
-                };
-
-                var loginResponse = await _authService.LoginAsync(userTokenDto);
-
-                return Ok(loginResponse);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return Ok(loginResponse.Value);
         }
-
-
 
 
         [MapToApiVersion(1)]
@@ -103,57 +61,19 @@ namespace WebApiAuth.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetRefreshToken([FromBody] RefreshTokenRequest tokenRefreshRequest)
+        public async Task<IActionResult> GetRefreshToken([FromBody] RefreshTokenRequest tokenRefreshRequest, CancellationToken cancellationToken)
         {
-            try
-            {
-                if (tokenRefreshRequest is null)
-                    return BadRequest("Invalid client request");
+            if (tokenRefreshRequest is null || string.IsNullOrWhiteSpace(tokenRefreshRequest.RefreshToken))
+                return BadRequest("Invalid client request");
 
-                string accessToken = tokenRefreshRequest.AccessToken;
-                string refreshToken = tokenRefreshRequest.RefreshToken;
+            // Keycloak owns refresh-token rotation and expiry now (SSO session idle timeout), so the
+            // RefreshToken/RefreshTokenExpiryTime columns on the domain User are no longer consulted.
+            var loginResponse = await _authService.RefreshTokensAsync(tokenRefreshRequest.RefreshToken, cancellationToken);
 
-                var principal = _authService.GetPrincipalFromExpiredToken(tokenRefreshRequest.AccessToken);
+            if (loginResponse.IsFailure)
+                return Unauthorized(loginResponse.CustomError.error);
 
-                var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
-                var userGuidIdClaim = userIdClaim?.Value;
-
-                if (string.IsNullOrEmpty(userGuidIdClaim))
-                {
-                    return Unauthorized("User ID not found in token claims");
-                }
-
-
-                //var userGuidId = Guid.Parse(userGuidIdClaim);
-                var user = await _userloginservice.CheckRefreshTokenOfUser(userGuidIdClaim, refreshToken);
-
-                if (!user.isSuccess)
-                    return BadRequest(user.error);
-
-
-                //var webUser = await _userloginservice.GetUserByUserGuidId(userGuidId);
-                var webUser = await _userloginservice.GetUserByAspId(userGuidIdClaim);
-
-                UserTokenDto userTokenDto = new UserTokenDto()
-                {
-                    AspId = userGuidIdClaim,
-                    UserId = webUser.Value.Id,
-                    Role = webUser.Value.UserType.ToString(),
-                    Username = webUser.Value.UserEmail
-                };
-
-
-                //var loginResponse = await _authService.LoginAsync(userTokenDto);
-                var loginResponse = _authService.RefreshTokensAsync(userTokenDto);
-
-                return Ok(loginResponse);
-
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Refresh token issue.", ex);
-                //return Ok(new UserLoginResponse());
-            }
+            return Ok(loginResponse.Value);
         }
 
     }

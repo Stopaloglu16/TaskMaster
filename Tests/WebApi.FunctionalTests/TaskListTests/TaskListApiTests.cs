@@ -21,7 +21,7 @@ public class TaskListApiTests : BaseIntegrationTest
 
     public TaskListApiTests(IntegrationTestWebAppFactory factory) : base(factory)
     {
-        token = JwtTokenHelper.GenerateJwtToken("adf8059594f8916b26kJ9TRNJqP#kKhneRjCDccJH44a4b8f0785f2aa805a2e933583376ea5e7d053fbc08c85e", "YourIssuer", "Audience");
+        token = TestTokens.Bearer;
 
 
         // Set JWT Token in the Authorization header

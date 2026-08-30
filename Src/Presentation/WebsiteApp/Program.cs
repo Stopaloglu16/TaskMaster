@@ -29,12 +29,16 @@ builder.Services.AddAuthorizationCore();
 //builder.Services.AddAuthentication(); // Registers IAuthenticationService
 
 
-//TODO update audienceee!
+// Points at the Keycloak realm, which actually serves an OIDC discovery document — the previous
+// Authority was WebApiAuth's base URL, which never did. Auth state itself still comes from
+// CustomAuthenticationStateProvider reading the token out of local storage; this handler only
+// matters for anything that authenticates a bearer token server-side.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(jwtOptions =>
 {
-    jwtOptions.Authority = builder.Configuration["AppSettings:ApiAuthUrl"];
-    jwtOptions.Audience = builder.Configuration["AppSettings:ApiAuthUrl"];
+    jwtOptions.Authority = builder.Configuration["Keycloak:Authority"];
+    jwtOptions.Audience = builder.Configuration["Keycloak:Audience"];
+    jwtOptions.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
 });
 
 builder.Services.AddAuthorization();
