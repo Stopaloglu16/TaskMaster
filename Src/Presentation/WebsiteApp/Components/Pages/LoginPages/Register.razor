@@ -146,11 +146,15 @@
             }
             else
             {
+                // Without this the alert stays hidden and a failed registration looks like nothing
+                // happened at all.
+                IsVisibleReturnMesssage = true;
                 ReturnMesssage = returnedUser.Error;
             }
         }
         catch (Exception ex)
         {
+            IsVisibleReturnMesssage = true;
             ReturnMesssage = ex.Message;
         }
 

@@ -11,4 +11,5 @@ public interface IAuthService
     public Task<CustomResult> RegisterUserAsync(RegisterUserRequest registerUserRequest);
     public Task<UserLoginResponse> GetUserByTokenAsync(RefreshTokenRequest tokenRefreshRequest);
     public Task<CustomResult> ForgotPasswordRequestAsync(ForgotPasswordRequest forgotPasswordRequest);
+    public Task<CustomResult> ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest);
 }

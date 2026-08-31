@@ -59,16 +59,21 @@ public sealed class KeycloakClient : IKeycloakClient
     }
 
 
-    public async Task<CustomResult<string>> CreateUserAsync(string username, string email, string password, CancellationToken cancellationToken = default)
+    public async Task<CustomResult<KeycloakCreateResult>> CreateUserAsync(string username, string email, string firstName, string lastName, string password, CancellationToken cancellationToken = default)
     {
         var adminToken = await GetAdminTokenAsync(cancellationToken);
         if (adminToken is null)
-            return CustomResult<string>.Failure(CustomError.Failure("Could not authenticate to Keycloak"));
+            return CustomResult<KeycloakCreateResult>.Failure(CustomError.Failure("Could not authenticate to Keycloak"));
 
+        // firstName/lastName are required by the realm's user profile. Leave either out and Keycloak
+        // creates the user happily, then refuses every direct-access grant with "Account is not fully
+        // set up" — which RequestTokenAsync can only report as a bad password.
         var payload = new
         {
             username,
             email,
+            firstName,
+            lastName,
             enabled = true,
             emailVerified = true,
             credentials = new[] { new { type = "password", value = password, temporary = false } }
@@ -82,14 +87,15 @@ public sealed class KeycloakClient : IKeycloakClient
 
         using var response = await _httpClient.SendAsync(request, cancellationToken);
 
+        // Not an error: the caller repairs the existing account rather than giving up on it.
         if (response.StatusCode == HttpStatusCode.Conflict)
-            return CustomResult<string>.Failure(CustomError.Failure("A user with that name or email already exists"));
+            return CustomResult<KeycloakCreateResult>.Success(new KeycloakCreateResult(null, AlreadyExisted: true));
 
         if (!response.IsSuccessStatusCode)
         {
             var body = await response.Content.ReadAsStringAsync(cancellationToken);
             _logger.LogError("Keycloak user creation failed ({Status}): {Body}", response.StatusCode, body);
-            return CustomResult<string>.Failure(CustomError.Failure("Could not create the user"));
+            return CustomResult<KeycloakCreateResult>.Failure(CustomError.Failure("Could not create the user"));
         }
 
         // Keycloak returns 201 with no body; the new id is the last segment of the Location header.
@@ -99,10 +105,60 @@ public sealed class KeycloakClient : IKeycloakClient
         if (string.IsNullOrWhiteSpace(userId))
         {
             _logger.LogError("Keycloak user creation returned no Location header.");
-            return CustomResult<string>.Failure(CustomError.Failure("Could not create the user"));
+            return CustomResult<KeycloakCreateResult>.Failure(CustomError.Failure("Could not create the user"));
         }
 
-        return CustomResult<string>.Success(userId);
+        return CustomResult<KeycloakCreateResult>.Success(new KeycloakCreateResult(userId, AlreadyExisted: false));
+    }
+
+
+    public async Task<CustomResult> UpdateUserProfileAsync(string userId, string firstName, string lastName, CancellationToken cancellationToken = default)
+    {
+        var adminToken = await GetAdminTokenAsync(cancellationToken);
+        if (adminToken is null)
+            return CustomResult.Failure("Could not authenticate to Keycloak");
+
+        using var request = new HttpRequestMessage(HttpMethod.Put, $"{_options.AdminUsersPath}/{userId}")
+        {
+            Content = JsonContent.Create(new { firstName, lastName, enabled = true, emailVerified = true })
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogError("Updating profile for {UserId} failed ({Status}): {Body}", userId, response.StatusCode, body);
+            return CustomResult.Failure("Could not update the user profile");
+        }
+
+        return CustomResult.Success();
+    }
+
+
+    public async Task<CustomResult> DeleteUserAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        var adminToken = await GetAdminTokenAsync(cancellationToken);
+        if (adminToken is null)
+            return CustomResult.Failure("Could not authenticate to Keycloak");
+
+        using var request = new HttpRequestMessage(HttpMethod.Delete, $"{_options.AdminUsersPath}/{userId}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+
+        // Already gone is the state we wanted, so treat 404 as done rather than as a failure.
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            return CustomResult.Success();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogError("Deleting Keycloak user {UserId} failed ({Status}): {Body}", userId, response.StatusCode, body);
+            return CustomResult.Failure("Could not delete the Keycloak account");
+        }
+
+        return CustomResult.Success();
     }
 
 
@@ -148,42 +204,40 @@ public sealed class KeycloakClient : IKeycloakClient
     }
 
 
-    public async Task<CustomResult<KeycloakUser>> FindUserByEmailAsync(string email, CancellationToken cancellationToken = default)
+    public async Task<CustomResult<KeycloakUser>> FindUserAsync(string emailOrUsername, CancellationToken cancellationToken = default)
     {
         var adminToken = await GetAdminTokenAsync(cancellationToken);
         if (adminToken is null)
             return CustomResult<KeycloakUser>.Failure(CustomError.Failure("Could not authenticate to Keycloak"));
 
+        // Email first, since that is what an invited user registers with. Both searches pass
         // exact=true, or "admin@x" would also match "admin@xyz".
-        using var request = new HttpRequestMessage(HttpMethod.Get, $"{_options.AdminUsersPath}?email={Uri.EscapeDataString(email)}&exact=true");
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+        var byEmail = await QueryUserAsync("email", emailOrUsername, adminToken, cancellationToken);
+        if (byEmail.IsFailure)
+            return CustomResult<KeycloakUser>.Failure(byEmail.CustomError);
 
-        using var response = await _httpClient.SendAsync(request, cancellationToken);
-        if (!response.IsSuccessStatusCode)
-        {
-            _logger.LogError("Keycloak user lookup failed ({Status}).", response.StatusCode);
-            return CustomResult<KeycloakUser>.Failure(CustomError.Failure("Could not look the user up"));
-        }
+        if (byEmail.Value is not null)
+            return CustomResult<KeycloakUser>.Success(byEmail.Value);
 
-        var users = await response.Content.ReadFromJsonAsync<List<KeycloakUser>>(cancellationToken);
-        var user = users?.FirstOrDefault();
+        var byUsername = await QueryUserAsync("username", emailOrUsername, adminToken, cancellationToken);
+        if (byUsername.IsFailure)
+            return CustomResult<KeycloakUser>.Failure(byUsername.CustomError);
 
-        return user is null
+        return byUsername.Value is null
             ? CustomResult<KeycloakUser>.Failure(CustomError.Failure("User not found"))
-            : CustomResult<KeycloakUser>.Success(user);
+            : CustomResult<KeycloakUser>.Success(byUsername.Value);
     }
 
 
-    public async Task<CustomResult> SendUpdatePasswordEmailAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task<CustomResult> ResetPasswordAsync(string userId, string newPassword, CancellationToken cancellationToken = default)
     {
         var adminToken = await GetAdminTokenAsync(cancellationToken);
         if (adminToken is null)
             return CustomResult.Failure("Could not authenticate to Keycloak");
 
-        // 24h to match the old hand-rolled reset window.
-        using var request = new HttpRequestMessage(HttpMethod.Put, $"{_options.AdminUsersPath}/{userId}/execute-actions-email?lifespan=86400")
+        using var request = new HttpRequestMessage(HttpMethod.Put, $"{_options.AdminUsersPath}/{userId}/reset-password")
         {
-            Content = JsonContent.Create(new[] { "UPDATE_PASSWORD" })
+            Content = JsonContent.Create(new { type = "password", value = newPassword, temporary = false })
         };
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
 
@@ -191,12 +245,34 @@ public sealed class KeycloakClient : IKeycloakClient
         if (!response.IsSuccessStatusCode)
         {
             var body = await response.Content.ReadAsStringAsync(cancellationToken);
-            // The usual cause is the realm having no SMTP server configured.
-            _logger.LogError("execute-actions-email failed for {UserId} ({Status}): {Body}", userId, response.StatusCode, body);
-            return CustomResult.Failure("Could not send the reset email");
+            // A realm password policy rejects the new password here with a 400 and a reason.
+            _logger.LogError("reset-password failed for {UserId} ({Status}): {Body}", userId, response.StatusCode, body);
+            return CustomResult.Failure("Could not set the new password");
         }
 
         return CustomResult.Success();
+    }
+
+
+    /// <summary>
+    /// One exact-match Admin REST user search. A successful search with no match is a null value
+    /// rather than a failure, so the caller can try the next field.
+    /// </summary>
+    private async Task<CustomResult<KeycloakUser?>> QueryUserAsync(string field, string value, string adminToken, CancellationToken cancellationToken)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"{_options.AdminUsersPath}?{field}={Uri.EscapeDataString(value)}&exact=true");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError("Keycloak user lookup by {Field} failed ({Status}).", field, response.StatusCode);
+            return CustomResult<KeycloakUser?>.Failure(CustomError.Failure("Could not look the user up"));
+        }
+
+        var users = await response.Content.ReadFromJsonAsync<List<KeycloakUser>>(cancellationToken);
+
+        return CustomResult<KeycloakUser?>.Success(users?.FirstOrDefault());
     }
 
 
@@ -206,14 +282,18 @@ public sealed class KeycloakClient : IKeycloakClient
 
         if (!response.IsSuccessStatusCode)
         {
-            // 401 is an ordinary bad password; anything else is worth a log line.
-            if (response.StatusCode != HttpStatusCode.Unauthorized)
-            {
-                var body = await response.Content.ReadAsStringAsync(cancellationToken);
-                _logger.LogWarning("Keycloak token request failed ({Status}): {Body}", response.StatusCode, body);
-            }
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
 
-            return CustomResult<KeycloakTokenResponse>.Failure(CustomError.Failure("Username or password not correct"));
+            _logger.LogWarning("Keycloak token request failed ({Status}): {Body}", response.StatusCode, body);
+
+            // Keycloak explains itself in error_description, and that explanation is often nothing
+            // to do with the password: "Account is not fully set up" for a user missing a required
+            // profile field, "Account disabled", "Invalid client credentials" for a bad secret.
+            // Flattening them all to a wrong-password message hides the actual fault.
+            var description = ReadErrorDescription(body);
+
+            return CustomResult<KeycloakTokenResponse>.Failure(CustomError.Failure(
+                description ?? "Username or password not correct"));
         }
 
         var token = await response.Content.ReadFromJsonAsync<KeycloakTokenResponse>(cancellationToken);
@@ -221,6 +301,39 @@ public sealed class KeycloakClient : IKeycloakClient
         return token is null
             ? CustomResult<KeycloakTokenResponse>.Failure(CustomError.Failure("Keycloak returned an empty token response"))
             : CustomResult<KeycloakTokenResponse>.Success(token);
+    }
+
+
+    /// <summary>
+    /// Pulls <c>error_description</c> out of a Keycloak error body. Returns null when there is
+    /// nothing useful to show — including the plain wrong-password case, which the caller reports
+    /// in its own words rather than as Keycloak's "Invalid user credentials".
+    /// </summary>
+    private static string? ReadErrorDescription(string body)
+    {
+        if (string.IsNullOrWhiteSpace(body))
+            return null;
+
+        try
+        {
+            using var document = JsonDocument.Parse(body);
+
+            if (!document.RootElement.TryGetProperty("error_description", out var element))
+                return null;
+
+            var description = element.GetString();
+
+            if (string.IsNullOrWhiteSpace(description) ||
+                description.Equals("Invalid user credentials", StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            return description;
+        }
+        catch (JsonException)
+        {
+            // Not every failure comes back as JSON (a proxy or a 500 page, say).
+            return null;
+        }
     }
 
 

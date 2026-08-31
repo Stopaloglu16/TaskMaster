@@ -24,16 +24,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         x => x.MigrationsAssembly(@"Infrastructure.PostgresMigrations")));
 builder.EnrichNpgsqlDbContext<ApplicationDbContext>(settings => settings.DisableRetry = true);
 
-builder.Services.AddDbContext<WebIdentityContext>(options =>
-    options.UseNpgsql(postgresConnection,
-        x => x.MigrationsAssembly(@"Infrastructure.PostgresMigrations")));
-builder.EnrichNpgsqlDbContext<WebIdentityContext>(settings => settings.DisableRetry = true);
-
 builder.Services.AddScoped(typeof(IApplicationDbContext), typeof(ApplicationDbContext));
 
 // ASP.NET Identity is gone: Keycloak owns credentials, roles and lockout (the realm's brute-force
 // detection is configured with the same 5-attempts/5-minutes policy that used to live here).
-// WebIdentityContext stays registered above so its tables and migration history remain valid.
 
 builder.Services.AddScoped(typeof(IRepository<,>), typeof(EfCoreRepository<,>));
 
@@ -112,14 +106,6 @@ using (var scope = app.Services.CreateScope())
 
     try
     {
-        // Migrate identity and application DBs if you have separate contexts
-        var identityDb = services.GetService<WebIdentityContext>();
-
-        if (identityDb != null)
-        {
-            await identityDb.Database.MigrateAsync();
-        }
-
         var appDb = services.GetService<ApplicationDbContext>();
         if (appDb != null)
         {

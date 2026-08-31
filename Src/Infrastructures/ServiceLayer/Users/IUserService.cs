@@ -24,6 +24,12 @@ public interface IUserService
 
     Task<CustomResult<Guid>> RefreshRegisterToken(int Id);
 
+    /// <summary>
+    /// Soft-deletes the user and cascades to the task lists they own. Returns their Keycloak id so
+    /// the caller can remove the realm account, or null if they never registered.
+    /// </summary>
+    Task<CustomResult<string?>> SoftDeleteUserById(int Id);
+
     Task<bool> UpdateRefreshTokenAsync(int UserId, string refreshToken, DateTime refreshTokenExpiery);
 
     Task<CustomError> CheckRefreshTokenOfUser(string aspId, string refreshToken);

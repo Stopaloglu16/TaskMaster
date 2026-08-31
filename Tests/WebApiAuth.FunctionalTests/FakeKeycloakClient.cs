@@ -24,8 +24,11 @@ public sealed class FakeKeycloakClient : IKeycloakClient
 
     private readonly ConcurrentDictionary<string, FakeUser> _users = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>Ids that have been sent an UPDATE_PASSWORD action email, for assertions.</summary>
-    public ConcurrentBag<string> UpdatePasswordEmailsSentTo { get; } = new();
+    /// <summary>Ids whose password has been set through the reset endpoint, for assertions.</summary>
+    public ConcurrentBag<string> PasswordsResetFor { get; } = new();
+
+    /// <summary>Ids removed from the realm, for assertions.</summary>
+    public ConcurrentBag<string> DeletedUserIds { get; } = new();
 
     public FakeKeycloakClient()
     {
@@ -55,15 +58,45 @@ public sealed class FakeKeycloakClient : IKeycloakClient
     }
 
 
-    public Task<CustomResult<string>> CreateUserAsync(string username, string email, string password, CancellationToken cancellationToken = default)
+    public Task<CustomResult<KeycloakCreateResult>> CreateUserAsync(string username, string email, string firstName, string lastName, string password, CancellationToken cancellationToken = default)
     {
+        // Matches the real 409: a conflict is reported as success-with-AlreadyExisted so the caller
+        // can repair the account rather than dead-end on it.
         if (_users.ContainsKey(username))
-            return Task.FromResult(CustomResult<string>.Failure(CustomError.Failure("A user with that name or email already exists")));
+            return Task.FromResult(CustomResult<KeycloakCreateResult>.Success(new KeycloakCreateResult(null, AlreadyExisted: true)));
+
+        // The real realm rejects a user with no first or last name at sign-in time, not at creation,
+        // so hold the same line here rather than letting a test pass on a user Keycloak would refuse.
+        if (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName))
+            return Task.FromResult(CustomResult<KeycloakCreateResult>.Failure(CustomError.Failure("Could not create the user")));
 
         var id = Guid.NewGuid().ToString();
         _users[username] = new FakeUser(id, username, email, password);
 
-        return Task.FromResult(CustomResult<string>.Success(id));
+        return Task.FromResult(CustomResult<KeycloakCreateResult>.Success(new KeycloakCreateResult(id, AlreadyExisted: false)));
+    }
+
+
+    public Task<CustomResult> UpdateUserProfileAsync(string userId, string firstName, string lastName, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(_users.Values.Any(u => u.Id == userId)
+            ? CustomResult.Success()
+            : CustomResult.Failure("User not found"));
+    }
+
+
+    public Task<CustomResult> DeleteUserAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        var user = _users.Values.FirstOrDefault(u => u.Id == userId);
+
+        // The real client treats an already-absent user as done rather than as a failure.
+        if (user is null)
+            return Task.FromResult(CustomResult.Success());
+
+        _users.TryRemove(user.Username, out _);
+        DeletedUserIds.Add(userId);
+
+        return Task.FromResult(CustomResult.Success());
     }
 
 
@@ -73,9 +106,10 @@ public sealed class FakeKeycloakClient : IKeycloakClient
     }
 
 
-    public Task<CustomResult<KeycloakUser>> FindUserByEmailAsync(string email, CancellationToken cancellationToken = default)
+    public Task<CustomResult<KeycloakUser>> FindUserAsync(string emailOrUsername, CancellationToken cancellationToken = default)
     {
-        var user = _users.Values.FirstOrDefault(u => string.Equals(u.Email, email, StringComparison.OrdinalIgnoreCase));
+        var user = _users.Values.FirstOrDefault(u => string.Equals(u.Email, emailOrUsername, StringComparison.OrdinalIgnoreCase))
+                   ?? _users.Values.FirstOrDefault(u => string.Equals(u.Username, emailOrUsername, StringComparison.OrdinalIgnoreCase));
 
         return Task.FromResult(user is null
             ? CustomResult<KeycloakUser>.Failure(CustomError.Failure("User not found"))
@@ -83,12 +117,15 @@ public sealed class FakeKeycloakClient : IKeycloakClient
     }
 
 
-    public Task<CustomResult> SendUpdatePasswordEmailAsync(string userId, CancellationToken cancellationToken = default)
+    public Task<CustomResult> ResetPasswordAsync(string userId, string newPassword, CancellationToken cancellationToken = default)
     {
-        if (!_users.Values.Any(u => u.Id == userId))
+        var user = _users.Values.FirstOrDefault(u => u.Id == userId);
+
+        if (user is null)
             return Task.FromResult(CustomResult.Failure("User not found"));
 
-        UpdatePasswordEmailsSentTo.Add(userId);
+        _users[user.Username] = user with { Password = newPassword };
+        PasswordsResetFor.Add(userId);
 
         return Task.FromResult(CustomResult.Success());
     }

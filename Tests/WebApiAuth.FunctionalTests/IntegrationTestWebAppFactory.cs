@@ -1,4 +1,5 @@
-﻿using Domain.Enums;
+﻿using Application.Common.Interfaces;
+using Domain.Enums;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Hosting;
 using WebApiAuth.Services;
@@ -14,11 +15,6 @@ namespace WebApiAuth.FunctionalTests;
 
 public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _databaseIdContainer = new PostgreSqlBuilder()
-        .WithImage("postgres:17")
-        .Build();
-
-
     private readonly PostgreSqlContainer _databaseContainer = new PostgreSqlBuilder()
         .WithImage("postgres:17")
         .Build();
@@ -28,6 +24,9 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
     /// visible to the request handling it.
     /// </summary>
     public FakeKeycloakClient Keycloak { get; } = new();
+
+    /// <summary>Captures the invite and reset mails the host would have sent.</summary>
+    public FakeEmailSender Emails { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -46,32 +45,20 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             services.RemoveAll(typeof(IKeycloakClient));
             services.AddSingleton<IKeycloakClient>(Keycloak);
 
-            services.RemoveAll(typeof(DbContextOptions<WebIdentityContext>));
+            // No SMTP server and no Mailinator token in a test run; capture the mail instead.
+            services.RemoveAll(typeof(IEmailSender));
+            services.AddSingleton<IEmailSender>(Emails);
 
             services.RemoveAll(typeof(DbContextOptions<ApplicationDbContext>));
-
-            services.AddDbContext<WebIdentityContext>(options =>
-                     options.UseNpgsql(_databaseIdContainer.GetConnectionString()));
 
             services.AddDbContext<ApplicationDbContext>(options =>
                      options.UseNpgsql(_databaseContainer.GetConnectionString()));
 
 
-            var sp = services.BuildServiceProvider();
-            using (var scope = sp.CreateScope())
-            {
-                var scopedServices = scope.ServiceProvider;
-                var db = scopedServices.GetRequiredService<WebIdentityContext>();
-                db.Database.EnsureCreated();
-
-                var db1 = scopedServices.GetRequiredService<ApplicationDbContext>();
-
-                db1.Database.EnsureCreated();
-
-
-                // Seed test data if needed
-                //SeedTestData(db);
-            }
+            // No EnsureCreated here: WebApiAuth's startup runs MigrateAsync against this same
+            // container, and a schema EnsureCreated built has no migration history, so the first
+            // migration then fails with 42P07 "relation already exists" and every test in the
+            // fixture dies in its constructor. Let the host's own migration create the schema.
 
         });
 
@@ -81,16 +68,12 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
     public async Task InitializeAsync()
     {
         await _databaseContainer.StartAsync();
-        await _databaseIdContainer.StartAsync();
     }
 
     public async Task DisposeAsync()
     {
         await _databaseContainer.StopAsync();
         await _databaseContainer.DisposeAsync();
-
-        await _databaseIdContainer.StopAsync();
-        await _databaseIdContainer.DisposeAsync();
     }
 
 
@@ -103,7 +86,7 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
 
     public async Task<SeededUser> GetAspNetUserByUserNameAsync(string userName)
     {
-        var user = await Keycloak.FindUserByEmailAsync(userName);
+        var user = await Keycloak.FindUserAsync(userName);
 
         if (user.IsFailure)
             throw new InvalidOperationException($"No seeded Keycloak user '{userName}'.");

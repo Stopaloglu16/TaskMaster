@@ -54,10 +54,11 @@ public class AuthService : IAuthService
             }
             else
             {
-                var rtnMessage = response.Content.ReadAsStringAsync();
-
-                return CustomResult<UserLoginResponse>.Failure(new CustomError(false, 
-                    "Fail " + response.StatusCode.ToString() + ": " + rtnMessage.Result + response.Content ));
+                // responseBody is already the body; the old version re-read the stream, blocked on
+                // .Result, and concatenated the HttpContent object itself, which is where the
+                // "System.Net.Http.HttpConnectionResponseContent" tail on every error came from.
+                return CustomResult<UserLoginResponse>.Failure(new CustomError(false,
+                    responseBody.Trim('"')));
             }
         }
         catch (Exception ex)
@@ -101,6 +102,26 @@ public class AuthService : IAuthService
 
         var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_apiVersion}/registerusers");
         requestMessage.Content = new StringContent(serializedRefreshRequest);
+
+        requestMessage.Content.Headers.ContentType
+            = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+
+        var response = await _httpClient.SendAsync(requestMessage);
+
+        if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            return CustomResult.Success();
+
+        var responseBody = await response.Content.ReadAsStringAsync();
+
+        return CustomResult.Failure(responseBody);
+    }
+
+    public async Task<CustomResult> ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest)
+    {
+        string serializedResetRequest = JsonConvert.SerializeObject(resetPasswordRequest);
+
+        var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_apiVersion}/resetpassword");
+        requestMessage.Content = new StringContent(serializedResetRequest);
 
         requestMessage.Content.Headers.ContentType
             = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");

@@ -18,6 +18,42 @@ public class UserRepository : EfCoreRepository<User, int>, IUserRepository
         _dbContext = dbContext;
     }
 
+
+    public async Task<CustomResult<string?>> SoftDeleteUserAsync(int UserId)
+    {
+        // Soft delete rather than the generic EfCoreRepository.DeleteAsync: that one is a hard
+        // Remove, and FK_TaskLists_Users_AssignedToId has no ON DELETE, so removing a user who owns
+        // any list throws. Loading the graph and saving once also keeps the whole cascade in a
+        // single transaction, which a per-call repository could not.
+        var user = await _dbContext.Users
+                                   .Include(u => u.TaskLists!)
+                                       .ThenInclude(tl => tl.TaskItems!)
+                                   .FirstOrDefaultAsync(u => u.Id == UserId);
+
+        if (user is null)
+            return CustomResult<string?>.Failure(new CustomError(false, "Not found to delete"));
+
+        var aspId = user.AspId;
+
+        user.IsDeleted = 1;
+
+        // 2 is BaseEntity's "parent deleted" marker: the rows go away with their owner but stay
+        // distinguishable from something deleted in its own right.
+        foreach (var taskList in user.TaskLists ?? Enumerable.Empty<TaskList>())
+        {
+            taskList.IsDeleted = 2;
+
+            foreach (var taskItem in taskList.TaskItems)
+            {
+                taskItem.IsDeleted = 2;
+            }
+        }
+
+        await _dbContext.SaveChangesAsync(CancellationToken.None);
+
+        return CustomResult<string?>.Success(aspId);
+    }
+
     public async Task<CustomResult<UserDto>> GetUserByAspId(string AspId)
     {
         var myUserDto = await _dbContext.Users.Where(uu => uu.AspId == AspId)

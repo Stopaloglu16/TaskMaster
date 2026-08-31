@@ -12,15 +12,12 @@ ConnectionStrings__taskmasterdb in the shell, e.g.
 
 Package Manager Console
 Add-Migration InitialCreate -Context Infrastructure.Data.ApplicationDbContext -project Src\Infrastructures\Infrastructure.PostgresMigrations -OutputDir Migrations\ApplicationDb
-Add-Migration InitialWebIdCreate -Context Infrastructure.Data.WebIdentityContext -project Src\Infrastructures\Infrastructure.PostgresMigrations
 
 Update-Database -context Infrastructure.Data.ApplicationDbContext
-Update-Database -context Infrastructure.Data.WebIdentityContext
 
 
 dotnet CLI
 dotnet ef migrations add InitialCreate --context Infrastructure.Data.ApplicationDbContext --project Src\Infrastructures\Infrastructure.PostgresMigrations --startup-project Src\Presentation\WebApiAuth -o Migrations\ApplicationDb
-dotnet ef migrations add InitialWebIdCreate --context Infrastructure.Data.WebIdentityContext --project Src\Infrastructures\Infrastructure.PostgresMigrations --startup-project Src\Presentation\WebApiAuth -o Migrations
 
 
 TickerQ Db (migrations live in the WebApi project, schema "ticker")

@@ -66,36 +66,14 @@ public class RegisterTests : BaseIntegrationTest
         Assert.True(System.Net.HttpStatusCode.OK == createUserResponse.StatusCode, $"createUser API {createUserResponse.StatusCode}");
 
 
-        FetchInboxRequest request1 = new FetchInboxRequest() { Domain = MailinatorDomain, Inbox = MailinatorDomain };
-        var mailResponse1 = await mailinatorClient.MessagesClient.FetchInboxAsync(request1);
+        // The invite token reaches the user only in the email, so read it from the captured mail
+        // rather than a live Mailinator inbox.
+        var inviteEmail = Assert.Single(_factory.Emails.RegisterEmails,
+                                        e => e.To == createUserRequest.UserEmail);
 
-        string mockRegisterUserEmail = string.Empty;
-        string mockRegisterUserToken = string.Empty;
+        string mockRegisterUserEmail = inviteEmail.Username;
+        string mockRegisterUserToken = inviteEmail.Token;
         string mockRegisterUserPassword = TextGenerator.GeneratePassword(8);
-        string mailId = string.Empty;
-
-        foreach (var message in mailResponse1.Messages)
-        {
-            if(message.Subject == "Register")
-            {
-                mailId = mailResponse1.Messages[0].Id;
-                var request = new FetchMessageRequest() { Domain = MailinatorDomain, MessageId = mailId };
-                var responseFetch = await mailinatorClient.MessagesClient.FetchMessageAsync(request);
-
-                string urlPattern = @"<a href='([^']*)'>";
-                Match match = Regex.Match(responseFetch.Text.ToString(), urlPattern);
-
-                var textArray = match.Groups[1].Value.Split('/');
-
-                if (createUserRequest.UserEmail == textArray[4].ToString())
-                {
-                    mockRegisterUserEmail = textArray[4].ToString();
-                    mockRegisterUserToken = textArray[5].ToString();
-
-                    break;
-                }
-            }
-        }
 
 
         // Assert
@@ -113,12 +91,24 @@ public class RegisterTests : BaseIntegrationTest
         var content2 = new StringContent(json2, Encoding.UTF8, "application/json");
         var responseRegisterUser = await _httpClient.PostAsync($"/api/{_fixture.ApiVersion}/registerusers", content2);
 
-        var cc = await responseRegisterUser.Content.ReadAsStringAsync();
+        Assert.True(System.Net.HttpStatusCode.OK == responseRegisterUser.StatusCode,
+            $"registerusers API {responseRegisterUser.StatusCode}: {await responseRegisterUser.Content.ReadAsStringAsync()}");
 
-        Assert.True(System.Net.HttpStatusCode.OK == responseRegisterUser.StatusCode, "registerusers API");
+        // Registering has to leave an account that can actually sign in. It did not before: the
+        // Keycloak user was created without a first or last name, and the direct-access grant then
+        // refused it with "Account is not fully set up".
+        UserLoginRequest newUserLogin = new UserLoginRequest()
+        {
+            Username = mockRegisterUserEmail,
+            Password = mockRegisterUserPassword
+        };
 
-        await mailinatorClient.MessagesClient.DeleteMessageAsync(new DeleteMessageRequest() { Domain = MailinatorDomain, Inbox = MailinatorDomain, MessageId = mailId });
+        _httpClient.DefaultRequestHeaders.Authorization = null;
 
+        var newUserLoginResponse = await _httpClient.PostAsJsonAsync($"/api/{_fixture.ApiVersion}/Login/login", newUserLogin);
+
+        Assert.True(System.Net.HttpStatusCode.OK == newUserLoginResponse.StatusCode,
+            $"Login API {newUserLoginResponse.StatusCode}: {await newUserLoginResponse.Content.ReadAsStringAsync()}");
     }
 
 }

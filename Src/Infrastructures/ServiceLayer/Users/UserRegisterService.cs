@@ -28,4 +28,10 @@ public class UserRegisterService : IUserRegisterService
     {
         return await _userRegisterRepository.UpdateUserAsync(UserId, AspId);
     }
+
+
+    public async Task<CustomResult> ExpireRegisterTokenAsync(int UserId)
+    {
+        return await _userRegisterRepository.ExpireRegisterTokenAsync(UserId);
+    }
 }

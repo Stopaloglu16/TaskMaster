@@ -8,7 +8,6 @@ public abstract class BaseIntegrationTest : EmailTestBase, IClassFixture<Integra
 {
     private readonly IServiceScope _scope;
     protected readonly ApplicationDbContext _dbContext;
-    protected readonly WebIdentityContext _dbIdContext;
     protected readonly HttpClient _httpClient;
     protected readonly IntegrationTestWebAppFactory _factory;
     protected readonly ApiVersionFixture _fixture;
@@ -18,7 +17,6 @@ public abstract class BaseIntegrationTest : EmailTestBase, IClassFixture<Integra
         _factory = factory;
         _scope = factory.Services.CreateScope();
         _dbContext = _scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        _dbIdContext = _scope.ServiceProvider.GetRequiredService<WebIdentityContext>();
         _httpClient = factory.CreateClient();
         _fixture = fixture;
     }

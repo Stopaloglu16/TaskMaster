@@ -1,23 +1,22 @@
 ---
 name: add-migration
-description: Create, review and apply an EF Core migration in TaskMaster. Use when changing an entity, adding a DbSet or column, or when asked to "add a migration", "update the database", "scaffold a migration", or when a startup fails with a pending-model-changes or missing-relation error. Covers all three DbContexts (ApplicationDbContext, WebIdentityContext, TickerQDbContext) and the review step that catches EF's data-destroying guesses.
+description: Create, review and apply an EF Core migration in TaskMaster. Use when changing an entity, adding a DbSet or column, or when asked to "add a migration", "update the database", "scaffold a migration", or when a startup fails with a pending-model-changes or missing-relation error. Covers both DbContexts (ApplicationDbContext, TickerQDbContext) and the review step that catches EF's data-destroying guesses.
 ---
 
 # Adding an EF Core migration
 
-PostgreSQL is the only provider. There are **three DbContexts across two migration projects**, and they do not share commands.
+PostgreSQL is the only provider. There are **two DbContexts across two migration projects**, and they do not share commands.
 
 ## 1. Pick the right project and output directory
 
 | Context | `--project` | `--startup-project` | `-o` |
 |---|---|---|---|
 | `Infrastructure.Data.ApplicationDbContext` | `Src\Infrastructures\Infrastructure.PostgresMigrations` | `Src\Presentation\WebApiAuth` | `Migrations\ApplicationDb` |
-| `Infrastructure.Data.WebIdentityContext` | `Src\Infrastructures\Infrastructure.PostgresMigrations` | `Src\Presentation\WebApiAuth` | `Migrations` |
 | `TickerQDbContext` | `Src\Presentation\WebApi` | `Src\Presentation\WebApi` | `Migrations` |
 
 `TickerQDbContext` comes from the `TickerQ.EntityFrameworkCore` package, not this repo, and its migrations live in the WebApi assembly (`MigrationsAssembly("WebApi")` in `WebApi/Program.cs`). Its tables are in the `ticker` schema.
 
-All three share `public.__EFMigrationsHistory`.
+Both share `public.__EFMigrationsHistory`.
 
 ## 2. Give design-time a connection string
 
@@ -71,4 +70,4 @@ Verify the backfilled values are actually distinct where a unique index requires
 
 ## 6. Applying at runtime
 
-You usually don't need `database update` — migrations apply on startup. `WebApiAuth` migrates `WebIdentityContext` + `ApplicationDbContext` (and seeds); `WebApi` migrates `TickerQDbContext`. Everything else `WaitFor`s `webapiauth` in the AppHost.
+You usually don't need `database update` — migrations apply on startup. `WebApiAuth` migrates `ApplicationDbContext` (and seeds); `WebApi` migrates `TickerQDbContext`. Everything else `WaitFor`s `webapiauth` in the AppHost.

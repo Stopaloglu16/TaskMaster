@@ -149,7 +149,12 @@
         }
         catch (Exception ex)
         {
+            // Without the flag the alert stays hidden and the failure looks like nothing happened,
+            // the same bug the sibling login pages already fixed.
+            IsVisibleAlert = true;
             LoginMesssage = ex.Message;
         }
+
+        StateHasChanged();
     }
 }

@@ -3,7 +3,6 @@ using Domain.Common;
 using Domain.Entities;
 using Domain.Entities.SearchEntities;
 using Domain.Enums;
-using Microsoft.AspNetCore.Identity;
 using Infrastructure.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;

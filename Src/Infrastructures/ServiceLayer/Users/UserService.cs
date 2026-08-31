@@ -49,6 +49,11 @@ public class UserService : IUserService
         return await _userRepository.UpdateAsync(currentUser);
     }
 
+    public async Task<CustomResult<string?>> SoftDeleteUserById(int Id)
+    {
+        return await _userRepository.SoftDeleteUserAsync(Id);
+    }
+
     public async Task<CustomResult<Guid>> RefreshRegisterToken(int Id)
     {
         var currentUser = await _userRepository.GetByIdAsync(Id);

@@ -16,12 +16,14 @@ public class EmailSender : IEmailSender
     private readonly string _emailApiTokenKey;
     private readonly MailinatorClient _mailinatorClient;
     private readonly string _mailinatorDomain;
+    private readonly string _websiteUrl;
 
     public EmailSender(string websiteUrl, string emailApiTokenKey, string mailinatorDomain)
     {
         _emailApiTokenKey = emailApiTokenKey;
         _mailinatorClient = new MailinatorClient(emailApiTokenKey);
         _mailinatorDomain = mailinatorDomain;
+        _websiteUrl = websiteUrl.TrimEnd('/');
     }
 
     public async Task SendEmailAsync(EmailRequest request, CancellationToken cancellationToken)
@@ -87,9 +89,9 @@ public class EmailSender : IEmailSender
                                 ".welcometxt { font-size: x-large; color: #1da5d1 } " +
                                 "</style></head><body>";
 
-            MessageBody = " <table style='width:50%;'><tbody><tr><td> <img  style='width:50%;' src='https://localhost:7155/logos/TaskMasterLogo4.png'> </td></tr>" +
+            MessageBody = " <table style='width:50%;'><tbody><tr><td> <img  style='width:50%;' src='" + _websiteUrl + "/logos/TaskMasterLogo4.png'> </td></tr>" +
                             "<tr><td> <h2> <span class='welcometxt'>Welcome to Task Master! 📚</span></h2></td></tr>" +
-                            "<tr><td>Click below to verify your account.</br> <a href='https://localhost:7155/register/" + Username + "/" + Token + "'>here</a></td></tr>" +
+                            "<tr><td>Click below to verify your account.</br> <a href='" + _websiteUrl + "/register/" + Username + "/" + Token + "'>here</a></td></tr>" +
                             "<tr><td>Username: </br>" + Username + "</td></tr>" +
                             "</tbody></table>";
 
@@ -197,25 +199,36 @@ public class EmailSender : IEmailSender
                                 ".welcometxt { font-size: x-large; color: #1da5d1 } " +
                                 "</style></head><body>";
 
-            MessageBody = " <table style='width:50%;'><tbody><tr><td> <img  style='width:10%;' src='https://localhost:7081/img/carhire.jpeg'> </td></tr>" +
-                            "<tr><td> <h2> <span class='welcometxt'>Welcome to Task Master! 📚</span></h2></td></tr>" +
-                            "<tr><td>Click below to reset your password.</br> <a href='https://localhost:7155/forgotpassword?username=" + Username + "&token=" + Token + "'>here</a></td></tr>" +
+            // The link points at this app's own reset page, not Keycloak's hosted one.
+            MessageBody = " <table style='width:50%;'><tbody><tr><td> <img  style='width:50%;' src='" + _websiteUrl + "/logos/TaskMasterLogo4.png'> </td></tr>" +
+                            "<tr><td> <h2> <span class='welcometxt'>Task Master password reset 🔑</span></h2></td></tr>" +
+                            "<tr><td>Click below to choose a new password.</br> <a href='" + _websiteUrl + "/resetpassword/" + Username + "/" + Token + "'>here</a></td></tr>" +
                             "<tr><td>Username: </br>" + Username + "</td></tr>" +
+                            "<tr><td>The link expires in 2 hours.</td></tr>" +
                             "</tbody></table>";
 
             string HtmlEnd = "</body></html>";
 
-
-            MessageToPost messageToPost = new MessageToPost()
+            // Sent over SMTP to Papercut, the same way the invite mail goes out. It used to be posted
+            // to Mailinator, which meant the reset mail never showed up beside the others in dev.
+            var smtpClient = new SmtpClient("localhost", 25)
             {
-                Subject = "Forgot Password",
-                From = "noreply@taskmaster.com",  //To email on live system
-                Text = HtmlBegin + MessageBody + HtmlEnd
-                //Text = $"{Username}|{Token}"
+                DeliveryMethod = SmtpDeliveryMethod.Network,
+                UseDefaultCredentials = true,
+                EnableSsl = false
             };
 
-            PostMessageRequest postMessageRequest = new PostMessageRequest() { Domain = _mailinatorDomain, Inbox = _mailinatorDomain, Message = messageToPost };
-            PostMessageResponse postMessageResponse = await _mailinatorClient.MessagesClient.PostMessageAsync(postMessageRequest);
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress("test@localhost.com"),
+                Subject = "Forgot Password",
+                Body = HtmlBegin + MessageBody + HtmlEnd,
+                IsBodyHtml = true
+            };
+
+            mailMessage.To.Add(To);
+
+            await smtpClient.SendMailAsync(mailMessage, cancellationToken);
         }
         catch (Exception ex)
         {

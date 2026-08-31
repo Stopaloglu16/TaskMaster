@@ -61,31 +61,12 @@ public class UsersTests : BaseIntegrationTest
         Assert.Equal(System.Net.HttpStatusCode.OK, createUserResponse.StatusCode);
 
 
-        FetchInboxRequest request1 = new FetchInboxRequest() { Domain = MailinatorDomain, Inbox = MailinatorDomain };
-        var mailResponse1 = await mailinatorClient.MessagesClient.FetchInboxAsync(request1);
+        // Creating a user has to send the invite, since that link is the only way the account ever
+        // gets a Keycloak identity.
+        var inviteEmail = Assert.Single(_factory.Emails.RegisterEmails,
+                                        e => e.To == createUserRequest.UserEmail);
 
-        string mailId = string.Empty;
-
-        foreach (var message in mailResponse1.Messages)
-        {
-            if (message.Subject == "Register")
-            {
-                mailId = message.Id;
-                var request = new FetchMessageRequest() { Domain = MailinatorDomain, MessageId = mailId };
-                var responseFetch = await mailinatorClient.MessagesClient.FetchMessageAsync(request);
-
-                var textArray = responseFetch.Text.Split('|');
-
-                if (createUserRequest.FullName == textArray[0].ToString())
-                {
-                    Assert.True(textArray[0] == createUserRequest.UserEmail, "User email not same");
-                    Assert.True(responseFetch.Subject.Contains("Welcome"), "Email not sent");
-                    break;
-                }
-            }
-        }
-
-        await mailinatorClient.MessagesClient.DeleteMessageAsync(new DeleteMessageRequest() { Domain = MailinatorDomain, Inbox = MailinatorDomain, MessageId = mailId });
-
+        Assert.Equal(createUserRequest.UserEmail, inviteEmail.Username);
+        Assert.True(Guid.TryParse(inviteEmail.Token, out _), "Invite link carried no usable token");
     }
 }

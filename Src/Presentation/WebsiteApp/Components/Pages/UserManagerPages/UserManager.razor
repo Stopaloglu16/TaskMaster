@@ -73,6 +73,14 @@
     </UserModal>
 }
 
+@if (ActionPerItemModalOpen)
+{
+    <ActionPerItemModal ActionItemText="@ActionItemText"
+                        ActionText="@ActionName"
+                        OnCloseModal="@OnActionPerItemModalClose">
+    </ActionPerItemModal>
+}
+
 
 @code {
 
@@ -310,13 +318,23 @@
         {
 
             bool IsSuccess = false;
+            string FailureDetail = "";
 
             if (ActionTypeId == 1)
             {
-                var apiReturn = await _userService.DeleteAsync($"user", ItemIdAction);
+                // "users/user" and requiresAuth: true — user routes live on the auth API, and every
+                // other call on this page passes true. Without it this went to the main WebApi, at
+                // a route that does not exist there.
+                var apiReturn = await _userService.DeleteAsync("users/user", ItemIdAction, true);
                 IsSuccess = apiReturn.IsSuccessStatusCode;
+
+                if (!IsSuccess)
+                {
+                    FailureDetail = await apiReturn.Content.ReadAsStringAsync();
+                }
             }
 
+            ActionPerItemModalOpen = false;
 
             if (IsSuccess)
             {
@@ -331,6 +349,20 @@
                     });
 
                 await ModalSuccess();
+            }
+            else
+            {
+                // The failure branch used to be silent, so a failed delete was indistinguishable
+                // from a successful one.
+                ShowNotification(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Not deleted",
+                        Detail = string.IsNullOrWhiteSpace(FailureDetail)
+                            ? $"{ActionItemText} could not be {ActionName.ToLower()}d"
+                            : FailureDetail.Trim('"'),
+                        Duration = 6000
+                    });
             }
         }
     }

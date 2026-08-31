@@ -1,13 +1,9 @@
-﻿using Application.Aggregates.UserAuthAggregate;
-using mailinator_csharp_client.Models.Messages.Requests;
-using Microsoft.AspNetCore.Identity.Data;
+using Application.Aggregates.UserAuthAggregate;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using SharedUtilityTestMethods;
 using System.Net.Http.Json;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Web;
 using ForgotPasswordRequest = Application.Aggregates.UserAuthAggregate.ForgotPasswordRequest;
 
 namespace WebApiAuth.FunctionalTests.ApiEndPoints;
@@ -20,12 +16,15 @@ public class ForgotPasswordTests : BaseIntegrationTest
 
     }
 
+    /// <summary>
+    /// The whole reset round trip, now that the set-password page belongs to this app rather than
+    /// Keycloak: forgotpassword mints a token and mails a link, resetpassword redeems it, and the
+    /// new password works at the login endpoint.
+    /// </summary>
     [Fact]
     public async Task Resetpassword_ValidValues_Success()
     {
         //Arrange
-        #region LogIn
-
         var identityUserMock = await _factory.GetAdminUser();
 
         var userMock = await _dbContext.Users.FirstAsync();
@@ -36,14 +35,10 @@ public class ForgotPasswordTests : BaseIntegrationTest
 
         await _dbContext.SaveChangesAsync();
 
-        #endregion
+        string newPassword = TextGenerator.GeneratePassword(8);
 
         //Act
-        //Step 1
-        //Send Forgot Password API
-
-        //CreateUserRequest createUserRequest = UserData.CreateUserRequestValidAdminSample();
-
+        //Step 1 - request the reset
         ForgotPasswordRequest forgotPasswordRequest = new ForgotPasswordRequest()
         {
             Username = identityUserMock.Email
@@ -52,115 +47,49 @@ public class ForgotPasswordTests : BaseIntegrationTest
         var json = JsonConvert.SerializeObject(forgotPasswordRequest);
         var content1 = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var createUserResponse = await _httpClient.PostAsync($"/api/{_fixture.ApiVersion}/forgotpassword", content1);
+        var forgotResponse = await _httpClient.PostAsync($"/api/{_fixture.ApiVersion}/forgotpassword", content1);
 
-        if (!createUserResponse.IsSuccessStatusCode)
-        {
-            var wer = await createUserResponse.Content.ReadAsStringAsync();
-        }
+        Assert.True(System.Net.HttpStatusCode.OK == forgotResponse.StatusCode,
+            $"forgotpassword API {forgotResponse.StatusCode}: {await forgotResponse.Content.ReadAsStringAsync()}");
 
+        // The token only ever leaves the system in the email, so that is where the test reads it —
+        // the same place a real user gets it from.
+        var sentEmail = Assert.Single(_factory.Emails.ForgotPasswordEmails);
+        Assert.Equal(identityUserMock.Email, sentEmail.To);
 
-        Assert.Equal(System.Net.HttpStatusCode.OK, createUserResponse.StatusCode);
-
-        FetchInboxRequest request1 = new FetchInboxRequest() { Domain = MailinatorDomain, Inbox = MailinatorDomain };
-        var mailResponse1 = await mailinatorClient.MessagesClient.FetchInboxAsync(request1);
-
-
-        string mockRegisterUserEmail = string.Empty;
-        string mockRegisterUserToken = string.Empty;
-        string mockRegisterUserPassword = TextGenerator.GeneratePassword(8);
-        string mailId = string.Empty;
-
-        foreach (var message in mailResponse1.Messages)
-        {
-            if (message.Subject == "Forgot Password")
-            {
-                mailId = message.Id;
-                var request = new FetchMessageRequest() { Domain = MailinatorDomain, MessageId = mailId };
-                var responseFetch = await mailinatorClient.MessagesClient.FetchMessageAsync(request);
-
-                string urlPattern = @"<a href='([^']*)'>";
-                Match match = Regex.Match(responseFetch.Text.ToString(), urlPattern);
-
-                var textArray = match.Groups[1].Value;
-
-                // Parse the URL
-                Uri uri = new Uri(textArray);
-
-                // Extract query parameters
-                var queryParams = HttpUtility.ParseQueryString(uri.Query);
-
-                mockRegisterUserEmail = queryParams["username"];
-                mockRegisterUserToken = queryParams["token"];
-
-
-                //if (identityUserMock.Email == textArray[4].ToString())
-                //{
-
-                //    mockRegisterUserEmail = textArray[4].ToString();
-
-                //    for (int i = 5; i < textArray.Length; i++)
-                //    {
-                //        mockRegisterUserToken += textArray[i];
-
-                //        if (i < textArray.Length - 1)
-                //        {
-                //            mockRegisterUserToken += "/";
-                //        }
-                //    }
-
-                //    break;
-                //}
-            }
-        }
-
-
-        //Step 2
-        //Reset Password API
-
+        //Step 2 - redeem it
         ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest()
         {
-            Email = mockRegisterUserEmail,
-            ResetCode = mockRegisterUserToken,
-            NewPassword = mockRegisterUserPassword
+            Username = identityUserMock.Email,
+            TokenConfirm = sentEmail.Token,
+            Password = newPassword,
+            ConfirmPassword = newPassword
         };
-
 
         json = JsonConvert.SerializeObject(resetPasswordRequest);
         content1 = new StringContent(json, Encoding.UTF8, "application/json");
 
-        createUserResponse = await _httpClient.PostAsync($"/api/{_fixture.ApiVersion}/ResetPassword", content1);
+        var resetResponse = await _httpClient.PostAsync($"/api/{_fixture.ApiVersion}/resetpassword", content1);
 
-        if (!createUserResponse.IsSuccessStatusCode)
-        {
-            var wer = await createUserResponse.Content.ReadAsStringAsync();
-        }
+        Assert.True(System.Net.HttpStatusCode.OK == resetResponse.StatusCode,
+            $"resetpassword API {resetResponse.StatusCode}: {await resetResponse.Content.ReadAsStringAsync()}");
 
-        Assert.Equal(System.Net.HttpStatusCode.OK, createUserResponse.StatusCode);
-
-
-
-
-        // Assert
-        //Check password been reset
+        //Assert - the new password is the one that works now
         UserLoginRequest loginRequest = new UserLoginRequest()
         {
-            Username = mockRegisterUserEmail,
-            Password = mockRegisterUserPassword
+            Username = identityUserMock.Email,
+            Password = newPassword
         };
 
         var responseApiLogin = await _httpClient.PostAsJsonAsync($"/api/{_fixture.ApiVersion}/Login/login", loginRequest);
 
-        if (!responseApiLogin.IsSuccessStatusCode)
-        {
-            var wer = await responseApiLogin.Content.ReadAsStringAsync();
-        }
+        Assert.True(System.Net.HttpStatusCode.OK == responseApiLogin.StatusCode,
+            $"Login API {responseApiLogin.StatusCode}: {await responseApiLogin.Content.ReadAsStringAsync()}");
 
+        // And the link cannot be replayed.
+        var replayResponse = await _httpClient.PostAsync($"/api/{_fixture.ApiVersion}/resetpassword",
+            new StringContent(json, Encoding.UTF8, "application/json"));
 
-        Assert.True(System.Net.HttpStatusCode.OK == responseApiLogin.StatusCode, $"Login API {responseApiLogin.StatusCode}");
-
-
-        await mailinatorClient.MessagesClient.DeleteMessageAsync(new DeleteMessageRequest() { Domain = MailinatorDomain, Inbox = MailinatorDomain, MessageId = mailId });
-
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, replayResponse.StatusCode);
     }
 }

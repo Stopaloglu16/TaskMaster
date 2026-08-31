@@ -10,4 +10,6 @@ public interface IUserRegisterService
 
     Task<CustomResult> UpdateUserAsync(int UserId, string AspId);
 
+    Task<CustomResult> ExpireRegisterTokenAsync(int UserId);
+
 }

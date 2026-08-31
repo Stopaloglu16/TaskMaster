@@ -23,4 +23,11 @@ public interface IUserRepository : IRepository<User, int>
 
     Task<PagingResponse<UserDto>> GetActiveUsersWithPagination(PagingParameters pagingParameters, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Marks the user deleted and cascades to everything they own, in one save. Returns the
+    /// Keycloak id (<c>AspId</c>) of the removed user so the caller can drop the realm account too,
+    /// or a failure if there is no such user.
+    /// </summary>
+    Task<CustomResult<string?>> SoftDeleteUserAsync(int UserId);
+
 }
